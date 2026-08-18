@@ -1,7 +1,7 @@
 import { Chess } from './chess.js';
 import { ChessEngine } from './engine.js';
 import { audio } from './audio.js';
-import { PIECE_SVGS, PIECE_VALUES } from './pieces.js';
+import { PIECE_VALUES, setPieceStyle, currentPieceStyle, getPieceSvg } from './pieces.js';
 
 // Application State
 const state = {
@@ -12,6 +12,7 @@ const state = {
   playerColor: 'w', // 'w', 'b', 'spectator'
   boardFlipped: false,
   autoFlip: true,
+  is3DView: localStorage.getItem('chess_is_3d') === 'true',
   aiLevel: 3,
   evalEnabled: true,
   selectedSquare: null,
@@ -47,7 +48,9 @@ const el = {
   headerWifiIp: document.getElementById('header-wifi-ip'),
   btnCopyIp: document.getElementById('btn-copy-ip'),
   btnOpenQr: document.getElementById('btn-open-qr'),
+  selectPieceStyle: document.getElementById('select-piece-style'),
   selectTheme: document.getElementById('select-theme'),
+  btnToggle3D: document.getElementById('btn-toggle-3d'),
   btnSoundToggle: document.getElementById('btn-sound-toggle'),
 
   // Lobby
@@ -74,6 +77,8 @@ const el = {
   btnStartLocal: document.getElementById('btn-start-local'),
 
   // Arena Board
+  boardStage: document.querySelector('.board-stage'),
+  chessboardWrapper: document.getElementById('chessboard-wrapper'),
   chessboard: document.getElementById('chessboard'),
   evalBarWrapper: document.getElementById('eval-bar-wrapper'),
   evalBarFill: document.getElementById('eval-bar-fill'),
@@ -107,11 +112,12 @@ const el = {
   btnResign: document.getElementById('btn-resign'),
   btnLeaveGame: document.getElementById('btn-leave-game'),
 
+  // Notation
   notationMovesList: document.getElementById('notation-moves-list'),
   btnCopyFen: document.getElementById('btn-copy-fen'),
   btnCopyPgn: document.getElementById('btn-copy-pgn'),
 
-  sideTabOnlineBtn: document.getElementById('side-tab-online-btn'),
+  // Online Room & Chat
   onlineRoomBadge: document.getElementById('online-room-badge'),
   currentRoomId: document.getElementById('current-room-id'),
   btnCopyRoomLink: document.getElementById('btn-copy-room-link'),
@@ -119,15 +125,17 @@ const el = {
   chatMessagesBox: document.getElementById('chat-messages-box'),
   inputChat: document.getElementById('input-chat'),
   btnSendChat: document.getElementById('btn-send-chat'),
+  sideTabOnlineBtn: document.getElementById('side-tab-online-btn'),
 
   // Modals
   modalPromotion: document.getElementById('modal-promotion'),
   promotionChoices: document.getElementById('promotion-choices'),
+
   modalQr: document.getElementById('modal-qr'),
+  btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
   qrCodeImg: document.getElementById('qr-code-img'),
   modalQrUrl: document.getElementById('modal-qr-url'),
   btnModalCopyUrl: document.getElementById('btn-modal-copy-url'),
-  btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
 
   modalGameOver: document.getElementById('modal-game-over'),
   gameoverIcon: document.getElementById('gameover-icon'),
@@ -166,8 +174,10 @@ function showToast(msg) {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerText = msg;
-  el.toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 3200);
+  if (el.toastContainer) {
+    el.toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+  }
 }
 
 function formatTime(seconds) {
@@ -188,6 +198,34 @@ async function initNetworkInfo() {
   } catch (err) {
     el.headerWifiIp.innerText = window.location.host;
   }
+}
+
+// ================= 3D VIEW TOGGLE HELPER =================
+function apply3DViewState() {
+  const is3D = state.is3DView;
+  if (el.boardStage) {
+    if (is3D) {
+      el.boardStage.classList.add('perspective-3d-active');
+    } else {
+      el.boardStage.classList.remove('perspective-3d-active');
+    }
+  }
+  if (el.btnToggle3D) {
+    if (is3D) {
+      el.btnToggle3D.classList.add('active');
+      el.btnToggle3D.innerHTML = '<span class="view-3d-icon">🧊</span> <span class="view-3d-text">3D 켜짐</span>';
+    } else {
+      el.btnToggle3D.classList.remove('active');
+      el.btnToggle3D.innerHTML = '<span class="view-3d-icon">📐</span> <span class="view-3d-text">2D 평면</span>';
+    }
+  }
+  localStorage.setItem('chess_is_3d', is3D);
+}
+
+function toggle3DView() {
+  state.is3DView = !state.is3DView;
+  apply3DViewState();
+  showToast(state.is3DView ? '✨ 3D 입체 원근 모드 켜짐' : '📐 2D 평면 모드 켜짐');
 }
 
 // ================= ULTRA-FAST BOARD RENDERING =================
@@ -275,14 +313,13 @@ function renderBoard(fullRebuild = false) {
       const piece = board[r][c];
       if (piece) {
         const pieceKey = `${piece.color}${piece.type.toUpperCase()}`;
-        const pieceSvg = PIECE_SVGS[pieceKey];
+        const pieceSvg = getPieceSvg(pieceKey);
         if (pieceSvg) {
           const pieceContainer = document.createElement('div');
-          pieceContainer.style.width = '100%';
-          pieceContainer.style.height = '100%';
-          pieceContainer.style.display = 'flex';
-          pieceContainer.style.alignItems = 'center';
-          pieceContainer.style.justifyContent = 'center';
+          pieceContainer.className = 'chess-piece-container';
+          if (state.selectedSquare === squareName) {
+            pieceContainer.classList.add('piece-elevated');
+          }
           pieceContainer.innerHTML = pieceSvg;
           sq.appendChild(pieceContainer);
         }
@@ -350,7 +387,7 @@ function promptPromotion(from, to, color) {
   promoTypes.forEach(type => {
     const btn = document.createElement('div');
     btn.className = 'promo-choice-btn';
-    btn.innerHTML = PIECE_SVGS[`${color}${type.toUpperCase()}`];
+    btn.innerHTML = getPieceSvg(`${color}${type.toUpperCase()}`);
     btn.onclick = () => {
       el.modalPromotion.classList.remove('active');
       executeMove({ from, to, promotion: type });
@@ -537,7 +574,7 @@ function renderCapturedPieces(container, list, pieceColor, advantage) {
   order.forEach(p => {
     if (counts[p]) {
       for (let i = 0; i < counts[p]; i++) {
-        const svg = PIECE_SVGS[`${pieceColor}${p.toUpperCase()}`];
+        const svg = getPieceSvg(`${pieceColor}${p.toUpperCase()}`);
         const span = document.createElement('span');
         span.className = 'captured-icon';
         span.innerHTML = svg;
@@ -898,8 +935,19 @@ function setupEventListeners() {
   el.btnOpenQr.addEventListener('click', () => showQrModal());
   el.btnShowLobbyQr.addEventListener('click', () => showQrModal());
 
+  el.selectPieceStyle.addEventListener('change', (e) => {
+    setPieceStyle(e.target.value);
+    renderBoard();
+    updateCapturedAndMaterial();
+    showToast(`체스말 스타일이 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
+  });
+
   el.selectTheme.addEventListener('change', (e) => {
     document.body.className = e.target.value;
+  });
+
+  el.btnToggle3D.addEventListener('click', () => {
+    toggle3DView();
   });
 
   el.btnSoundToggle.addEventListener('click', () => {
@@ -1121,6 +1169,12 @@ function setupEventListeners() {
 async function init() {
   initWorker();
   await initNetworkInfo();
+  
+  if (el.selectPieceStyle) {
+    el.selectPieceStyle.value = currentPieceStyle;
+  }
+  apply3DViewState();
+
   setupEventListeners();
   renderBoard();
 }
