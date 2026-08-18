@@ -38,7 +38,13 @@ const state = {
   serverUrl: window.location.origin
 };
 
-localStorage.setItem('chess_player_id', state.playerId);
+// Unlock Audio on first user interaction anywhere
+window.addEventListener('pointerdown', () => {
+  audio.init();
+}, { once: false });
+window.addEventListener('keydown', () => {
+  audio.init();
+}, { once: false });
 
 // DOM Elements
 const el = {

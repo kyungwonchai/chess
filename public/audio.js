@@ -22,26 +22,45 @@ class ChessAudio {
     this.init();
     if (!this.ctx) return;
 
+    const now = this.ctx.currentTime;
+
+    // 1. Primary Solid Wood/Stone Strike (Deep thump & snap)
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const filter = this.ctx.createBiquadFilter();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.08);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(360, now);
+    osc.frequency.exponentialRampToValueAtTime(75, now + 0.09);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(600, this.ctx.currentTime);
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.09);
 
-    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.7, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
     osc.connect(filter);
     filter.connect(gain);
     gain.connect(this.ctx.destination);
 
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.08);
+    osc.start(now);
+    osc.stop(now + 0.09);
+
+    // 2. High-Frequency Crisp Click Layer (Clear touch sensation)
+    const clickOsc = this.ctx.createOscillator();
+    const clickGain = this.ctx.createGain();
+    clickOsc.type = 'sine';
+    clickOsc.frequency.setValueAtTime(950, now);
+    clickOsc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
+    clickGain.gain.setValueAtTime(0.35, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+    clickOsc.connect(clickGain);
+    clickGain.connect(this.ctx.destination);
+
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.04);
   }
 
   playCapture() {

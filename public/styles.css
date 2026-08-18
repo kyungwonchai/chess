@@ -574,7 +574,7 @@ body {
 /* ================= 2. GAME ARENA VIEW ================= */
 .arena-container {
   display: flex;
-  max-width: 1200px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 1.25rem;
@@ -584,7 +584,7 @@ body {
 
 .board-column {
   flex: 1;
-  max-width: 680px;
+  max-width: 820px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -756,7 +756,7 @@ body {
 .chessboard-wrapper {
   flex: 1;
   aspect-ratio: 1 / 1;
-  max-width: 620px;
+  max-width: 780px;
   background: linear-gradient(145deg, #1f2937, #0b0f19);
   border-radius: 12px;
   padding: 12px;
@@ -917,7 +917,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.12s ease-out;
   will-change: transform;
 }
 
@@ -926,32 +926,26 @@ body {
   height: 92%;
   display: block;
   pointer-events: none;
-  transition: filter 0.2s ease, transform 0.2s ease;
   overflow: visible;
 }
 
-/* Hover Lift Effect on Turn Piece */
-.square:hover .chess-piece-container {
-  transform: translateY(-3px);
-}
-
-/* 3D Elevated Piece when Selected (Hovering in air) */
+/* Subtle clean highlight on selected piece without shaking */
 .piece-elevated {
-  transform: translateY(-8px) scale(1.08) !important;
+  transform: scale(1.05) !important;
   z-index: 20;
 }
 
 .piece-elevated .chess-piece-svg {
-  filter: drop-shadow(0 16px 14px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)) !important;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)) !important;
 }
 
-/* 3D Billboard Upright Stance in Perspective Mode */
+/* 3D Billboard Stance in Perspective Mode */
 .board-stage.perspective-3d-active .chess-piece-container {
-  transform: rotateX(-20deg) translateY(-3px);
+  transform: rotateX(-20deg);
 }
 
 .board-stage.perspective-3d-active .piece-elevated {
-  transform: rotateX(-20deg) translateY(-14px) scale(1.1) !important;
+  transform: rotateX(-20deg) scale(1.08) !important;
 }
 
 /* Captured Icon 3D Thumbnail */
