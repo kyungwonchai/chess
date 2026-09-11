@@ -797,6 +797,8 @@ function handleServerMessage(msg) {
   const { type } = msg;
 
   if (type === 'room_created') {
+    state.mode = 'wifi';
+    state.aiThinking = false;
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
@@ -804,6 +806,9 @@ function handleServerMessage(msg) {
     if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
     if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
     if (el.btnOfferDraw) el.btnOfferDraw.style.display = 'block';
+    if (el.userAvatar) el.userAvatar.innerText = '👤';
+    if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
+    if (el.gameStatusText) el.gameStatusText.innerText = '상대방 접속 대기 중...';
 
     activateSideTab('tab-online');
     switchView('game');
@@ -814,6 +819,8 @@ function handleServerMessage(msg) {
   }
 
   else if (type === 'room_joined') {
+    state.mode = 'wifi';
+    state.aiThinking = false;
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
@@ -821,6 +828,9 @@ function handleServerMessage(msg) {
     if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
     if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
     if (el.btnOfferDraw) el.btnOfferDraw.style.display = 'block';
+    if (el.userAvatar) el.userAvatar.innerText = '👤';
+    if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
+    if (el.gameStatusText) el.gameStatusText.innerText = '실시간 온라인 대국';
 
     activateSideTab('tab-online');
     switchView('game');
@@ -832,14 +842,23 @@ function handleServerMessage(msg) {
   }
 
   else if (type === 'room_state') {
+    state.mode = 'wifi';
+    state.aiThinking = false;
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
     state.timeControl = msg.timeControl;
+    if (el.userAvatar) el.userAvatar.innerText = '👤';
+    if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
 
     // Auto-close QR modal if opponent joined and game is playing
-    if (msg.status === 'playing' && el.modalQr && el.modalQr.classList.contains('active')) {
-      el.modalQr.classList.remove('active');
-      showToast('상대방이 입장하여 대국이 시작되었습니다!');
+    if (msg.status === 'playing') {
+      if (el.gameStatusText) el.gameStatusText.innerText = '실시간 온라인 대국 진행 중';
+      if (el.modalQr && el.modalQr.classList.contains('active')) {
+        el.modalQr.classList.remove('active');
+        showToast('상대방이 입장하여 대국이 시작되었습니다!');
+      }
+    } else if (msg.status === 'waiting') {
+      if (el.gameStatusText) el.gameStatusText.innerText = '상대방 접속 대기 중...';
     }
 
     if (state.playerColor === 'w') {
