@@ -234,15 +234,22 @@ function formatTime(seconds) {
 }
 
 async function initNetworkInfo() {
-  try {
-    const res = await fetch('/api/info');
-    const data = await res.json();
-    if (data.primaryUrl) {
-      el.headerWifiIp.innerText = data.primaryUrl.replace(/^http:\/\//, '');
-      state.serverUrl = data.primaryUrl;
+  const isLocalHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  if (isLocalHost) {
+    try {
+      const res = await fetch('/api/info');
+      const data = await res.json();
+      if (data.primaryUrl) {
+        el.headerWifiIp.innerText = data.primaryUrl.replace(/^http:\/\//, '');
+        state.serverUrl = `${data.primaryUrl}/chess`;
+      }
+    } catch (err) {
+      el.headerWifiIp.innerText = window.location.host;
     }
-  } catch (err) {
+  } else {
     el.headerWifiIp.innerText = window.location.host;
+    const pathPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    state.serverUrl = `${window.location.origin}${pathPrefix}`;
   }
 }
 
@@ -749,9 +756,14 @@ function handleGameOver(reasonType = null, forcedWinner = null) {
 // ================= WEBSOCKET ONLINE SYSTEM =================
 function connectWebSocket(onOpenCallback) {
   const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${wsProtocol}//${window.location.host}`;
+  const pathPrefix = window.location.pathname.startsWith('/chess') ? '/chess/' : '/';
+  const wsUrl = `${wsProtocol}//${window.location.host}${pathPrefix}`;
 
   if (state.ws) {
+    if (state.ws.readyState === WebSocket.OPEN) {
+      if (onOpenCallback) onOpenCallback();
+      return;
+    }
     state.ws.close();
   }
 
@@ -768,7 +780,7 @@ function connectWebSocket(onOpenCallback) {
 
   state.ws.onerror = (err) => {
     console.error('WS error:', err);
-    showToast('와이파이 서버 연결에 실패했습니다.');
+    showToast('온라인 서버 연결에 실패했습니다.');
   };
 }
 
