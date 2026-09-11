@@ -58,6 +58,7 @@ const el = {
   selectPieceStyle: document.getElementById('select-piece-style'),
   selectTheme: document.getElementById('select-theme'),
   btnToggle3D: document.getElementById('btn-toggle-3d'),
+  btnToggleFullscreen: document.getElementById('btn-toggle-fullscreen'),
   btnSoundToggle: document.getElementById('btn-sound-toggle'),
 
   // Lobby
@@ -281,6 +282,54 @@ function toggle3DView() {
   apply3DViewState();
   showToast(state.is3DView ? '✨ 3D 입체 원근 모드 켜짐' : '📐 2D 평면 모드 켜짐');
 }
+
+// ================= FULLSCREEN MONITOR SUPPORT =================
+function toggleFullscreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    const docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen().then(() => {
+        showToast('🖥️ 모니터 전체화면 모드 시작');
+      }).catch(err => {
+        console.warn('Fullscreen request failed:', err);
+      });
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().then(() => {
+        showToast('🗗 창 모드로 복귀');
+      }).catch(err => {
+        console.warn('Exit fullscreen failed:', err);
+      });
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+function updateFullscreenUI() {
+  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (isFs) {
+    document.body.classList.add('fullscreen-mode');
+    if (el.btnToggleFullscreen) {
+      el.btnToggleFullscreen.classList.add('active');
+      el.btnToggleFullscreen.innerHTML = '<span class="fs-icon">🗗</span> <span class="fs-text">창모드</span>';
+      el.btnToggleFullscreen.title = '창 모드로 복귀 (F키 또는 Esc)';
+    }
+  } else {
+    document.body.classList.remove('fullscreen-mode');
+    if (el.btnToggleFullscreen) {
+      el.btnToggleFullscreen.classList.remove('active');
+      el.btnToggleFullscreen.innerHTML = '<span class="fs-icon">🖥️</span> <span class="fs-text">전체화면</span>';
+      el.btnToggleFullscreen.title = '모니터 전체화면 켜기 (F키 또는 F11)';
+    }
+  }
+}
+
+document.addEventListener('fullscreenchange', updateFullscreenUI);
+document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
 
 // ================= ULTRA-FAST BOARD RENDERING =================
 function renderBoard(fullRebuild = false) {
@@ -1379,6 +1428,19 @@ function setupEventListeners() {
 
   el.btnToggle3D.addEventListener('click', () => {
     toggle3DView();
+  });
+
+  if (el.btnToggleFullscreen) {
+    el.btnToggleFullscreen.addEventListener('click', () => {
+      toggleFullscreen();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    }
   });
 
   el.btnSoundToggle.addEventListener('click', () => {
