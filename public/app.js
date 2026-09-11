@@ -192,6 +192,9 @@ const el = {
   btnReplayEnd: document.getElementById('btn-replay-end'),
   btnReplayCopyPgn: document.getElementById('btn-replay-copy-pgn'),
 
+  lobbyRecentGames: document.getElementById('lobby-recent-games'),
+  btnLobbyOpenRecords: document.getElementById('btn-lobby-open-records'),
+
   toastContainer: document.getElementById('toast-container')
 };
 
@@ -835,18 +838,28 @@ function handleGameOver(reasonType = null, forcedWinner = null) {
   let title = '대국 종료';
   let reason = '';
   let isWin = false;
+  let winnerColor = null; // 'w' | 'b' | 'draw'
 
   if (reasonType === 'time_out') {
     const winnerName = forcedWinner === 'w' ? '백' : '흑';
     title = '⏱️ 시간 초과!';
     reason = `${winnerName}의 시간승입니다.`;
     isWin = (forcedWinner === state.playerColor);
+    winnerColor = forcedWinner;
+  } else if (reasonType === 'resign') {
+    winnerColor = forcedWinner;
+    const winnerName = forcedWinner === 'w' ? '백' : '흑';
+    title = '🏳️ 기권';
+    reason = `${winnerName} 승리 (기권패)`;
+    isWin = (forcedWinner === state.playerColor);
   } else if (state.game.isCheckmate()) {
-    const winnerColor = state.game.turn() === 'w' ? '흑' : '백';
+    winnerColor = state.game.turn() === 'w' ? 'b' : 'w';
+    const wName = winnerColor === 'w' ? '백' : '흑';
     title = '🏆 체크메이트!';
-    reason = `${winnerColor} 승리입니다.`;
-    isWin = (state.game.turn() !== state.playerColor);
+    reason = `${wName} 승리입니다.`;
+    isWin = (winnerColor === state.playerColor);
   } else if (state.game.isDraw()) {
+    winnerColor = 'draw';
     title = '🤝 무승부';
     if (state.game.isStalemate()) reason = '스테일메이트 (더 이상 둘 수가 없습니다)';
     else if (state.game.isThreefoldRepetition()) reason = '3회 동형 반복 무승부';
@@ -854,12 +867,76 @@ function handleGameOver(reasonType = null, forcedWinner = null) {
     else reason = '50수 규칙 무승부';
   }
 
+  const totalMoves = state.game.history().length;
+
   audio.playGameEnd(isWin);
 
-  el.gameoverIcon.innerText = isWin ? '🏆' : (state.game.isDraw() ? '🤝' : '⚔️');
+  el.gameoverIcon.innerText = isWin ? '🏆' : (winnerColor === 'draw' ? '🤝' : '⚔️');
   el.gameoverTitle.innerText = title;
-  el.gameoverReason.innerText = reason;
+  el.gameoverReason.innerText = `${reason}\n총 ${totalMoves}수 만에 종료되었습니다.`;
   el.modalGameOver.classList.add('active');
+
+  // Auto-save AI and local games to server
+  if (state.mode === 'ai' || state.mode === 'local') {
+    saveLocalGameToServer(winnerColor, reason, totalMoves);
+  }
+}
+
+async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
+  try {
+    const history = state.game.history({ verbose: true });
+    if (!history || history.length === 0) return;
+
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+
+    let whiteName, blackName;
+    if (state.mode === 'ai') {
+      whiteName = state.playerColor === 'w' ? (state.playerName || '플레이어') : `AI Lv.${state.aiLevel}`;
+      blackName = state.playerColor === 'b' ? (state.playerName || '플레이어') : `AI Lv.${state.aiLevel}`;
+    } else {
+      whiteName = el.userName.innerText.replace(' (백)', '').replace(' (White)', '') || '플레이어 1';
+      blackName = el.opponentName.innerText.replace(' (흑)', '').replace(' (Black)', '') || '플레이어 2';
+    }
+
+    let winnerName = '무승부';
+    if (winnerColor === 'w') winnerName = whiteName;
+    else if (winnerColor === 'b') winnerName = blackName;
+
+    const timeMinutes = state.timeControl?.initial ? Math.round(state.timeControl.initial / 60) : 0;
+    const modeTag = state.mode === 'ai' ? `AI Lv.${state.aiLevel}` : '로컬 2인';
+
+    const gameRecord = {
+      id: `game_${Date.now()}_${state.mode}`,
+      roomId: modeTag,
+      playedAt: new Date().toISOString(),
+      white: whiteName,
+      black: blackName,
+      winner: winnerColor || 'draw',
+      winnerName,
+      endReason: endReason || '대국 종료',
+      totalMoves,
+      fen: state.game.fen(),
+      pgn: state.game.pgn(),
+      timeControl: timeMinutes > 0 ? `${timeMinutes}분` : '무제한',
+      history: history.map(h => ({
+        from: h.from,
+        to: h.to,
+        piece: h.piece,
+        color: h.color,
+        san: h.san,
+        captured: h.captured || null,
+        promotion: h.promotion || null
+      }))
+    };
+
+    await fetch(`${apiPrefix}/api/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(gameRecord)
+    });
+  } catch (err) {
+    console.warn('Failed to save local game:', err);
+  }
 }
 
 // ================= WEBSOCKET ONLINE SYSTEM =================
@@ -1072,10 +1149,65 @@ function switchView(viewName) {
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
       state.ws.send(JSON.stringify({ type: 'list_rooms' }));
     }
+    // Refresh lobby recent games panel
+    loadLobbyRecentGames();
   } else if (viewName === 'game') {
     el.viewLobby.classList.remove('active');
     el.viewGame.classList.add('active');
     renderBoard();
+  }
+}
+
+async function loadLobbyRecentGames() {
+  if (!el.lobbyRecentGames) return;
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/games`);
+    const data = await res.json();
+    const games = (data.games || []).slice(0, 6); // Show last 6
+
+    if (games.length === 0) {
+      el.lobbyRecentGames.innerHTML = '<div class="room-empty-state">아직 기록이 없습니다. 대국 후 자동으로 저장됩니다.</div>';
+      return;
+    }
+
+    el.lobbyRecentGames.innerHTML = games.map(g => {
+      const dateStr = new Date(g.playedAt).toLocaleString('ko-KR', {
+        month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      const resultEmoji = g.winner === 'w' ? '🏆백' : g.winner === 'b' ? '🏆흑' : '🤝무';
+      const roomId = g.roomId || '';
+      let modeTag = '🌐';
+      if (roomId.startsWith('AI Lv.')) modeTag = '🤖';
+      else if (roomId === '로컬 2인') modeTag = '👥';
+
+      return `
+        <div class="lobby-recent-item" data-id="${g.id}">
+          <span class="lri-mode">${modeTag}</span>
+          <span class="lri-vs">${g.white} vs ${g.black}</span>
+          <span class="lri-result">${resultEmoji} · ${g.totalMoves}수</span>
+          <span class="lri-date">${dateStr}</span>
+          <button class="btn-mini lri-replay-btn" data-id="${g.id}">🔍</button>
+        </div>
+      `;
+    }).join('');
+
+    // Bind replay buttons in lobby recent list
+    el.lobbyRecentGames.querySelectorAll('.lri-replay-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const gameId = btn.dataset.id;
+        try {
+          const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+          const r = await fetch(`${apiPrefix}/api/games/${gameId}`);
+          const game = await r.json();
+          if (game && game.history) openReplayModal(game);
+        } catch (e) {
+          showToast('기보를 불러오지 못했습니다.');
+        }
+      });
+    });
+  } catch (err) {
+    if (el.lobbyRecentGames) el.lobbyRecentGames.innerHTML = '<div class="room-empty-state">기록 불러오기 실패</div>';
   }
 }
 
@@ -1273,7 +1405,7 @@ async function loadGameRecords() {
     const games = data.games || [];
 
     if (games.length === 0) {
-      el.gamesListContainer.innerHTML = '<div class="empty-table-msg">저장된 기보가 없습니다.<br>와이파이 대국이 끝나면 자동으로 기보가 저장됩니다.</div>';
+      el.gamesListContainer.innerHTML = '<div class="empty-table-msg">저장된 기보가 없습니다.<br>대국이 끝나면 자동으로 저장됩니다.</div>';
       return;
     }
 
@@ -1283,17 +1415,31 @@ async function loadGameRecords() {
       });
       const whiteWin = g.winner === 'w' ? 'winner-name' : '';
       const blackWin = g.winner === 'b' ? 'winner-name' : '';
-      const resultText = g.winner === 'w' ? `🏆 백(${g.white}) 승` :
-                         g.winner === 'b' ? `🏆 흑(${g.black}) 승` : '🤝 무승부';
+
+      const resultEmoji = g.winner === 'w' ? '🏆 백 승' :
+                          g.winner === 'b' ? '🏆 흑 승' : '🤝 무승부';
+      const resultClass = g.winner === 'draw' ? 'result-draw' : 'result-win';
+
+      // Mode tag: Wi-Fi = 4-char room ID, AI = 'AI Lv.X', local = '로컬 2인'
+      const roomId = g.roomId || '';
+      let modeTag = '🌐 와이파이';
+      if (roomId.startsWith('AI Lv.')) modeTag = `🤖 ${roomId}`;
+      else if (roomId === '로컬 2인') modeTag = '👥 로컬';
+      else if (roomId.length <= 4 && roomId.length > 0) modeTag = `🌐 방:${roomId}`;
 
       return `
         <div class="game-record-card">
           <div class="game-record-left">
             <div class="game-record-vs">
               <span class="${whiteWin}">⚪ ${g.white}</span> vs <span class="${blackWin}">⚫ ${g.black}</span>
+              <span class="game-mode-tag">${modeTag}</span>
             </div>
             <div class="game-record-meta">
-              <strong>${resultText}</strong> (${g.endReason}) · ${g.totalMoves}수 · ⏱️ ${g.timeControl} · 📅 ${dateStr}
+              <span class="${resultClass}">${resultEmoji}</span>
+              <span class="moves-count">⚡ <strong>${g.totalMoves}수</strong></span>
+              · ${g.endReason}
+              · ⏱️ ${g.timeControl}
+              · 📅 ${dateStr}
             </div>
           </div>
           <div class="game-record-actions">
@@ -1363,10 +1509,14 @@ function renderReplayBoard() {
 
       const p = board[rIdx][cIdx];
       if (p) {
-        const pieceEl = document.createElement('div');
-        pieceEl.className = 'chess-piece';
-        pieceEl.innerHTML = getPieceSvg(p.type, p.color);
-        sq.appendChild(pieceEl);
+        const pieceKey = `${p.color}${p.type.toUpperCase()}`;
+        const pieceSvg = getPieceSvg(pieceKey);
+        if (pieceSvg) {
+          const pieceEl = document.createElement('div');
+          pieceEl.className = 'chess-piece-container';
+          pieceEl.innerHTML = pieceSvg;
+          sq.appendChild(pieceEl);
+        }
       }
 
       fragment.appendChild(sq);
@@ -1740,6 +1890,20 @@ async function init() {
 
   setupEventListeners();
   renderBoard();
+
+  // Load lobby recent games on startup
+  loadLobbyRecentGames();
+
+  // Bind lobby "전체 보기" button
+  if (el.btnLobbyOpenRecords) {
+    el.btnLobbyOpenRecords.addEventListener('click', () => {
+      if (el.modalRecords) {
+        el.modalRecords.classList.add('active');
+        loadLeaderboard();
+        loadGameRecords();
+      }
+    });
+  }
 
   // Connect WebSocket early to listen for lobby updates and live rooms
   connectWebSocket(() => {

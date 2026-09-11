@@ -118,6 +118,19 @@ app.get('/chess/api/qr', handleQr);
 app.get(['/api/games', '/chess/api/games'], (req, res) => {
   res.json(getGames(100));
 });
+app.post(['/api/games', '/chess/api/games'], (req, res) => {
+  // Save AI/local game from client
+  const gameRecord = req.body;
+  if (!gameRecord || !gameRecord.history || gameRecord.history.length === 0) {
+    return res.status(400).json({ error: 'Invalid game record' });
+  }
+  // Ensure ID
+  if (!gameRecord.id) {
+    gameRecord.id = `game_${Date.now()}_local`;
+  }
+  saveGame(gameRecord);
+  res.json({ ok: true, id: gameRecord.id });
+});
 app.get(['/api/games/:id', '/chess/api/games/:id'], (req, res) => {
   const g = getGameById(req.params.id);
   if (!g) return res.status(404).json({ error: 'Game not found' });
