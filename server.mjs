@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
 import { Chess } from 'chess.js';
+import { saveGame, getGames, getGameById, getLeaderboard } from './storage.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,6 +113,19 @@ app.get('/api/info', handleInfo);
 app.get('/chess/api/info', handleInfo);
 app.get('/api/qr', handleQr);
 app.get('/chess/api/qr', handleQr);
+
+// Game history and leaderboard APIs
+app.get(['/api/games', '/chess/api/games'], (req, res) => {
+  res.json(getGames(100));
+});
+app.get(['/api/games/:id', '/chess/api/games/:id'], (req, res) => {
+  const g = getGameById(req.params.id);
+  if (!g) return res.status(404).json({ error: 'Game not found' });
+  res.json(g);
+});
+app.get(['/api/leaderboard', '/chess/api/leaderboard'], (req, res) => {
+  res.json({ leaderboard: getLeaderboard() });
+});
 
 /*
   Room Data Structure:
@@ -220,7 +234,9 @@ function startRoomTimer(room) {
         room.status = 'ended';
         room.winner = currentTurn === 'w' ? 'b' : 'w';
         room.endReason = '시간 초과 (Time Out)';
+        recordGameResult(room);
         broadcastRoomState(room);
+        broadcastRoomList();
       }
     }
   }, 1000);
@@ -233,9 +249,71 @@ function stopRoomTimer(room) {
   }
 }
 
+function recordGameResult(room) {
+  if (!room || room.saved) return;
+  const history = room.chess.history({ verbose: true });
+  if (!history || history.length === 0) return;
+
+  room.saved = true;
+  const whiteName = room.white?.name || '백 (White)';
+  const blackName = room.black?.name || '흑 (Black)';
+  let winnerName = '무승부';
+  if (room.winner === 'w') winnerName = whiteName;
+  else if (room.winner === 'b') winnerName = blackName;
+
+  const gameRecord = {
+    id: `game_${Date.now()}_${room.id}`,
+    roomId: room.id,
+    playedAt: new Date().toISOString(),
+    white: whiteName,
+    black: blackName,
+    winner: room.winner,
+    winnerName,
+    endReason: room.endReason || '대국 종료',
+    totalMoves: history.length,
+    fen: room.chess.fen(),
+    pgn: room.chess.pgn(),
+    timeControl: room.timeControl ? `${Math.round(room.timeControl.initial / 60)}분` : '무제한',
+    history: history.map(h => ({
+      from: h.from,
+      to: h.to,
+      piece: h.piece,
+      color: h.color,
+      san: h.san,
+      captured: h.captured || null,
+      promotion: h.promotion || null
+    }))
+  };
+
+  saveGame(gameRecord);
+}
+
+function getRoomListData() {
+  return Object.values(rooms).map(r => ({
+    id: r.id,
+    name: r.name,
+    status: r.status,
+    host: r.white?.name || r.black?.name || '익명',
+    players: (r.white ? 1 : 0) + (r.black ? 1 : 0),
+    timeControl: r.timeControl
+  }));
+}
+
+function broadcastRoomList() {
+  const payload = JSON.stringify({ type: 'room_list', rooms: getRoomListData() });
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  }
+}
+
 wss.on('connection', (ws) => {
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
+
+  // Send current room list on connect
+  ws.send(JSON.stringify({ type: 'room_list', rooms: getRoomListData() }));
 
   ws.on('message', (messageText) => {
     let data;
@@ -302,6 +380,7 @@ wss.on('connection', (ws) => {
       }));
 
       broadcastRoomState(room);
+      broadcastRoomList();
     }
 
     // 2. Join Room
@@ -352,6 +431,7 @@ wss.on('connection', (ws) => {
       }));
 
       broadcastRoomState(room);
+      broadcastRoomList();
     }
 
     // 3. Make Move
@@ -410,6 +490,8 @@ wss.on('connection', (ws) => {
               room.endReason = '50수 무승부 규칙 (50-move Rule)';
             }
           }
+          recordGameResult(room);
+          broadcastRoomList();
         }
 
         broadcastRoomState(room);
@@ -434,7 +516,9 @@ wss.on('connection', (ws) => {
         room.winner = 'w';
         room.endReason = `${room.black.name} 흑 기권`;
       }
+      recordGameResult(room);
       broadcastRoomState(room);
+      broadcastRoomList();
     }
 
     // 5. Draw Offers
@@ -462,7 +546,9 @@ wss.on('connection', (ws) => {
         room.winner = 'draw';
         room.endReason = '상호 합의 무승부 (Draw by Agreement)';
         room.drawOffer = null;
+        recordGameResult(room);
         broadcastRoomState(room);
+        broadcastRoomList();
       } else {
         room.drawOffer = null;
         broadcastRoomState(room);
@@ -490,6 +576,7 @@ wss.on('connection', (ws) => {
         room.endReason = '';
         room.drawOffer = null;
         room.rematchOffer = { w: false, b: false };
+        room.saved = false;
 
         // Swap colors for fairness
         const prevWhite = room.white;
@@ -499,6 +586,7 @@ wss.on('connection', (ws) => {
         room.black = { ...prevWhite, timeLeft: room.timeControl.initial };
 
         startRoomTimer(room);
+        broadcastRoomList();
       }
 
       broadcastRoomState(room);
@@ -525,14 +613,7 @@ wss.on('connection', (ws) => {
 
     // 8. Public Room List
     else if (type === 'list_rooms') {
-      const roomList = Object.values(rooms).map(r => ({
-        id: r.id,
-        name: r.name,
-        status: r.status,
-        players: (r.white ? 1 : 0) + (r.black ? 1 : 0),
-        timeControl: r.timeControl
-      }));
-      ws.send(JSON.stringify({ type: 'room_list', rooms: roomList }));
+      ws.send(JSON.stringify({ type: 'room_list', rooms: getRoomListData() }));
     }
   });
 
@@ -551,11 +632,13 @@ wss.on('connection', (ws) => {
             if (!room.white?.ws && !room.black?.ws && room.spectators.length === 0) {
               stopRoomTimer(room);
               delete rooms[room.id];
+              broadcastRoomList();
             }
           }, 300000);
         } else {
           broadcastRoomState(room);
         }
+        broadcastRoomList();
       }
       clientRooms.delete(ws);
     }

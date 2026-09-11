@@ -150,6 +150,46 @@ const el = {
   btnModalRematch: document.getElementById('btn-modal-rematch'),
   btnModalLobby: document.getElementById('btn-modal-lobby'),
 
+  // Live Room Topbar
+  onlineRoomTopbar: document.getElementById('online-room-topbar'),
+  topRoomId: document.getElementById('top-room-id'),
+  btnTopCopyLink: document.getElementById('btn-top-copy-link'),
+  btnTopShowQr: document.getElementById('btn-top-show-qr'),
+
+  // Lobby Open Rooms
+  lobbyRoomsBox: document.getElementById('lobby-rooms-box'),
+  lobbyRoomsList: document.getElementById('lobby-rooms-list'),
+  btnRefreshRooms: document.getElementById('btn-refresh-rooms'),
+
+  // QR Modal Room Code Badge
+  modalRoomCodeBadge: document.getElementById('modal-room-code-badge'),
+  modalBigRoomCode: document.getElementById('modal-big-room-code'),
+
+  // Records & Leaderboard Modal
+  btnOpenRecords: document.getElementById('btn-open-records'),
+  modalRecords: document.getElementById('modal-records'),
+  btnCloseRecordsModal: document.getElementById('btn-close-records-modal'),
+  tabBtnLeaderboard: document.getElementById('tab-btn-leaderboard'),
+  tabBtnGames: document.getElementById('tab-btn-games'),
+  rtabLeaderboard: document.getElementById('rtab-leaderboard'),
+  rtabGames: document.getElementById('rtab-games'),
+  leaderboardTbody: document.getElementById('leaderboard-tbody'),
+  gamesListContainer: document.getElementById('games-list-container'),
+
+  // Replay Modal
+  modalReplay: document.getElementById('modal-replay'),
+  btnCloseReplayModal: document.getElementById('btn-close-replay-modal'),
+  replayChessboard: document.getElementById('replay-chessboard'),
+  replayTitle: document.getElementById('replay-title'),
+  replayPlayersInfo: document.getElementById('replay-players-info'),
+  replayStepCounter: document.getElementById('replay-step-counter'),
+  replayCurrentMoveDesc: document.getElementById('replay-current-move-desc'),
+  btnReplayStart: document.getElementById('btn-replay-start'),
+  btnReplayPrev: document.getElementById('btn-replay-prev'),
+  btnReplayNext: document.getElementById('btn-replay-next'),
+  btnReplayEnd: document.getElementById('btn-replay-end'),
+  btnReplayCopyPgn: document.getElementById('btn-replay-copy-pgn'),
+
   toastContainer: document.getElementById('toast-container')
 };
 
@@ -732,24 +772,63 @@ function connectWebSocket(onOpenCallback) {
   };
 }
 
+function activateSideTab(tabId) {
+  document.querySelectorAll('.side-tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+  document.querySelectorAll('.side-tab-content').forEach(c => {
+    c.classList.toggle('active', c.id === tabId);
+  });
+}
+
 function handleServerMessage(msg) {
   const { type } = msg;
 
-  if (type === 'room_created' || type === 'room_joined') {
+  if (type === 'room_created') {
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
-    el.currentRoomId.innerText = msg.roomId;
-    el.btnOfferDraw.style.display = 'block';
+    if (el.currentRoomId) el.currentRoomId.innerText = msg.roomId;
+    if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
+    if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
+    if (el.btnOfferDraw) el.btnOfferDraw.style.display = 'block';
 
+    activateSideTab('tab-online');
+    switchView('game');
+    showToast(`방 [${msg.roomId}]이 생성되었습니다! 상대방 대기 중`);
+
+    const roomUrl = `${state.serverUrl}/?room=${msg.roomId}`;
+    showQrModal(roomUrl, msg.roomId);
+  }
+
+  else if (type === 'room_joined') {
+    state.roomId = msg.roomId;
+    state.playerColor = msg.yourRole;
+    state.boardFlipped = (msg.yourRole === 'b');
+    if (el.currentRoomId) el.currentRoomId.innerText = msg.roomId;
+    if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
+    if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
+    if (el.btnOfferDraw) el.btnOfferDraw.style.display = 'block';
+
+    activateSideTab('tab-online');
     switchView('game');
     showToast(`방 [${msg.roomId}]에 입장했습니다. (내 진영: ${msg.yourRole === 'w' ? '백' : msg.yourRole === 'b' ? '흑' : '관전'})`);
+  }
+
+  else if (type === 'room_list') {
+    renderLobbyRooms(msg.rooms || []);
   }
 
   else if (type === 'room_state') {
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
     state.timeControl = msg.timeControl;
+
+    // Auto-close QR modal if opponent joined and game is playing
+    if (msg.status === 'playing' && el.modalQr && el.modalQr.classList.contains('active')) {
+      el.modalQr.classList.remove('active');
+      showToast('상대방이 입장하여 대국이 시작되었습니다!');
+    }
 
     if (state.playerColor === 'w') {
       el.userName.innerText = msg.white?.name || '나 (백)';
@@ -798,6 +877,10 @@ function handleServerMessage(msg) {
       el.gameoverTitle.innerText = msg.winner === 'draw' ? '무승부' : `${msg.winner === 'w' ? '백' : '흑'} 승리!`;
       el.gameoverReason.innerText = msg.endReason || '대국이 종료되었습니다.';
       el.modalGameOver.classList.add('active');
+
+      // Refresh records cache
+      loadLeaderboard();
+      loadGameRecords();
     }
   }
 
@@ -837,9 +920,13 @@ function switchView(viewName) {
     el.viewLobby.classList.add('active');
     el.viewGame.classList.remove('active');
     el.modalGameOver.classList.remove('active');
+    if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'none';
     state.gameStatus = 'idle';
     state.aiThinking = false;
     if (state.clockInterval) clearInterval(state.clockInterval);
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+    }
   } else if (viewName === 'game') {
     el.viewLobby.classList.remove('active');
     el.viewGame.classList.add('active');
@@ -915,12 +1002,21 @@ function startLocalGame() {
   triggerAsyncEvaluation();
 }
 
-async function showQrModal(customUrl = null) {
+async function showQrModal(customUrl = null, roomCode = null) {
   const targetUrl = customUrl || state.serverUrl;
   el.modalQrUrl.value = targetUrl;
 
+  const code = roomCode || state.roomId;
+  if (code && el.modalRoomCodeBadge && el.modalBigRoomCode) {
+    el.modalBigRoomCode.innerText = code;
+    el.modalRoomCodeBadge.style.display = 'block';
+  } else if (el.modalRoomCodeBadge) {
+    el.modalRoomCodeBadge.style.display = 'none';
+  }
+
   try {
-    const res = await fetch(`/api/qr?url=${encodeURIComponent(targetUrl)}`);
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/qr?url=${encodeURIComponent(targetUrl)}`);
     const data = await res.json();
     if (data.qrCode) {
       el.qrCodeImg.src = data.qrCode;
@@ -929,6 +1025,237 @@ async function showQrModal(customUrl = null) {
   } catch (err) {
     showToast('QR 코드 생성 실패');
   }
+}
+
+function renderLobbyRooms(rooms) {
+  if (!el.lobbyRoomsList) return;
+  const waitingRooms = rooms.filter(r => r.status === 'waiting' || r.players < 2);
+  if (waitingRooms.length === 0) {
+    el.lobbyRoomsList.innerHTML = '<div class="room-empty-state">현재 대기 중인 방이 없습니다.<br>새 방을 개설하거나 코드를 입력하세요.</div>';
+    return;
+  }
+
+  el.lobbyRoomsList.innerHTML = waitingRooms.map(r => `
+    <div class="room-card-item">
+      <div class="room-card-info">
+        <span class="room-card-code">방 [${r.id}]</span>
+        <span class="room-card-sub">👤 ${r.host} (${r.players}/2명 대기중) · ⏱️ ${Math.round((r.timeControl?.initial || 600) / 60)}분</span>
+      </div>
+      <button class="btn-join-room-fast" data-room="${r.id}">즉시 참가</button>
+    </div>
+  `).join('');
+
+  el.lobbyRoomsList.querySelectorAll('.btn-join-room-fast').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rid = btn.dataset.room;
+      el.inputRoomCode.value = rid;
+      joinOnlineRoom(rid);
+    });
+  });
+}
+
+function joinOnlineRoom(roomCode) {
+  const playerName = el.joinPlayerName.value.trim() || '게스트';
+  const code = (roomCode || el.inputRoomCode.value).trim().toUpperCase();
+  if (!code) {
+    showToast('방 코드를 입력해주세요.');
+    return;
+  }
+  localStorage.setItem('chess_player_name', playerName);
+
+  const sendJoin = () => {
+    state.ws.send(JSON.stringify({
+      type: 'join_room',
+      roomId: code,
+      playerName,
+      playerId: state.playerId
+    }));
+  };
+
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    sendJoin();
+  } else {
+    connectWebSocket(sendJoin);
+  }
+}
+
+async function loadLeaderboard() {
+  if (!el.leaderboardTbody) return;
+  el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">랭킹 불러오는 중...</td></tr>';
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/leaderboard`);
+    const data = await res.json();
+    const list = data.leaderboard || [];
+
+    if (list.length === 0) {
+      el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">아직 저장된 대국 기록이 없습니다.<br>와이파이 대국을 완료하면 승률이 자동 집계됩니다.</td></tr>';
+      return;
+    }
+
+    el.leaderboardTbody.innerHTML = list.map((p, idx) => {
+      const rank = idx + 1;
+      const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+      const streakHtml = (p.recent || []).map(r => {
+        const cls = r === 'W' ? 'streak-w' : r === 'D' ? 'streak-d' : 'streak-l';
+        return `<span class="streak-dot ${cls}">${r}</span>`;
+      }).join('');
+
+      return `
+        <tr>
+          <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+          <td><strong>${p.name}</strong></td>
+          <td style="text-align:center;">${p.wins}승 ${p.draws}무 ${p.losses}패 (${p.games}전)</td>
+          <td style="text-align:center;"><span class="player-winrate-badge">${p.winRate}%</span></td>
+          <td style="text-align:center;"><div class="recent-streak">${streakHtml || '-'}</div></td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">전적 불러오기 실패</td></tr>';
+  }
+}
+
+async function loadGameRecords() {
+  if (!el.gamesListContainer) return;
+  el.gamesListContainer.innerHTML = '<div class="empty-table-msg">기보 목록을 불러오는 중...</div>';
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/games`);
+    const data = await res.json();
+    const games = data.games || [];
+
+    if (games.length === 0) {
+      el.gamesListContainer.innerHTML = '<div class="empty-table-msg">저장된 기보가 없습니다.<br>와이파이 대국이 끝나면 자동으로 기보가 저장됩니다.</div>';
+      return;
+    }
+
+    el.gamesListContainer.innerHTML = games.map(g => {
+      const dateStr = new Date(g.playedAt).toLocaleString('ko-KR', {
+        month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      const whiteWin = g.winner === 'w' ? 'winner-name' : '';
+      const blackWin = g.winner === 'b' ? 'winner-name' : '';
+      const resultText = g.winner === 'w' ? `🏆 백(${g.white}) 승` :
+                         g.winner === 'b' ? `🏆 흑(${g.black}) 승` : '🤝 무승부';
+
+      return `
+        <div class="game-record-card">
+          <div class="game-record-left">
+            <div class="game-record-vs">
+              <span class="${whiteWin}">⚪ ${g.white}</span> vs <span class="${blackWin}">⚫ ${g.black}</span>
+            </div>
+            <div class="game-record-meta">
+              <strong>${resultText}</strong> (${g.endReason}) · ${g.totalMoves}수 · ⏱️ ${g.timeControl} · 📅 ${dateStr}
+            </div>
+          </div>
+          <div class="game-record-actions">
+            <button class="btn-header-chip btn-copy-game-pgn" data-id="${g.id}">📋 PGN</button>
+            <button class="btn-join-room-fast btn-replay-game" data-id="${g.id}">🔍 다시보기</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    el.gamesListContainer.querySelectorAll('.btn-copy-game-pgn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const game = games.find(x => x.id === btn.dataset.id);
+        if (game && game.pgn) {
+          navigator.clipboard.writeText(game.pgn).then(() => showToast('PGN 기보가 복사되었습니다!'));
+        }
+      });
+    });
+
+    el.gamesListContainer.querySelectorAll('.btn-replay-game').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const game = games.find(x => x.id === btn.dataset.id);
+        if (game) openReplayModal(game);
+      });
+    });
+  } catch (err) {
+    el.gamesListContainer.innerHTML = '<div class="empty-table-msg">기보 목록 불러오기 실패</div>';
+  }
+}
+
+let replayState = {
+  game: null,
+  moves: [],
+  currentStep: 0,
+  pgn: ''
+};
+
+function openReplayModal(gameRecord) {
+  replayState.game = new Chess();
+  replayState.moves = gameRecord.history || [];
+  replayState.currentStep = 0;
+  replayState.pgn = gameRecord.pgn || '';
+
+  if (el.replayTitle) el.replayTitle.innerText = `대국 복기 [${gameRecord.roomId || 'LAN'}]`;
+  if (el.replayPlayersInfo) el.replayPlayersInfo.innerText = `⚪ ${gameRecord.white} vs ⚫ ${gameRecord.black} (${gameRecord.winnerName} 승)`;
+
+  renderReplayBoard();
+  if (el.modalReplay) el.modalReplay.classList.add('active');
+}
+
+function renderReplayBoard() {
+  if (!el.replayChessboard) return;
+  const board = replayState.game.board();
+  el.replayChessboard.innerHTML = '';
+  const fragment = document.createDocumentFragment();
+
+  for (let rIdx = 0; rIdx < 8; rIdx++) {
+    for (let cIdx = 0; cIdx < 8; cIdx++) {
+      const file = String.fromCharCode(97 + cIdx);
+      const rank = 8 - rIdx;
+      const squareName = `${file}${rank}`;
+      const isLight = (rIdx + cIdx) % 2 === 0;
+
+      const sq = document.createElement('div');
+      sq.className = `square ${isLight ? 'light' : 'dark'}`;
+      sq.dataset.square = squareName;
+
+      const p = board[rIdx][cIdx];
+      if (p) {
+        const pieceEl = document.createElement('div');
+        pieceEl.className = 'chess-piece';
+        pieceEl.innerHTML = getPieceSvg(p.type, p.color);
+        sq.appendChild(pieceEl);
+      }
+
+      fragment.appendChild(sq);
+    }
+  }
+  el.replayChessboard.appendChild(fragment);
+
+  if (el.replayStepCounter) {
+    el.replayStepCounter.innerText = `${replayState.currentStep} / ${replayState.moves.length}`;
+  }
+  if (el.replayCurrentMoveDesc) {
+    if (replayState.currentStep === 0) {
+      el.replayCurrentMoveDesc.innerText = '대국 시작 상태';
+    } else {
+      const lastM = replayState.moves[replayState.currentStep - 1];
+      el.replayCurrentMoveDesc.innerText = `${replayState.currentStep}수: ${lastM.color === 'w' ? '백' : '흑'} ${lastM.san || (lastM.from + '-' + lastM.to)}`;
+    }
+  }
+}
+
+function setReplayStep(targetStep) {
+  targetStep = Math.max(0, Math.min(targetStep, replayState.moves.length));
+  replayState.currentStep = targetStep;
+
+  replayState.game = new Chess();
+  for (let i = 0; i < targetStep; i++) {
+    const m = replayState.moves[i];
+    try {
+      replayState.game.move({ from: m.from, to: m.to, promotion: m.promotion || 'q' });
+    } catch (e) {
+      if (m.san) {
+        try { replayState.game.move(m.san); } catch (err) {}
+      }
+    }
+  }
+  renderReplayBoard();
 }
 
 // ================= EVENT LISTENERS =================
@@ -983,7 +1310,23 @@ function setupEventListeners() {
     el.tabCreateRoom.classList.remove('active');
     el.formJoinRoom.classList.add('active');
     el.formCreateRoom.classList.remove('active');
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+    }
   });
+
+  if (el.btnRefreshRooms) {
+    el.btnRefreshRooms.addEventListener('click', () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+        showToast('대기방 목록을 갱신했습니다.');
+      } else {
+        connectWebSocket(() => {
+          state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+        });
+      }
+    });
+  }
 
   el.btnStartAi.addEventListener('click', startAiGame);
   el.btnStartLocal.addEventListener('click', startLocalGame);
@@ -995,7 +1338,7 @@ function setupEventListeners() {
     const colorBtn = el.createColorPicker.querySelector('.btn-segment.active');
     const preferredColor = colorBtn ? colorBtn.dataset.color : 'random';
 
-    connectWebSocket(() => {
+    const sendCreate = () => {
       state.ws.send(JSON.stringify({
         type: 'create_room',
         playerName,
@@ -1003,26 +1346,17 @@ function setupEventListeners() {
         timeMinutes,
         preferredColor
       }));
-    });
+    };
+
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      sendCreate();
+    } else {
+      connectWebSocket(sendCreate);
+    }
   });
 
   el.btnSubmitJoinRoom.addEventListener('click', () => {
-    const playerName = el.joinPlayerName.value.trim() || '게스트';
-    const roomCode = el.inputRoomCode.value.trim().toUpperCase();
-    if (!roomCode) {
-      showToast('방 코드를 입력해주세요.');
-      return;
-    }
-    localStorage.setItem('chess_player_name', playerName);
-
-    connectWebSocket(() => {
-      state.ws.send(JSON.stringify({
-        type: 'join_room',
-        roomId: roomCode,
-        playerName,
-        playerId: state.playerId
-      }));
-    });
+    joinOnlineRoom();
   });
 
   // AI Hint
@@ -1138,13 +1472,76 @@ function setupEventListeners() {
   });
   el.btnShowRoomQr.addEventListener('click', () => {
     const roomUrl = `${state.serverUrl}/?room=${state.roomId}`;
-    showQrModal(roomUrl);
+    showQrModal(roomUrl, state.roomId);
   });
+
+  if (el.btnTopCopyLink) {
+    el.btnTopCopyLink.addEventListener('click', () => {
+      const roomUrl = `${state.serverUrl}/?room=${state.roomId}`;
+      navigator.clipboard.writeText(roomUrl).then(() => showToast('방 초대 링크가 복사되었습니다!'));
+    });
+  }
+  if (el.btnTopShowQr) {
+    el.btnTopShowQr.addEventListener('click', () => {
+      const roomUrl = `${state.serverUrl}/?room=${state.roomId}`;
+      showQrModal(roomUrl, state.roomId);
+    });
+  }
 
   el.btnCloseQrModal.addEventListener('click', () => el.modalQr.classList.remove('active'));
   el.btnModalCopyUrl.addEventListener('click', () => {
     navigator.clipboard.writeText(el.modalQrUrl.value).then(() => showToast('주소가 복사되었습니다!'));
   });
+
+  // Records & Leaderboard Modal Listeners
+  if (el.btnOpenRecords) {
+    el.btnOpenRecords.addEventListener('click', () => {
+      el.modalRecords.classList.add('active');
+      loadLeaderboard();
+      loadGameRecords();
+    });
+  }
+  if (el.btnCloseRecordsModal) {
+    el.btnCloseRecordsModal.addEventListener('click', () => {
+      el.modalRecords.classList.remove('active');
+    });
+  }
+  if (el.tabBtnLeaderboard) {
+    el.tabBtnLeaderboard.addEventListener('click', () => {
+      el.tabBtnLeaderboard.classList.add('active');
+      el.tabBtnGames.classList.remove('active');
+      el.rtabLeaderboard.classList.add('active');
+      el.rtabGames.classList.remove('active');
+      loadLeaderboard();
+    });
+  }
+  if (el.tabBtnGames) {
+    el.tabBtnGames.addEventListener('click', () => {
+      el.tabBtnGames.classList.add('active');
+      el.tabBtnLeaderboard.classList.remove('active');
+      el.rtabGames.classList.add('active');
+      el.rtabLeaderboard.classList.remove('active');
+      loadGameRecords();
+    });
+  }
+
+  // Replay Modal Listeners
+  if (el.btnCloseReplayModal) {
+    el.btnCloseReplayModal.addEventListener('click', () => {
+      el.modalReplay.classList.remove('active');
+    });
+  }
+  if (el.btnReplayStart) el.btnReplayStart.addEventListener('click', () => setReplayStep(0));
+  if (el.btnReplayPrev) el.btnReplayPrev.addEventListener('click', () => setReplayStep(replayState.currentStep - 1));
+  if (el.btnReplayNext) el.btnReplayNext.addEventListener('click', () => setReplayStep(replayState.currentStep + 1));
+  if (el.btnReplayEnd) el.btnReplayEnd.addEventListener('click', () => setReplayStep(replayState.moves.length));
+  if (el.btnReplayCopyPgn) {
+    el.btnReplayCopyPgn.addEventListener('click', () => {
+      if (replayState.pgn) {
+        navigator.clipboard.writeText(replayState.pgn).then(() => showToast('PGN 기보가 복사되었습니다!'));
+      }
+    });
+  }
 
   el.btnModalRematch.addEventListener('click', () => {
     el.modalGameOver.classList.remove('active');
@@ -1183,6 +1580,13 @@ async function init() {
 
   setupEventListeners();
   renderBoard();
+
+  // Connect WebSocket early to listen for lobby updates and live rooms
+  connectWebSocket(() => {
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+    }
+  });
 }
 
 window.addEventListener('DOMContentLoaded', init);

@@ -47,6 +47,9 @@
             <option value="theme-midnight">🌌 미드나잇 골드</option>
           </select>
         </div>
+        <button id="btn-open-records" class="btn-header-action" title="전적/승률 랭킹 및 기보 보관소">
+          <span>🏆 전적/기보</span>
+        </button>
         <button id="btn-toggle-3d" class="btn-header-action" title="3D 입체 원근 뷰 켜기/끄기">
           <span class="view-3d-icon">🧊</span> <span class="view-3d-text">3D 뷰</span>
         </button>
@@ -165,6 +168,16 @@
                 <button class="btn-action-primary" id="btn-submit-join-room">
                   <span>🚀 방 입장하기</span>
                 </button>
+
+                <div class="lobby-rooms-box" id="lobby-rooms-box">
+                  <div class="lobby-rooms-header">
+                    <span>📡 실시간 대기방 목록</span>
+                    <button type="button" class="btn-mini" id="btn-refresh-rooms">🔄 새로고침</button>
+                  </div>
+                  <div id="lobby-rooms-list" class="lobby-rooms-list">
+                    <div class="room-empty-state">대기 중인 방을 확인하는 중...</div>
+                  </div>
+                </div>
               </div>
 
               <div class="qr-quick-hint" id="btn-show-lobby-qr">
@@ -212,6 +225,19 @@
           <!-- LEFT / CENTER: Chess Board Section -->
           <div class="board-column">
             
+            <!-- Online Room Top Bar -->
+            <div class="online-room-topbar" id="online-room-topbar" style="display:none;">
+              <div class="room-topbar-left">
+                <span class="room-live-dot"></span>
+                <span class="room-title-tag">와이파이 대국</span>
+                <span class="room-code-tag">방 코드: <strong id="top-room-id" class="font-mono">----</strong></span>
+              </div>
+              <div class="room-topbar-right">
+                <button type="button" class="btn-header-chip" id="btn-top-copy-link">📋 링크 복사</button>
+                <button type="button" class="btn-header-chip" id="btn-top-show-qr">📱 QR 코드</button>
+              </div>
+            </div>
+
             <!-- Opponent Top Bar -->
             <div class="player-bar opponent-bar" id="opponent-bar">
               <div class="player-profile">
@@ -399,8 +425,12 @@
     <div class="modal-overlay" id="modal-qr">
       <div class="modal-card qr-modal-card">
         <button class="modal-close" id="btn-close-qr-modal">&times;</button>
-        <h3 class="modal-title">📱 스마트폰 / 타 기기 접속</h3>
-        <p class="modal-desc">같은 와이파이에 연결된 스마트폰 카메라로 QR 코드를 스캔하세요.</p>
+        <h3 class="modal-title" id="modal-qr-title">📱 스마트폰 / 타 기기 접속</h3>
+        <p class="modal-desc" id="modal-qr-desc">같은 와이파이에 연결된 스마트폰 카메라로 QR 코드를 스캔하세요.</p>
+        <div id="modal-room-code-badge" style="display:none; text-align:center; margin:10px 0 14px; padding:12px; background:rgba(245, 158, 11, 0.12); border:2px dashed #f59e0b; border-radius:12px;">
+          <span style="color:#fcd34d; font-size:0.85rem; font-weight:600; display:block; margin-bottom:4px;">🔑 상대방 입력용 4자리 방 코드</span>
+          <strong id="modal-big-room-code" style="font-size:2.4rem; letter-spacing:6px; color:#fbbf24; font-family:monospace; display:block; line-height:1.1;">----</strong>
+        </div>
         <div class="qr-image-wrapper">
           <img id="qr-code-img" src="" alt="접속용 QR 코드">
         </div>
@@ -421,6 +451,71 @@
           <button class="btn-action-primary" id="btn-modal-rematch">🔄 재대국 요청</button>
           <button class="btn-action-secondary" id="btn-modal-lobby">🚪 로비로 이동</button>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: Leaderboard & Game Records Modal -->
+    <div class="modal-overlay" id="modal-records">
+      <div class="modal-card records-modal-card">
+        <button class="modal-close" id="btn-close-records-modal">&times;</button>
+        <div class="records-modal-header">
+          <h3 class="modal-title">🏆 전적 & 기보 보관소</h3>
+          <p class="modal-desc">PC에 영구 저장된 이름별 승률 랭킹과 와이파이 대국 기보 목록입니다.</p>
+          <div class="records-tabs">
+            <button class="records-tab-btn active" data-rtab="rtab-leaderboard" id="tab-btn-leaderboard">🥇 플레이어별 승률 랭킹</button>
+            <button class="records-tab-btn" data-rtab="rtab-games" id="tab-btn-games">📜 저장된 기보 목록</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: Leaderboard -->
+        <div class="records-tab-content active" id="rtab-leaderboard">
+          <div class="leaderboard-table-wrapper">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">순위</th>
+                  <th>플레이어</th>
+                  <th style="text-align:center;">전적</th>
+                  <th style="text-align:center;">승률</th>
+                  <th style="text-align:center;">최근 전적</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody">
+                <tr><td colspan="5" class="empty-table-msg">기록을 불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: Games Archive -->
+        <div class="records-tab-content" id="rtab-games">
+          <div class="games-list-wrapper" id="games-list-container">
+            <div class="empty-table-msg">기보 목록을 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: Game Replay Modal -->
+    <div class="modal-overlay" id="modal-replay">
+      <div class="modal-card replay-modal-card">
+        <button class="modal-close" id="btn-close-replay-modal">&times;</button>
+        <div class="replay-modal-header">
+          <h3 class="modal-title" id="replay-title">대국 복기 (다시보기)</h3>
+          <div class="replay-players" id="replay-players-info">백: ??? vs 흑: ???</div>
+        </div>
+        <div class="replay-board-wrapper">
+          <div class="chessboard" id="replay-chessboard"></div>
+        </div>
+        <div class="replay-controls">
+          <button class="btn-tool" id="btn-replay-start" title="처음으로">⏮️</button>
+          <button class="btn-tool" id="btn-replay-prev" title="이전 수">◀</button>
+          <span class="replay-step-counter" id="replay-step-counter">0 / 0</span>
+          <button class="btn-tool" id="btn-replay-next" title="다음 수">▶</button>
+          <button class="btn-tool" id="btn-replay-end" title="마지막으로">⏭️</button>
+          <button class="btn-tool" id="btn-replay-copy-pgn" title="PGN 복사">📋 PGN 복사</button>
+        </div>
+        <div class="replay-pgn-box" id="replay-current-move-desc">대국 시작 상태</div>
       </div>
     </div>
 
