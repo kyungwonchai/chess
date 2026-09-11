@@ -35,7 +35,8 @@ const state = {
   playerId: localStorage.getItem('chess_player_id') || Math.random().toString(36).substring(2, 9),
   playerName: localStorage.getItem('chess_player_name') || '플레이어 1',
   opponentName: '상대방',
-  serverUrl: window.location.origin
+  serverUrl: window.location.origin,
+  moveHistory: []
 };
 
 // Unlock Audio on first user interaction anywhere
@@ -588,60 +589,119 @@ function applyAnalysisResult(analysis) {
 }
 
 // ================= MATERIAL & CAPTURED =================
+const PIECE_NAMES = {
+  p: '폰',
+  n: '나이트',
+  b: '비숍',
+  r: '룩',
+  q: '퀸',
+  k: '킹'
+};
+
 function updateCapturedAndMaterial() {
-  const history = state.game.history({ verbose: true });
-  const captured = { w: [], b: [] };
+  const history = (state.mode === 'wifi' && state.moveHistory && state.moveHistory.length > 0)
+    ? state.moveHistory
+    : state.game.history({ verbose: true });
+
+  const capturedByWhite = []; // Black pieces captured by White in order
+  const capturedByBlack = []; // White pieces captured by Black in order
   let whiteMaterial = 0;
   let blackMaterial = 0;
 
-  history.forEach(m => {
+  history.forEach((m, idx) => {
     if (m.captured) {
+      const val = PIECE_VALUES[m.captured] || 0;
+      const moveNum = Math.floor(idx / 2) + 1;
+      const item = {
+        piece: m.captured,
+        value: val,
+        san: m.san,
+        moveNum: moveNum,
+        capturedBy: m.color, // 'w' or 'b'
+        pieceColor: m.color === 'w' ? 'b' : 'w' // Captured piece's color (Black piece if White captured, White if Black captured)
+      };
+
       if (m.color === 'w') {
-        captured.w.push(m.captured);
-        whiteMaterial += PIECE_VALUES[m.captured];
+        capturedByWhite.push(item);
+        whiteMaterial += val;
       } else {
-        captured.b.push(m.captured);
-        blackMaterial += PIECE_VALUES[m.captured];
+        capturedByBlack.push(item);
+        blackMaterial += val;
       }
     }
   });
 
-  const diff = whiteMaterial - blackMaterial;
+  const isUserWhite = (state.playerColor === 'w') ||
+                      (state.playerColor === 'spectator') ||
+                      (state.mode === 'local' && !state.boardFlipped);
 
-  const isUserWhite = state.playerColor === 'w' || (state.mode === 'local' && !state.boardFlipped);
-  const userCapturedList = isUserWhite ? captured.w : captured.b;
-  const oppCapturedList = isUserWhite ? captured.b : captured.w;
-  const userDiff = isUserWhite ? diff : -diff;
-  const oppDiff = -userDiff;
+  // User bar (bottom) displays opponent pieces that user captured
+  // Opponent bar (top) displays user pieces that opponent captured (내가 먹힌 것)
+  const userCapturedList = isUserWhite ? capturedByWhite : capturedByBlack;
+  const oppCapturedList = isUserWhite ? capturedByBlack : capturedByWhite;
 
-  renderCapturedPieces(el.userCaptured, userCapturedList, isUserWhite ? 'b' : 'w', userDiff);
-  renderCapturedPieces(el.opponentCaptured, oppCapturedList, isUserWhite ? 'w' : 'b', oppDiff);
+  const userTotalScore = isUserWhite ? whiteMaterial : blackMaterial;
+  const oppTotalScore = isUserWhite ? blackMaterial : whiteMaterial;
+
+  const userAdvantage = userTotalScore - oppTotalScore;
+  const oppAdvantage = oppTotalScore - userTotalScore;
+
+  renderCapturedPieces(el.userCaptured, userCapturedList, userTotalScore, userAdvantage > 0 ? userAdvantage : 0, '내 획득');
+  renderCapturedPieces(el.opponentCaptured, oppCapturedList, oppTotalScore, oppAdvantage > 0 ? oppAdvantage : 0, '상대 획득(내 손실)');
 }
 
-function renderCapturedPieces(container, list, pieceColor, advantage) {
+function renderCapturedPieces(container, list, totalScore, advantage, label) {
+  if (!container) return;
   container.innerHTML = '';
-  const counts = {};
-  list.forEach(p => { counts[p] = (counts[p] || 0) + 1; });
 
-  const order = ['p', 'n', 'b', 'r', 'q'];
-  order.forEach(p => {
-    if (counts[p]) {
-      for (let i = 0; i < counts[p]; i++) {
-        const svg = getPieceSvg(`${pieceColor}${p.toUpperCase()}`);
-        const span = document.createElement('span');
-        span.className = 'captured-icon';
-        span.innerHTML = svg;
-        container.appendChild(span);
-      }
-    }
+  if (!list || list.length === 0) {
+    return;
+  }
+
+  const seqWrapper = document.createElement('div');
+  seqWrapper.className = 'captured-sequence';
+
+  list.forEach((item, index) => {
+    const isLatest = (index === list.length - 1);
+    const pieceKey = `${item.pieceColor}${item.piece.toUpperCase()}`;
+    const svg = getPieceSvg(pieceKey);
+    const name = PIECE_NAMES[item.piece] || item.piece;
+
+    const chip = document.createElement('span');
+    chip.className = `captured-piece-chip${isLatest ? ' is-latest' : ''}`;
+    chip.title = `${index + 1}번째 획득: ${name} (+${item.value}점) [${item.moveNum}수: ${item.san || ''}]`;
+
+    chip.innerHTML = `
+      <span class="piece-svg-wrapper">${svg}</span>
+      <span class="piece-pts">${item.value}</span>
+    `;
+
+    seqWrapper.appendChild(chip);
   });
 
-  if (advantage > 0) {
-    const diffBadge = document.createElement('span');
-    diffBadge.className = 'material-diff';
-    diffBadge.innerText = `+${advantage}`;
-    container.appendChild(diffBadge);
+  container.appendChild(seqWrapper);
+
+  // Material score badges
+  const scoreGroup = document.createElement('div');
+  scoreGroup.className = 'captured-score-group';
+
+  if (totalScore > 0) {
+    const totalBadge = document.createElement('span');
+    totalBadge.className = 'material-total-badge';
+    totalBadge.title = `${label} 총점: ${totalScore}점`;
+    totalBadge.innerText = `${totalScore}점`;
+    scoreGroup.appendChild(totalBadge);
   }
+
+  if (advantage > 0) {
+    const advBadge = document.createElement('span');
+    advBadge.className = 'material-advantage-badge';
+    advBadge.title = `기물 우세: 상대보다 +${advantage}점 앞섬`;
+    advBadge.innerText = `+${advantage}`;
+    scoreGroup.appendChild(advBadge);
+  }
+
+  container.appendChild(scoreGroup);
 }
 
 function updateStatusBanner() {
@@ -799,6 +859,7 @@ function handleServerMessage(msg) {
   if (type === 'room_created') {
     state.mode = 'wifi';
     state.aiThinking = false;
+    state.moveHistory = [];
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
@@ -821,6 +882,7 @@ function handleServerMessage(msg) {
   else if (type === 'room_joined') {
     state.mode = 'wifi';
     state.aiThinking = false;
+    state.moveHistory = [];
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
@@ -847,6 +909,9 @@ function handleServerMessage(msg) {
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
     state.timeControl = msg.timeControl;
+    if (msg.history) {
+      state.moveHistory = msg.history;
+    }
     if (el.userAvatar) el.userAvatar.innerText = '👤';
     if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
 
@@ -969,6 +1034,7 @@ function switchView(viewName) {
 function startAiGame() {
   state.mode = 'ai';
   state.game = new Chess();
+  state.moveHistory = [];
   state.lastMove = null;
   state.hintMove = null;
   state.selectedSquare = null;
@@ -1007,6 +1073,7 @@ function startAiGame() {
 function startLocalGame() {
   state.mode = 'local';
   state.game = new Chess();
+  state.moveHistory = [];
   state.lastMove = null;
   state.hintMove = null;
   state.selectedSquare = null;
