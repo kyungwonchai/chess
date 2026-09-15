@@ -86,6 +86,20 @@ const PST = {
 export class ChessEngine {
   constructor() {
     this.tt = new Map(); // Simple Transposition Table
+    this.startTime = 0;
+    this.timeLimit = 7000;
+    this.nodeCount = 0;
+    this.timeUp = false;
+  }
+
+  checkTime() {
+    this.nodeCount++;
+    if ((this.nodeCount & 255) === 0) {
+      if (Date.now() - this.startTime >= this.timeLimit) {
+        this.timeUp = true;
+      }
+    }
+    return this.timeUp;
   }
 
   evaluateBoard(game) {
@@ -154,6 +168,8 @@ export class ChessEngine {
   }
 
   quiescenceSearch(game, alpha, beta, isMaximizing, depth = 0) {
+    if (this.checkTime()) return this.evaluateBoard(game);
+
     const standPat = this.evaluateBoard(game);
 
     if (depth >= 4) return standPat;
@@ -164,6 +180,7 @@ export class ChessEngine {
 
       const moves = this.orderMoves(game, game.moves({ verbose: true })).filter(m => m.captured || m.promotion);
       for (const move of moves) {
+        if (this.timeUp) break;
         game.move(move);
         const score = this.quiescenceSearch(game, alpha, beta, false, depth + 1);
         game.undo();
@@ -178,6 +195,7 @@ export class ChessEngine {
 
       const moves = this.orderMoves(game, game.moves({ verbose: true })).filter(m => m.captured || m.promotion);
       for (const move of moves) {
+        if (this.timeUp) break;
         game.move(move);
         const score = this.quiescenceSearch(game, alpha, beta, true, depth + 1);
         game.undo();
@@ -190,6 +208,10 @@ export class ChessEngine {
   }
 
   minimax(game, depth, alpha, beta, isMaximizing) {
+    if (this.checkTime()) {
+      return { score: this.evaluateBoard(game), bestMove: null };
+    }
+
     if (depth === 0 || game.isGameOver()) {
       return { score: this.quiescenceSearch(game, alpha, beta, isMaximizing) };
     }
@@ -204,11 +226,12 @@ export class ChessEngine {
     if (isMaximizing) {
       let maxScore = -Infinity;
       for (const move of moves) {
+        if (this.timeUp) break;
         game.move(move);
         const { score } = this.minimax(game, depth - 1, alpha, beta, false);
         game.undo();
 
-        if (score > maxScore) {
+        if (!this.timeUp && score > maxScore) {
           maxScore = score;
           bestMove = move;
         }
@@ -219,11 +242,12 @@ export class ChessEngine {
     } else {
       let minScore = Infinity;
       for (const move of moves) {
+        if (this.timeUp) break;
         game.move(move);
         const { score } = this.minimax(game, depth - 1, alpha, beta, true);
         game.undo();
 
-        if (score < minScore) {
+        if (!this.timeUp && score < minScore) {
           minScore = score;
           bestMove = move;
         }
@@ -234,11 +258,16 @@ export class ChessEngine {
     }
   }
 
-  // Find best move according to AI difficulty level (1 to 5)
-  getAIMove(game, level = 3) {
+  // Find best move according to AI difficulty level (1 to 5) with max 7s limit
+  getAIMove(game, level = 3, maxTimeMs = 7000) {
     const isMaximizing = game.turn() === 'w';
     const moves = game.moves({ verbose: true });
     if (moves.length === 0) return null;
+
+    this.startTime = Date.now();
+    this.timeLimit = maxTimeMs;
+    this.nodeCount = 0;
+    this.timeUp = false;
 
     // Level 1: Beginner (Depth 1 + 35% random blunder)
     if (level === 1) {
@@ -252,7 +281,6 @@ export class ChessEngine {
     // Level 2: Casual (Depth 2 + 15% slight randomness)
     if (level === 2) {
       if (Math.random() < 0.15) {
-        // Pick among top 3
         const sorted = this.orderMoves(game, [...moves]);
         return sorted[Math.floor(Math.random() * Math.min(3, sorted.length))];
       }
@@ -260,26 +288,38 @@ export class ChessEngine {
       return result.bestMove || moves[0];
     }
 
-    // Level 3: Intermediate (Depth 3)
-    if (level === 3) {
-      const result = this.minimax(game, 3, -Infinity, Infinity, isMaximizing);
-      return result.bestMove || moves[0];
+    // Level 3, 4, 5: Iterative Deepening with strict maxTime limit (Default: 7000ms)
+    const targetDepth = level === 3 ? 3 : (level === 4 ? 4 : 5);
+    let bestMoveSoFar = moves[0];
+
+    for (let d = 1; d <= targetDepth; d++) {
+      const result = this.minimax(game, d, -Infinity, Infinity, isMaximizing);
+
+      if (this.timeUp) {
+        break; // Stop immediately and use the previous complete iteration's best move
+      }
+
+      if (result && result.bestMove) {
+        bestMoveSoFar = result.bestMove;
+      }
+
+      // If already spent more than 75% of time limit, skip next depth as it takes 20~30x more time
+      if (Date.now() - this.startTime >= maxTimeMs * 0.75) {
+        break;
+      }
     }
 
-    // Level 4: Advanced (Depth 4)
-    if (level === 4) {
-      const result = this.minimax(game, 4, -Infinity, Infinity, isMaximizing);
-      return result.bestMove || moves[0];
-    }
-
-    // Level 5: Master (Depth 4-5)
-    const result = this.minimax(game, 4, -Infinity, Infinity, isMaximizing);
-    return result.bestMove || moves[0];
+    return bestMoveSoFar;
   }
 
-  // Position evaluation for UI Evaluation Bar
-  analyzePosition(game) {
+  // Position evaluation for UI Evaluation Bar (capped at 2s)
+  analyzePosition(game, maxTimeMs = 2000) {
     const isMaximizing = game.turn() === 'w';
+    this.startTime = Date.now();
+    this.timeLimit = maxTimeMs;
+    this.nodeCount = 0;
+    this.timeUp = false;
+
     const result = this.minimax(game, 3, -Infinity, Infinity, isMaximizing);
     const scoreInPawns = (result.score / 100).toFixed(1);
     return {

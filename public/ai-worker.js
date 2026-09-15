@@ -5,11 +5,11 @@ import { ChessEngine } from './engine.js';
 const engine = new ChessEngine();
 
 self.onmessage = function(e) {
-  const { type, fen, level, id } = e.data;
+  const { type, fen, level, id, maxTime } = e.data;
 
   if (type === 'get_ai_move') {
     const game = new Chess(fen);
-    const aiMove = engine.getAIMove(game, level || 3);
+    const aiMove = engine.getAIMove(game, level || 3, maxTime || 7000);
     self.postMessage({
       type: 'ai_move_result',
       move: aiMove,
@@ -18,7 +18,7 @@ self.onmessage = function(e) {
   } 
   else if (type === 'analyze') {
     const game = new Chess(fen);
-    const analysis = engine.analyzePosition(game);
+    const analysis = engine.analyzePosition(game, 2000);
     self.postMessage({
       type: 'analyze_result',
       analysis,

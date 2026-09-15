@@ -567,20 +567,21 @@ function triggerAIMove() {
   if (state.gameStatus !== 'playing') return;
 
   state.aiThinking = true;
-  el.gameStatusText.innerText = '🤖 AI가 수를 계산 중입니다...';
+  el.gameStatusText.innerText = '🤖 AI가 수를 계산 중입니다... (최대 7초)';
 
   if (state.worker) {
     state.worker.postMessage({
       type: 'get_ai_move',
       fen: state.game.fen(),
-      level: state.aiLevel
+      level: state.aiLevel,
+      maxTime: 7000
     });
   } else {
     // Non-worker fallback
     setTimeout(() => {
-      const aiMove = state.engine.getAIMove(state.game, state.aiLevel);
+      const aiMove = state.engine.getAIMove(state.game, state.aiLevel, 7000);
       handleAIMoveResult(aiMove);
-    }, 100);
+    }, 50);
   }
 }
 
