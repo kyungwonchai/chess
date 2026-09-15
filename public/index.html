@@ -74,10 +74,10 @@
           <div class="modes-grid">
             <!-- Card 1: AI Training -->
             <div class="mode-card card-ai" id="card-mode-ai">
-              <div class="mode-badge">혼자 훈련</div>
+              <div class="mode-badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">세계 1위 Stockfish 탑재</div>
               <div class="mode-icon">🤖</div>
-              <h2 class="mode-title">AI 트레이닝</h2>
-              <p class="mode-desc">입문자부터 마스터까지 5단계 난이도의 AI와 대국하고, 실시간 최선수 힌트와 형세 분석을 받으세요.</p>
+              <h2 class="mode-title">AI 트레이닝 <small style="font-size:0.5em; opacity:0.8; vertical-align:middle;">(Stockfish WASM)</small></h2>
+              <p class="mode-desc">현존 최강 체스 엔진 <b>Stockfish</b>가 탑재되었습니다. 최대 3초 안에 초고속으로 정확한 최선의 수를 두며, 난이도별 대국과 실시간 형세 분석을 제공합니다.</p>
               
               <div class="mode-options">
                 <div class="option-row">
@@ -92,11 +92,11 @@
                 <div class="option-row">
                   <label>난이도:</label>
                   <select id="ai-level-picker" class="custom-select">
-                    <option value="1">레벨 1 - 초심자 (쉬움)</option>
-                    <option value="2">레벨 2 - 캐주얼 (보통)</option>
-                    <option value="3" selected>레벨 3 - 중급자 (추천)</option>
-                    <option value="4">레벨 4 - 상급자 (어려움)</option>
-                    <option value="5">레벨 5 - 마스터 (최고수)</option>
+                    <option value="1">레벨 1 - 초심자 (Stockfish Skill 0)</option>
+                    <option value="2">레벨 2 - 캐주얼 (Stockfish Skill 4)</option>
+                    <option value="3" selected>레벨 3 - 중급자 (Stockfish Skill 10, 추천)</option>
+                    <option value="4">레벨 4 - 상급자 (Stockfish Skill 15)</option>
+                    <option value="5">레벨 5 - 그랜드마스터 (Stockfish 풀파워 Elo 3200+)</option>
                   </select>
                 </div>
 

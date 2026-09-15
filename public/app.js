@@ -1,5 +1,6 @@
 import { Chess } from './chess.js';
 import { ChessEngine } from './engine.js';
+import { StockfishEngine } from './stockfish-engine.js';
 import { audio } from './audio.js';
 import { PIECE_VALUES, setPieceStyle, currentPieceStyle, getPieceSvg } from './pieces.js';
 
@@ -8,6 +9,7 @@ const state = {
   mode: 'ai', // 'ai', 'wifi', 'local'
   game: new Chess(),
   engine: new ChessEngine(),
+  stockfish: new StockfishEngine(),
   worker: null,
   playerColor: 'w', // 'w', 'b', 'spectator'
   boardFlipped: false,
@@ -563,12 +565,35 @@ function executeMove(moveObj) {
   }
 }
 
-function triggerAIMove() {
+async function triggerAIMove() {
   if (state.gameStatus !== 'playing') return;
 
   state.aiThinking = true;
-  el.gameStatusText.innerText = '🤖 AI가 수를 계산 중입니다... (최대 3초)';
+  const isStockfishReady = state.stockfish && state.stockfish.isReady;
+  el.gameStatusText.innerText = isStockfishReady
+    ? '🤖 현존 최강 Stockfish가 수를 계산 중입니다... (최대 3초)'
+    : '🤖 AI가 수를 계산 중입니다... (최대 3초)';
 
+  // 1. Try World-Class Stockfish Engine
+  if (isStockfishReady) {
+    try {
+      const uciMove = await state.stockfish.getAIMove(state.game.fen(), state.aiLevel, 3000);
+      if (uciMove && state.gameStatus === 'playing') {
+        const moveObj = {
+          from: uciMove.slice(0, 2),
+          to: uciMove.slice(2, 4),
+          ...(uciMove.length > 4 ? { promotion: uciMove[4] } : {})
+        };
+        state.aiThinking = false;
+        handleAIMoveResult(moveObj);
+        return;
+      }
+    } catch (e) {
+      console.warn('Stockfish move failed, falling back to built-in engine:', e);
+    }
+  }
+
+  // 2. Fallback to built-in engine (capped at 3s)
   if (state.worker) {
     state.worker.postMessage({
       type: 'get_ai_move',
@@ -577,9 +602,9 @@ function triggerAIMove() {
       maxTime: 3000
     });
   } else {
-    // Non-worker fallback
     setTimeout(() => {
       const aiMove = state.engine.getAIMove(state.game, state.aiLevel, 3000);
+      state.aiThinking = false;
       handleAIMoveResult(aiMove);
     }, 50);
   }
@@ -613,6 +638,14 @@ function handleAIMoveResult(aiMove) {
 // ================= NON-BLOCKING ASYNC EVALUATION =================
 function triggerAsyncEvaluation() {
   if (!state.evalEnabled || state.gameStatus !== 'playing') return;
+
+  // Use Stockfish for grandmaster-level positional analysis if ready
+  if (state.stockfish && state.stockfish.isReady) {
+    state.stockfish.analyzePosition(state.game.fen(), (analysis) => {
+      applyAnalysisResult(analysis);
+    });
+    return;
+  }
 
   if (state.worker) {
     state.worker.postMessage({
@@ -1671,7 +1704,27 @@ function setupEventListeners() {
   });
 
   // AI Hint
-  el.btnAiHint.addEventListener('click', () => {
+  el.btnAiHint.addEventListener('click', async () => {
+    if (state.stockfish && state.stockfish.isReady) {
+      el.engineHintText.innerText = '💡 최강 Stockfish가 최선수를 찾는 중...';
+      const uciMove = await state.stockfish.getAIMove(state.game.fen(), 5, 1000);
+      if (uciMove) {
+        const from = uciMove.slice(0, 2);
+        const to = uciMove.slice(2, 4);
+        const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+        const moveObj = state.game.moves({ verbose: true }).find(m =>
+          m.from === from && m.to === to && (!promotion || m.promotion === promotion)
+        );
+        if (moveObj) {
+          state.hintMove = moveObj;
+          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to})`;
+          renderBoard();
+          audio.playNotify();
+          return;
+        }
+      }
+    }
+
     const analysis = state.engine.analyzePosition(state.game);
     if (analysis.bestMove) {
       state.hintMove = analysis.bestMove;
