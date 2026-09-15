@@ -87,7 +87,7 @@ export class ChessEngine {
   constructor() {
     this.tt = new Map(); // Simple Transposition Table
     this.startTime = 0;
-    this.timeLimit = 7000;
+    this.timeLimit = 3000;
     this.nodeCount = 0;
     this.timeUp = false;
   }
@@ -258,8 +258,8 @@ export class ChessEngine {
     }
   }
 
-  // Find best move according to AI difficulty level (1 to 5) with max 7s limit
-  getAIMove(game, level = 3, maxTimeMs = 7000) {
+  // Find best move according to AI difficulty level (1 to 5) with max 3s limit
+  getAIMove(game, level = 3, maxTimeMs = 3000) {
     const isMaximizing = game.turn() === 'w';
     const moves = game.moves({ verbose: true });
     if (moves.length === 0) return null;

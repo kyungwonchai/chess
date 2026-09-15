@@ -9,7 +9,7 @@ self.onmessage = function(e) {
 
   if (type === 'get_ai_move') {
     const game = new Chess(fen);
-    const aiMove = engine.getAIMove(game, level || 3, maxTime || 7000);
+    const aiMove = engine.getAIMove(game, level || 3, maxTime || 3000);
     self.postMessage({
       type: 'ai_move_result',
       move: aiMove,
