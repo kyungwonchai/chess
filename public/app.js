@@ -34,7 +34,14 @@ const state = {
   // WiFi Online state
   ws: null,
   roomId: null,
-  playerId: localStorage.getItem('chess_player_id') || Math.random().toString(36).substring(2, 9),
+  playerId: (() => {
+    let pid = localStorage.getItem('chess_player_id');
+    if (!pid) {
+      pid = 'p_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36).slice(-4);
+      localStorage.setItem('chess_player_id', pid);
+    }
+    return pid;
+  })(),
   playerName: localStorage.getItem('chess_player_name') || '플레이어 1',
   opponentName: '상대방',
   serverUrl: window.location.origin,
@@ -1066,12 +1073,26 @@ function handleServerMessage(msg) {
   else if (type === 'room_state') {
     state.mode = 'wifi';
     state.aiThinking = false;
+
+    // Dynamically update playerColor and board orientation based on current room state & playerId
+    if (state.playerId) {
+      if (msg.white && msg.white.id === state.playerId) {
+        state.playerColor = 'w';
+        state.boardFlipped = false;
+      } else if (msg.black && msg.black.id === state.playerId) {
+        state.playerColor = 'b';
+        state.boardFlipped = true;
+      } else {
+        state.playerColor = 'spectator';
+      }
+    }
+
+    const prevStatus = state.gameStatus;
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
     state.timeControl = msg.timeControl;
-    if (msg.history) {
-      state.moveHistory = msg.history;
-    }
+    state.moveHistory = msg.history || [];
+
     if (el.userAvatar) el.userAvatar.innerText = '👤';
     if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
 
@@ -1081,6 +1102,20 @@ function handleServerMessage(msg) {
       if (el.modalQr && el.modalQr.classList.contains('active')) {
         el.modalQr.classList.remove('active');
         showToast('상대방이 입장하여 대국이 시작되었습니다!');
+      }
+
+      // Check if transitioning to playing (Game start or Rematch started)
+      if (prevStatus === 'ended' || (el.modalGameOver && el.modalGameOver.classList.contains('active'))) {
+        if (el.modalGameOver) el.modalGameOver.classList.remove('active');
+        if (el.btnModalRematch) {
+          el.btnModalRematch.innerText = '🔄 재대국 요청';
+          el.btnModalRematch.disabled = false;
+        }
+        state.selectedSquare = null;
+        state.legalMovesForSelected = [];
+        state.lastMove = null;
+        showToast(`⚔️ 재대국이 시작되었습니다! (진영: ${state.playerColor === 'w' ? '백(선공)' : '흑(후공)'})`);
+        audio.playGameStart();
       }
     } else if (msg.status === 'waiting') {
       if (el.gameStatusText) el.gameStatusText.innerText = '상대방 접속 대기 중...';
@@ -1103,6 +1138,8 @@ function handleServerMessage(msg) {
     } else {
       el.userName.innerText = msg.white?.name || '백';
       el.opponentName.innerText = msg.black?.name || '흑';
+      if (msg.white) el.userTimer.innerText = formatTime(msg.white.timeLeft);
+      if (msg.black) el.opponentTimer.innerText = formatTime(msg.black.timeLeft);
     }
 
     if (msg.history && msg.history.length > 0) {
@@ -1114,6 +1151,8 @@ function handleServerMessage(msg) {
         else if (last.flags?.includes('k') || last.flags?.includes('q')) audio.playCastle();
         else audio.playMove();
       }
+    } else {
+      state.lastMove = null;
     }
 
     renderBoard();
@@ -1127,16 +1166,45 @@ function handleServerMessage(msg) {
     }
 
     if (msg.status === 'ended') {
-      const isWin = (msg.winner === state.playerColor);
-      audio.playGameEnd(isWin);
-      el.gameoverIcon.innerText = isWin ? '🏆' : (msg.winner === 'draw' ? '🤝' : '⚔️');
-      el.gameoverTitle.innerText = msg.winner === 'draw' ? '무승부' : `${msg.winner === 'w' ? '백' : '흑'} 승리!`;
-      el.gameoverReason.innerText = msg.endReason || '대국이 종료되었습니다.';
-      el.modalGameOver.classList.add('active');
+      if (prevStatus !== 'ended') {
+        const isWin = (msg.winner === state.playerColor);
+        audio.playGameEnd(isWin);
+        el.gameoverIcon.innerText = isWin ? '🏆' : (msg.winner === 'draw' ? '🤝' : '⚔️');
+        el.gameoverTitle.innerText = msg.winner === 'draw' ? '무승부' : `${msg.winner === 'w' ? '백' : '흑'} 승리!`;
+        el.gameoverReason.innerText = msg.endReason || '대국이 종료되었습니다.';
+        el.modalGameOver.classList.add('active');
 
-      // Refresh records cache
-      loadLeaderboard();
-      loadGameRecords();
+        // Reset rematch button text when game just ended
+        if (el.btnModalRematch) {
+          el.btnModalRematch.innerText = '🔄 재대국 요청';
+          el.btnModalRematch.disabled = false;
+        }
+
+        // Refresh records cache
+        loadLeaderboard();
+        loadGameRecords();
+      }
+
+      // Handle Rematch Offer indicators
+      if (msg.rematchOffer && el.btnModalRematch) {
+        const myRequested = (state.playerColor === 'w' && msg.rematchOffer.w) || (state.playerColor === 'b' && msg.rematchOffer.b);
+        const oppRequested = (state.playerColor === 'w' && msg.rematchOffer.b) || (state.playerColor === 'b' && msg.rematchOffer.w);
+
+        if (myRequested && !oppRequested) {
+          el.btnModalRematch.innerText = '⏳ 상대방 수락 대기 중...';
+          el.btnModalRematch.disabled = true;
+        } else if (!myRequested && oppRequested) {
+          el.btnModalRematch.innerText = '⚡ 상대방이 재대국 요청함! (수락)';
+          el.btnModalRematch.disabled = false;
+          if (!el.modalGameOver.classList.contains('active')) {
+            showToast('⚡ 상대방이 재대국을 요청했습니다! 결과창에서 수락할 수 있습니다.');
+            el.modalGameOver.classList.add('active');
+          }
+        } else if (!myRequested && !oppRequested) {
+          el.btnModalRematch.innerText = '🔄 재대국 요청';
+          el.btnModalRematch.disabled = false;
+        }
+      }
     }
   }
 
@@ -1908,13 +1976,16 @@ function setupEventListeners() {
   }
 
   el.btnModalRematch.addEventListener('click', () => {
-    el.modalGameOver.classList.remove('active');
     if (state.mode === 'wifi' && state.ws) {
       state.ws.send(JSON.stringify({ type: 'request_rematch' }));
-      showToast('재대국을 요청했습니다.');
+      el.btnModalRematch.innerText = '⏳ 상대방 수락 대기 중...';
+      el.btnModalRematch.disabled = true;
+      showToast('재대국을 요청했습니다. 상대방 수락을 기다립니다.');
     } else if (state.mode === 'ai') {
+      el.modalGameOver.classList.remove('active');
       startAiGame();
     } else {
+      el.modalGameOver.classList.remove('active');
       startLocalGame();
     }
   });

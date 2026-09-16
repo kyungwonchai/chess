@@ -578,6 +578,8 @@ wss.on('connection', (ws) => {
       const isWhite = room.white?.id === client.playerId;
       const isBlack = room.black?.id === client.playerId;
 
+      if (!isWhite && !isBlack) return; // Spectators cannot request rematch
+
       if (isWhite) room.rematchOffer.w = true;
       if (isBlack) room.rematchOffer.b = true;
 
@@ -597,6 +599,15 @@ wss.on('connection', (ws) => {
 
         room.white = { ...prevBlack, timeLeft: room.timeControl.initial };
         room.black = { ...prevWhite, timeLeft: room.timeControl.initial };
+
+        if (room.white?.ws) {
+          const cw = clientRooms.get(room.white.ws);
+          if (cw) cw.role = 'w';
+        }
+        if (room.black?.ws) {
+          const cb = clientRooms.get(room.black.ws);
+          if (cb) cb.role = 'b';
+        }
 
         startRoomTimer(room);
         broadcastRoomList();
