@@ -139,6 +139,13 @@ app.get(['/api/games/:id', '/chess/api/games/:id'], (req, res) => {
 app.get(['/api/leaderboard', '/chess/api/leaderboard'], (req, res) => {
   res.json({ leaderboard: getLeaderboard() });
 });
+app.get(['/api/settings', '/chess/api/settings'], (req, res) => {
+  res.json(getChessSettings());
+});
+app.post(['/api/settings', '/chess/api/settings'], (req, res) => {
+  const updated = saveChessSettings(req.body || {});
+  res.json({ ok: true, settings: updated });
+});
 
 /*
   Room Data Structure:
@@ -542,7 +549,13 @@ wss.on('connection', (ws) => {
       if (!room || room.status !== 'playing') return;
 
       const side = (room.white?.id === client.playerId) ? 'w' : (room.black?.id === client.playerId) ? 'b' : null;
-      if (!side) return;
+      if (!side) return; // Spectators cannot offer draw
+
+      // Prevent duplicate offers if already pending
+      if (room.drawOffer) {
+        ws.send(JSON.stringify({ type: 'toast', message: '이미 무승부 제안이 진행 중입니다.' }));
+        return;
+      }
 
       room.drawOffer = side;
       broadcastRoomState(room);
@@ -552,6 +565,10 @@ wss.on('connection', (ws) => {
       if (!client) return;
       const room = rooms[client.roomId];
       if (!room || room.status !== 'playing') return;
+
+      // Only the opponent (who didn't offer) can respond
+      const side = (room.white?.id === client.playerId) ? 'w' : (room.black?.id === client.playerId) ? 'b' : null;
+      if (!side || !room.drawOffer || room.drawOffer === side) return;
 
       if (data.accept) {
         stopRoomTimer(room);
@@ -563,8 +580,13 @@ wss.on('connection', (ws) => {
         broadcastRoomState(room);
         broadcastRoomList();
       } else {
+        // Declined
+        const offeringPlayer = room.drawOffer === 'w' ? room.white : room.black;
         room.drawOffer = null;
         broadcastRoomState(room);
+        if (offeringPlayer?.ws?.readyState === WebSocket.OPEN) {
+          offeringPlayer.ws.send(JSON.stringify({ type: 'toast', message: '상대방이 무승부 제안을 거절했습니다.' }));
+        }
       }
     }
 

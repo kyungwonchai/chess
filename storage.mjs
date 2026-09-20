@@ -140,3 +140,26 @@ export function getLeaderboard() {
 
   return leaderboard;
 }
+
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+
+export function getChessSettings() {
+  try {
+    if (!fs.existsSync(SETTINGS_FILE)) return {};
+    return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8') || '{}');
+  } catch (err) {
+    return {};
+  }
+}
+
+export function saveChessSettings(settings) {
+  try {
+    initStorage();
+    const current = getChessSettings();
+    const updated = { ...current, ...settings };
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+    return updated;
+  } catch (err) {
+    return {};
+  }
+}
