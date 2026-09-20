@@ -47,6 +47,9 @@
             <option value="theme-midnight">🌌 미드나잇 골드</option>
           </select>
         </div>
+        <button id="btn-open-settings" class="btn-header-action" title="게임 설정 (최선수 힌트 횟수, 수 시각화 등)">
+          <span>⚙️ 설정</span>
+        </button>
         <button id="btn-open-records" class="btn-header-action" title="전적/승률 랭킹 및 기보 보관소">
           <span>🏆 전적/기보</span>
         </button>
@@ -108,6 +111,15 @@
                     <option value="5">5분 (스피드)</option>
                     <option value="10" selected>10분 (래피드)</option>
                     <option value="15">15분 (스탠다드)</option>
+                  </select>
+                </div>
+
+                <div class="option-row">
+                  <label>💡 최선수 힌트:</label>
+                  <select id="ai-hint-picker" class="custom-select">
+                    <option value="0" selected>0회 (힌트 버튼 숨김 - 기본)</option>
+                    <option value="1">최대 1회 사용</option>
+                    <option value="2">최대 2회 사용</option>
                   </select>
                 </div>
               </div>
@@ -286,6 +298,30 @@
                 <div class="chessboard" id="chessboard">
                   <!-- 64 Squares will be injected dynamically -->
                 </div>
+                <!-- SVG Visualization Lines Overlay -->
+                <svg class="board-lines-overlay" id="board-lines-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <!-- Marker for Attack Lines (Cyan/Green) -->
+                    <marker id="arrow-attack" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="rgba(16, 185, 129, 0.85)"/>
+                    </marker>
+                    <!-- Marker for Threat Lines (Red/Coral) -->
+                    <marker id="arrow-threat" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="rgba(239, 68, 68, 0.85)"/>
+                    </marker>
+                    <!-- Marker for Preview Attack Lines (Cyan/Green dotted) -->
+                    <marker id="arrow-preview-attack" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399"/>
+                    </marker>
+                    <!-- Marker for Preview Threat Lines (Red/Coral dotted) -->
+                    <marker id="arrow-preview-threat" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f87171"/>
+                    </marker>
+                  </defs>
+                  <g id="svg-attack-group"></g>
+                  <g id="svg-threat-group"></g>
+                  <g id="svg-preview-group"></g>
+                </svg>
               </div>
             </div>
 
@@ -333,7 +369,7 @@
                 <div class="ai-tools-grid">
                   <button class="btn-tool" id="btn-ai-hint" title="현재 국면에서 가장 좋은 최선수를 추천받습니다.">
                     <span class="tool-icon">💡</span>
-                    <span class="tool-label">최선수 힌트</span>
+                    <span class="tool-label" id="lbl-ai-hint">최선수 힌트</span>
                   </button>
                   <button class="btn-tool" id="btn-undo-move" title="방금 둔 수를 물립니다.">
                     <span class="tool-icon">↩️</span>
@@ -347,6 +383,30 @@
                     <span class="tool-icon">📊</span>
                     <span class="tool-label">형세 분석 바</span>
                   </button>
+                </div>
+
+                <!-- Live Visual Guide Toggles (Capture & Threat Lines) -->
+                <div class="visual-assist-panel">
+                  <div class="assist-header">
+                    <span class="assist-title">🎯 수 읽기 시각화 가이드</span>
+                  </div>
+                  <div class="assist-options-grid">
+                    <label class="assist-checkbox-label" title="내 차례일 때 상대 기물을 잡을 수 있는 경로를 연한 청록선으로 표시합니다.">
+                      <input type="checkbox" id="chk-show-attack-lines" class="assist-chk">
+                      <span class="assist-chk-custom color-attack"></span>
+                      <span class="assist-text">⚔️ 공격선 (잡을 수 있는 수)</span>
+                    </label>
+                    <label class="assist-checkbox-label" title="상대방이 둔 후, 내 말을 잡을 수 있는 위험 경로를 연한 붉은선으로 표시합니다.">
+                      <input type="checkbox" id="chk-show-threat-lines" class="assist-chk">
+                      <span class="assist-chk-custom color-threat"></span>
+                      <span class="assist-text">🛡️ 위협선 (위험한 상대 수)</span>
+                    </label>
+                    <label class="assist-checkbox-label" title="기물을 잡고 놓을 위치(근처)에 마우스를 올리면 그 수로 인한 공격/위협 미래의 수를 점선으로 미리 보여줍니다.">
+                      <input type="checkbox" id="chk-show-preview-lines" class="assist-chk">
+                      <span class="assist-chk-custom color-preview"></span>
+                      <span class="assist-text">🔮 착수 미리보기 (미래 수 점선)</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div class="analysis-box" id="analysis-box">
@@ -530,6 +590,79 @@
           <button class="btn-tool" id="btn-replay-copy-pgn" title="PGN 복사">📋 PGN 복사</button>
         </div>
         <div class="replay-pgn-box" id="replay-current-move-desc">대국 시작 상태</div>
+      </div>
+    </div>
+
+    <!-- MODAL 6: Game Settings Modal -->
+    <div class="modal-overlay" id="modal-settings">
+      <div class="modal-card settings-modal-card">
+        <button class="modal-close" id="btn-close-settings-modal">&times;</button>
+        <div class="settings-modal-header">
+          <h3 class="modal-title">⚙️ 게임 환경 설정</h3>
+          <p class="modal-desc">최선수 힌트 횟수, 수 시각화 가이드 등 전역 설정을 조정합니다.</p>
+        </div>
+        <div class="settings-content">
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">💡 대국당 최선수 힌트 횟수</label>
+              <p class="setting-subtext">0회 설정 시 대국 중 최선수 힌트 버튼이 보이지 않습니다. (최대 2회)</p>
+            </div>
+            <select id="setting-hint-limit" class="custom-select setting-control-select">
+              <option value="0" selected>0회 (비활성화 - 기본)</option>
+              <option value="1">1회 허용</option>
+              <option value="2">2회 허용 (최대)</option>
+            </select>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">⚔️ 내 차례 공격선 (잡을 수 있는 수 시각화)</label>
+              <p class="setting-subtext">내 차례가 되었을 때 상대 기물을 잡을 수 있는 경로를 연한 청록선으로 표시합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-show-attack" class="toggle-checkbox">
+              <label for="setting-show-attack" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🛡️ 상대방 위협선 (공격받는 수 시각화)</label>
+              <p class="setting-subtext">상대방이 수를 둔 후 내 기물을 잡을 수 있는 위험 경로를 연한 붉은선으로 표시합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-show-threat" class="toggle-checkbox">
+              <label for="setting-show-threat" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🔮 착수 미리보기 (놓을 지점 마우스 호버 시 미래 수 점선 표시)</label>
+              <p class="setting-subtext">기물을 선택하고 놓을 곳 근처로 마우스를 이동하면 내가 얻을 수 있는 수나 위협받을 미래의 수를 점선으로 미리 시각화합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-show-preview" class="toggle-checkbox">
+              <label for="setting-show-preview" class="toggle-label"></label>
+            </div>
+          </div>
+        </div>
+        <div class="settings-modal-actions">
+          <button class="btn-action-primary" id="btn-save-settings">저장 완료</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 7: Draw Offer Modal -->
+    <div class="modal-overlay" id="modal-draw-offer">
+      <div class="modal-card draw-offer-card">
+        <div class="draw-offer-icon">🤝</div>
+        <h3 class="draw-offer-title">무승부 제안</h3>
+        <p class="draw-offer-desc" id="draw-offer-desc">상대방이 무승부를 제안했습니다.<br>수락하시겠습니까?</p>
+        <div class="draw-offer-actions">
+          <button class="btn-action-primary" id="btn-draw-accept">🤝 수락 (무승부)</button>
+          <button class="btn-action-secondary" id="btn-draw-decline">❌ 거절 (대국 계속)</button>
+        </div>
       </div>
     </div>
 

@@ -24,6 +24,16 @@ const state = {
   pendingPromotion: null,
   gameStatus: 'idle', // 'idle', 'playing', 'ended'
   aiThinking: false,
+
+  // Hint control (0: hidden, 1: max 1, 2: max 2)
+  maxHints: parseInt(localStorage.getItem('chess_max_hints') ?? '0', 10),
+  hintsUsed: 0,
+
+  // Visual Assist Line Guides
+  showAttackLines: localStorage.getItem('chess_show_attack_lines') === 'true',
+  showThreatLines: localStorage.getItem('chess_show_threat_lines') === 'true',
+  showPreviewLines: localStorage.getItem('chess_show_preview_lines') !== 'false', // Default ON
+  hoveredSquare: null,
   
   // Clocks
   timeControl: { initial: 600, increment: 0 },
@@ -34,6 +44,7 @@ const state = {
   // WiFi Online state
   ws: null,
   roomId: null,
+  drawOfferPending: false,
   playerId: (() => {
     let pid = localStorage.getItem('chess_player_id');
     if (!pid) {
@@ -66,6 +77,7 @@ const el = {
   btnOpenQr: document.getElementById('btn-open-qr'),
   selectPieceStyle: document.getElementById('select-piece-style'),
   selectTheme: document.getElementById('select-theme'),
+  btnOpenSettings: document.getElementById('btn-open-settings'),
   btnToggle3D: document.getElementById('btn-toggle-3d'),
   btnToggleFullscreen: document.getElementById('btn-toggle-fullscreen'),
   btnSoundToggle: document.getElementById('btn-sound-toggle'),
@@ -74,6 +86,7 @@ const el = {
   aiColorPicker: document.getElementById('ai-color-picker'),
   aiLevelPicker: document.getElementById('ai-level-picker'),
   aiTimePicker: document.getElementById('ai-time-picker'),
+  aiHintPicker: document.getElementById('ai-hint-picker'),
   btnStartAi: document.getElementById('btn-start-ai'),
 
   tabCreateRoom: document.getElementById('tab-create-room'),
@@ -97,6 +110,10 @@ const el = {
   boardStage: document.querySelector('.board-stage'),
   chessboardWrapper: document.getElementById('chessboard-wrapper'),
   chessboard: document.getElementById('chessboard'),
+  boardLinesOverlay: document.getElementById('board-lines-overlay'),
+  svgAttackGroup: document.getElementById('svg-attack-group'),
+  svgThreatGroup: document.getElementById('svg-threat-group'),
+  svgPreviewGroup: document.getElementById('svg-preview-group'),
   evalBarWrapper: document.getElementById('eval-bar-wrapper'),
   evalBarFill: document.getElementById('eval-bar-fill'),
   evalScore: document.getElementById('eval-score'),
@@ -118,8 +135,12 @@ const el = {
   gameStatusBanner: document.getElementById('game-status-banner'),
   gameStatusText: document.getElementById('game-status-text'),
 
-  // Side Tools
+  // Side Tools & Visual Guide
   btnAiHint: document.getElementById('btn-ai-hint'),
+  lblAiHint: document.getElementById('lbl-ai-hint'),
+  chkShowAttackLines: document.getElementById('chk-show-attack-lines'),
+  chkShowThreatLines: document.getElementById('chk-show-threat-lines'),
+  chkShowPreviewLines: document.getElementById('chk-show-preview-lines'),
   btnUndoMove: document.getElementById('btn-undo-move'),
   btnFlipBoard: document.getElementById('btn-flip-board'),
   btnToggleEval: document.getElementById('btn-toggle-eval'),
@@ -203,6 +224,21 @@ const el = {
 
   lobbyRecentGames: document.getElementById('lobby-recent-games'),
   btnLobbyOpenRecords: document.getElementById('btn-lobby-open-records'),
+
+  // Settings Modal
+  modalSettings: document.getElementById('modal-settings'),
+  btnCloseSettingsModal: document.getElementById('btn-close-settings-modal'),
+  settingHintLimit: document.getElementById('setting-hint-limit'),
+  settingShowAttack: document.getElementById('setting-show-attack'),
+  settingShowThreat: document.getElementById('setting-show-threat'),
+  settingShowPreview: document.getElementById('setting-show-preview'),
+  btnSaveSettings: document.getElementById('btn-save-settings'),
+
+  // Draw Offer Modal
+  modalDrawOffer: document.getElementById('modal-draw-offer'),
+  drawOfferDesc: document.getElementById('draw-offer-desc'),
+  btnDrawAccept: document.getElementById('btn-draw-accept'),
+  btnDrawDecline: document.getElementById('btn-draw-decline'),
 
   toastContainer: document.getElementById('toast-container')
 };
@@ -440,17 +476,223 @@ function renderBoard(fullRebuild = false) {
         }
       }
 
-      // Pointer event for instant touch & mouse response
+      // Pointer events for instant touch, click, and hover preview
       sq.addEventListener('pointerdown', (e) => handleSquareClick(e, squareName));
+      sq.addEventListener('pointerenter', () => handleSquareHover(squareName));
+      sq.addEventListener('pointerleave', () => handleSquareLeave(squareName));
       fragment.appendChild(sq);
     }
   }
 
   el.chessboard.appendChild(fragment);
 
+  // Render Visual Guide Lines (Attack & Threat Lines)
+  renderBoardLines();
+
   updateCapturedAndMaterial();
   updateStatusBanner();
   renderNotation();
+  updateHintUi();
+}
+
+// Convert chess square (e.g. 'e4') to percentage coordinates (0-100%) on SVG
+function getSquareCenterPercent(sq, isFlipped) {
+  const file = sq.charCodeAt(0) - 97; // 0 to 7 (a-h)
+  const rank = parseInt(sq[1], 10) - 1; // 0 to 7 (1-8)
+  const col = isFlipped ? 7 - file : file;
+  const row = isFlipped ? rank : 7 - rank;
+  return {
+    x: col * 12.5 + 6.25,
+    y: row * 12.5 + 6.25
+  };
+}
+
+// Render dynamic attack lines (my captures) and threat lines (opponent captures)
+function renderBoardLines() {
+  if (!el.svgAttackGroup || !el.svgThreatGroup) return;
+
+  el.svgAttackGroup.innerHTML = '';
+  el.svgThreatGroup.innerHTML = '';
+
+  if (state.gameStatus !== 'playing') return;
+
+  const isFlipped = state.boardFlipped;
+  const currentTurn = state.game.turn();
+  const playerColor = state.mode === 'ai' || state.mode === 'wifi' ? state.playerColor : currentTurn;
+
+  // 1. Attack Lines: When it is MY turn, show moves where I can capture opponent pieces
+  if (state.showAttackLines && currentTurn === playerColor) {
+    const legalMoves = state.game.moves({ verbose: true });
+    const captureMoves = legalMoves.filter(m => m.captured);
+
+    captureMoves.forEach(m => {
+      const pFrom = getSquareCenterPercent(m.from, isFlipped);
+      const pTo = getSquareCenterPercent(m.to, isFlipped);
+
+      // Clean Pure Line
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pFrom.x);
+      line.setAttribute('y1', pFrom.y);
+      line.setAttribute('x2', pTo.x);
+      line.setAttribute('y2', pTo.y);
+      line.setAttribute('class', 'attack-line');
+      line.setAttribute('marker-end', 'url(#arrow-attack)');
+      el.svgAttackGroup.appendChild(line);
+    });
+  }
+
+  // 2. Threat Lines: Show where opponent can capture MY pieces
+  if (state.showThreatLines) {
+    const oppColor = playerColor === 'w' ? 'b' : 'w';
+    let oppCaptures = [];
+
+    if (currentTurn === oppColor) {
+      // It's opponent's turn: their direct legal moves
+      oppCaptures = state.game.moves({ verbose: true }).filter(m => m.captured);
+    } else {
+      // It's my turn, but opponent just moved: test hypothetical opponent captures
+      try {
+        const tempGame = new Chess(state.game.fen());
+        const tokens = tempGame.fen().split(' ');
+        tokens[1] = oppColor; // switch active turn to opponent
+        tokens[3] = '-'; // reset en-passant for mock
+        const mockFen = tokens.join(' ');
+        tempGame.load(mockFen, { skipValidation: true });
+        oppCaptures = tempGame.moves({ verbose: true }).filter(m => m.captured);
+      } catch (err) {
+        oppCaptures = [];
+      }
+    }
+
+    oppCaptures.forEach(m => {
+      const pFrom = getSquareCenterPercent(m.from, isFlipped);
+      const pTo = getSquareCenterPercent(m.to, isFlipped);
+
+      // Clean Pure Threat Line
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pFrom.x);
+      line.setAttribute('y1', pFrom.y);
+      line.setAttribute('x2', pTo.x);
+      line.setAttribute('y2', pTo.y);
+      line.setAttribute('class', 'threat-line');
+      line.setAttribute('marker-end', 'url(#arrow-threat)');
+      el.svgThreatGroup.appendChild(line);
+    });
+  }
+  // 3. Move Preview Dotted Lines: When a piece is selected and player hovers over a destination square
+  renderPreviewLines();
+}
+
+// Render future 1-move outcome preview in dotted lines when hovering over target squares
+function renderPreviewLines() {
+  if (!el.svgPreviewGroup) return;
+  el.svgPreviewGroup.innerHTML = '';
+
+  if (!state.showPreviewLines || state.gameStatus !== 'playing' || !state.selectedSquare || !state.hoveredSquare) {
+    return;
+  }
+
+  // Check if hovered square is among legal moves for the selected piece
+  const legalMove = state.legalMovesForSelected.find(m => m.to === state.hoveredSquare);
+  if (!legalMove) return;
+
+  const isFlipped = state.boardFlipped;
+  const playerColor = state.mode === 'ai' || state.mode === 'wifi' ? state.playerColor : state.game.turn();
+  const oppColor = playerColor === 'w' ? 'b' : 'w';
+
+  try {
+    // Clone board state and simulate placing the piece at the hovered destination
+    const simGame = new Chess(state.game.fen());
+    const simMove = simGame.move({
+      from: state.selectedSquare,
+      to: state.hoveredSquare,
+      promotion: legalMove.promotion || 'q'
+    });
+
+    if (!simMove) return;
+
+    // A. Future Threats (Opponent moves that can capture our pieces after this move)
+    const oppFutureMoves = simGame.moves({ verbose: true }).filter(m => m.captured);
+    oppFutureMoves.forEach(m => {
+      const pFrom = getSquareCenterPercent(m.from, isFlipped);
+      const pTo = getSquareCenterPercent(m.to, isFlipped);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pFrom.x);
+      line.setAttribute('y1', pFrom.y);
+      line.setAttribute('x2', pTo.x);
+      line.setAttribute('y2', pTo.y);
+      line.setAttribute('class', 'preview-threat-line');
+      line.setAttribute('marker-end', 'url(#arrow-preview-threat)');
+      el.svgPreviewGroup.appendChild(line);
+    });
+
+    // B. Future Attacks (Our own subsequent capture opportunities opened up)
+    const mockTokens = simGame.fen().split(' ');
+    mockTokens[1] = playerColor; // Mock turn back to player
+    mockTokens[3] = '-';
+    const mockFen = mockTokens.join(' ');
+    const myFutureSim = new Chess();
+    myFutureSim.load(mockFen, { skipValidation: true });
+
+    const myFutureCaptures = myFutureSim.moves({ verbose: true }).filter(m => m.captured);
+    myFutureCaptures.forEach(m => {
+      const pFrom = getSquareCenterPercent(m.from, isFlipped);
+      const pTo = getSquareCenterPercent(m.to, isFlipped);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', pFrom.x);
+      line.setAttribute('y1', pFrom.y);
+      line.setAttribute('x2', pTo.x);
+      line.setAttribute('y2', pTo.y);
+      line.setAttribute('class', 'preview-attack-line');
+      line.setAttribute('marker-end', 'url(#arrow-preview-attack)');
+      el.svgPreviewGroup.appendChild(line);
+    });
+  } catch (err) {
+    console.warn('Preview simulation error:', err);
+  }
+}
+
+// Handle square pointer hover for instant preview
+function handleSquareHover(squareName) {
+  if (!state.showPreviewLines || !state.selectedSquare || state.gameStatus !== 'playing') return;
+  if (state.hoveredSquare === squareName) return;
+
+  state.hoveredSquare = squareName;
+  renderPreviewLines();
+}
+
+function handleSquareLeave(squareName) {
+  if (state.hoveredSquare === squareName) {
+    state.hoveredSquare = null;
+    renderPreviewLines();
+  }
+}
+
+function updateHintUi() {
+  if (!el.btnAiHint) return;
+
+  if (state.maxHints <= 0) {
+    el.btnAiHint.style.display = 'none';
+    return;
+  }
+
+  el.btnAiHint.style.display = 'flex';
+  const remaining = Math.max(0, state.maxHints - state.hintsUsed);
+  if (el.lblAiHint) {
+    el.lblAiHint.innerText = `최선수 힌트 (${remaining}/${state.maxHints})`;
+  }
+
+  if (remaining <= 0) {
+    el.btnAiHint.style.opacity = '0.5';
+    el.btnAiHint.style.pointerEvents = 'none';
+    el.btnAiHint.title = `최선수 힌트 횟수를 모두 사용했습니다. (최대 ${state.maxHints}회)`;
+  } else {
+    el.btnAiHint.style.opacity = '1';
+    el.btnAiHint.style.pointerEvents = 'auto';
+    el.btnAiHint.title = `현재 국면에서 가장 좋은 최선수를 추천받습니다. (남은 횟수: ${remaining}회)`;
+  }
 }
 
 // Instant square selection & move handler
@@ -1155,17 +1397,44 @@ function handleServerMessage(msg) {
       state.lastMove = null;
     }
 
-    renderBoard();
-
-    if (msg.drawOffer && msg.drawOffer !== state.playerColor) {
-      if (confirm('상대방이 무승부를 제안했습니다. 수락하시겠습니까?')) {
-        state.ws.send(JSON.stringify({ type: 'respond_draw', accept: true }));
-      } else {
-        state.ws.send(JSON.stringify({ type: 'respond_draw', accept: false }));
+    // Handle Draw Offer: only show modal to opponent (not spectator or offerer)
+    if (msg.drawOffer) {
+      if (state.playerColor === msg.drawOffer) {
+        // I am the one who offered draw
+        state.drawOfferPending = true;
+        if (el.btnOfferDraw) {
+          el.btnOfferDraw.innerText = '⏳ 무승부 응답 대기 중...';
+          el.btnOfferDraw.disabled = true;
+          el.btnOfferDraw.style.opacity = '0.6';
+          el.btnOfferDraw.style.pointerEvents = 'none';
+        }
+      } else if (state.playerColor === 'w' || state.playerColor === 'b') {
+        // I am the opponent receiving the offer
+        if (el.modalDrawOffer && !el.modalDrawOffer.classList.contains('active')) {
+          if (el.drawOfferDesc) {
+            const oppName = msg.drawOffer === 'w' ? (msg.white?.name || '백') : (msg.black?.name || '흑');
+            el.drawOfferDesc.innerHTML = `<strong>${oppName}</strong>님이 무승부를 제안했습니다.<br>수락하시겠습니까?`;
+          }
+          el.modalDrawOffer.classList.add('active');
+          audio.playNotify();
+        }
+      }
+    } else {
+      // No pending draw offer: reset button and close modal if open
+      state.drawOfferPending = false;
+      if (el.btnOfferDraw) {
+        el.btnOfferDraw.innerText = '🤝 무승부 제안';
+        el.btnOfferDraw.disabled = false;
+        el.btnOfferDraw.style.opacity = '1';
+        el.btnOfferDraw.style.pointerEvents = 'auto';
+      }
+      if (el.modalDrawOffer && el.modalDrawOffer.classList.contains('active')) {
+        el.modalDrawOffer.classList.remove('active');
       }
     }
 
     if (msg.status === 'ended') {
+      if (el.modalDrawOffer) el.modalDrawOffer.classList.remove('active');
       if (prevStatus !== 'ended') {
         const isWin = (msg.winner === state.playerColor);
         audio.playGameEnd(isWin);
@@ -1336,6 +1605,12 @@ function startAiGame() {
   const timeMinutes = parseInt(el.aiTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
 
+  // Set maxHints from lobby or global setting
+  if (el.aiHintPicker) {
+    state.maxHints = parseInt(el.aiHintPicker.value, 10);
+  }
+  state.hintsUsed = 0;
+
   el.userName.innerText = '나 (Player)';
   el.userTag.innerText = chosenColor === 'w' ? '백' : '흑';
   el.opponentName.innerText = `스마트 AI`;
@@ -1345,6 +1620,7 @@ function startAiGame() {
   el.btnOfferDraw.style.display = 'none';
 
   switchView('game');
+  updateHintUi();
   startLocalClocks();
   triggerAsyncEvaluation();
 
@@ -1366,6 +1642,7 @@ function startLocalGame() {
   state.autoFlip = el.toggleAutoFlip.checked;
   state.gameStatus = 'playing';
   state.aiThinking = false;
+  state.hintsUsed = 0;
 
   const timeMinutes = parseInt(el.localTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
@@ -1379,6 +1656,7 @@ function startLocalGame() {
   el.btnOfferDraw.style.display = 'none';
 
   switchView('game');
+  updateHintUi();
   startLocalClocks();
   triggerAsyncEvaluation();
 }
@@ -1771,8 +2049,20 @@ function setupEventListeners() {
     joinOnlineRoom();
   });
 
-  // AI Hint
+  // AI Hint with limit checking (max 2, default 0)
   el.btnAiHint.addEventListener('click', async () => {
+    if (state.maxHints <= 0) {
+      showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
+      return;
+    }
+    if (state.hintsUsed >= state.maxHints) {
+      showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
+      return;
+    }
+
+    state.hintsUsed++;
+    updateHintUi();
+
     if (state.stockfish && state.stockfish.isReady) {
       el.engineHintText.innerText = '💡 최강 Stockfish가 최선수를 찾는 중...';
       const uciMove = await state.stockfish.getAIMove(state.game.fen(), 5, 1000);
@@ -1785,7 +2075,7 @@ function setupEventListeners() {
         );
         if (moveObj) {
           state.hintMove = moveObj;
-          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to})`;
+          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to}) [남은 횟수: ${state.maxHints - state.hintsUsed}회]`;
           renderBoard();
           audio.playNotify();
           return;
@@ -1796,11 +2086,95 @@ function setupEventListeners() {
     const analysis = state.engine.analyzePosition(state.game);
     if (analysis.bestMove) {
       state.hintMove = analysis.bestMove;
-      el.engineHintText.innerText = `💡 추천 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to})`;
+      el.engineHintText.innerText = `💡 추천 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to}) [남은 횟수: ${state.maxHints - state.hintsUsed}회]`;
       renderBoard();
       audio.playNotify();
     }
   });
+
+  // Dynamic Visual Line Guides (Attack & Threat)
+  if (el.chkShowAttackLines) {
+    el.chkShowAttackLines.checked = state.showAttackLines;
+    el.chkShowAttackLines.addEventListener('change', (e) => {
+      state.showAttackLines = e.target.checked;
+      localStorage.setItem('chess_show_attack_lines', state.showAttackLines);
+      if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
+      renderBoardLines();
+      showToast(state.showAttackLines ? '⚔️ 공격 가능선 표시 켜짐' : '⚔️ 공격선 표시 꺼짐');
+    });
+  }
+
+  if (el.chkShowThreatLines) {
+    el.chkShowThreatLines.checked = state.showThreatLines;
+    el.chkShowThreatLines.addEventListener('change', (e) => {
+      state.showThreatLines = e.target.checked;
+      localStorage.setItem('chess_show_threat_lines', state.showThreatLines);
+      if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
+      renderBoardLines();
+      showToast(state.showThreatLines ? '🛡️ 상대 위협선 표시 켜짐' : '🛡️ 위협선 표시 꺼짐');
+    });
+  }
+
+  if (el.chkShowPreviewLines) {
+    el.chkShowPreviewLines.checked = state.showPreviewLines;
+    el.chkShowPreviewLines.addEventListener('change', (e) => {
+      state.showPreviewLines = e.target.checked;
+      localStorage.setItem('chess_show_preview_lines', state.showPreviewLines);
+      if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
+      renderPreviewLines();
+      showToast(state.showPreviewLines ? '🔮 착수 미리보기 (미래 수 점선) 켜짐' : '🔮 착수 미리보기 꺼짐');
+    });
+  }
+
+  // Settings Modal Controls
+  if (el.btnOpenSettings) {
+    el.btnOpenSettings.addEventListener('click', () => {
+      if (el.modalSettings) {
+        if (el.settingHintLimit) el.settingHintLimit.value = String(state.maxHints);
+        if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
+        if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
+        if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
+        el.modalSettings.classList.add('active');
+      }
+    });
+  }
+
+  if (el.btnCloseSettingsModal) {
+    el.btnCloseSettingsModal.addEventListener('click', () => {
+      if (el.modalSettings) el.modalSettings.classList.remove('active');
+    });
+  }
+
+  if (el.btnSaveSettings) {
+    el.btnSaveSettings.addEventListener('click', () => {
+      if (el.settingHintLimit) {
+        const val = parseInt(el.settingHintLimit.value, 10);
+        state.maxHints = val;
+        localStorage.setItem('chess_max_hints', String(val));
+        if (el.aiHintPicker) el.aiHintPicker.value = String(val);
+      }
+      if (el.settingShowAttack) {
+        state.showAttackLines = el.settingShowAttack.checked;
+        localStorage.setItem('chess_show_attack_lines', String(state.showAttackLines));
+        if (el.chkShowAttackLines) el.chkShowAttackLines.checked = state.showAttackLines;
+      }
+      if (el.settingShowThreat) {
+        state.showThreatLines = el.settingShowThreat.checked;
+        localStorage.setItem('chess_show_threat_lines', String(state.showThreatLines));
+        if (el.chkShowThreatLines) el.chkShowThreatLines.checked = state.showThreatLines;
+      }
+      if (el.settingShowPreview) {
+        state.showPreviewLines = el.settingShowPreview.checked;
+        localStorage.setItem('chess_show_preview_lines', String(state.showPreviewLines));
+        if (el.chkShowPreviewLines) el.chkShowPreviewLines.checked = state.showPreviewLines;
+      }
+
+      if (el.modalSettings) el.modalSettings.classList.remove('active');
+      updateHintUi();
+      renderBoardLines();
+      showToast('게임 설정이 저장되었습니다.');
+    });
+  }
 
   // Undo Move
   el.btnUndoMove.addEventListener('click', () => {
@@ -1848,11 +2222,39 @@ function setupEventListeners() {
   });
 
   el.btnOfferDraw.addEventListener('click', () => {
+    if (state.drawOfferPending) {
+      showToast('이미 상대방의 무승부 응답을 기다리는 중입니다.');
+      return;
+    }
     if (state.mode === 'wifi' && state.ws) {
       state.ws.send(JSON.stringify({ type: 'offer_draw' }));
+      state.drawOfferPending = true;
+      el.btnOfferDraw.innerText = '⏳ 무승부 응답 대기 중...';
+      el.btnOfferDraw.disabled = true;
+      el.btnOfferDraw.style.opacity = '0.6';
+      el.btnOfferDraw.style.pointerEvents = 'none';
       showToast('상대방에게 무승부를 제안했습니다.');
     }
   });
+
+  if (el.btnDrawAccept) {
+    el.btnDrawAccept.addEventListener('click', () => {
+      if (el.modalDrawOffer) el.modalDrawOffer.classList.remove('active');
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'respond_draw', accept: true }));
+      }
+    });
+  }
+
+  if (el.btnDrawDecline) {
+    el.btnDrawDecline.addEventListener('click', () => {
+      if (el.modalDrawOffer) el.modalDrawOffer.classList.remove('active');
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'respond_draw', accept: false }));
+      }
+      showToast('무승부 제안을 거절했습니다.');
+    });
+  }
 
   el.btnLeaveGame.addEventListener('click', () => {
     if (confirm('현재 대국을 나가고 로비로 이동하시겠습니까?')) {
@@ -2011,7 +2413,33 @@ async function init() {
   if (el.selectPieceStyle) {
     el.selectPieceStyle.value = currentPieceStyle;
   }
+  if (el.aiHintPicker) {
+    el.aiHintPicker.value = String(state.maxHints);
+  }
+  if (el.settingHintLimit) {
+    el.settingHintLimit.value = String(state.maxHints);
+  }
+  if (el.chkShowAttackLines) {
+    el.chkShowAttackLines.checked = state.showAttackLines;
+  }
+  if (el.chkShowThreatLines) {
+    el.chkShowThreatLines.checked = state.showThreatLines;
+  }
+  if (el.chkShowPreviewLines) {
+    el.chkShowPreviewLines.checked = state.showPreviewLines;
+  }
+  if (el.settingShowAttack) {
+    el.settingShowAttack.checked = state.showAttackLines;
+  }
+  if (el.settingShowThreat) {
+    el.settingShowThreat.checked = state.showThreatLines;
+  }
+  if (el.settingShowPreview) {
+    el.settingShowPreview.checked = state.showPreviewLines;
+  }
+
   apply3DViewState();
+  updateHintUi();
 
   setupEventListeners();
   renderBoard();
