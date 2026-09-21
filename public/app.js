@@ -1330,10 +1330,15 @@ function handleServerMessage(msg) {
     }
 
     const prevStatus = state.gameStatus;
+    const prevHistoryLength = (state.moveHistory && state.moveHistory.length) || 0;
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
     state.timeControl = msg.timeControl;
     state.moveHistory = msg.history || [];
+    state.activeTurn = state.game.turn();
+    state.selectedSquare = null;
+    state.legalMovesForSelected = [];
+    state.hintMove = null;
 
     if (el.userAvatar) el.userAvatar.innerText = '👤';
     if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
@@ -1387,7 +1392,7 @@ function handleServerMessage(msg) {
     if (msg.history && msg.history.length > 0) {
       const last = msg.history[msg.history.length - 1];
       state.lastMove = last;
-      if (msg.status === 'playing') {
+      if (msg.status === 'playing' && msg.history.length > prevHistoryLength) {
         if (msg.isCheck) audio.playCheck();
         else if (last.captured) audio.playCapture();
         else if (last.flags?.includes('k') || last.flags?.includes('q')) audio.playCastle();
@@ -1475,6 +1480,10 @@ function handleServerMessage(msg) {
         }
       }
     }
+
+    // Immediately render real-time board, material, turn indicators, notation & engine eval
+    renderBoard();
+    triggerAsyncEvaluation();
   }
 
   else if (type === 'clock_tick') {
