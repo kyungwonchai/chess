@@ -1,6 +1,6 @@
 // ============================================================================
 // 3D & Photorealistic Ultra Piece Engine
-// 17 Unique Visual Themes (Fantasy, Sci-Fi, Heritage, Cyber, Luxury, Comic, Pixel)
+// 26 Unique Visual Themes including 8 Premium Gold Masterpieces
 // ============================================================================
 
 export const PIECE_VALUES = {
@@ -13,34 +13,46 @@ export const PIECE_VALUES = {
 };
 
 export const SUPPORTED_STYLES = [
-  // 1. Fantasy & Elemental
+  // 1. 👑 Royal Gold Masterpieces (Expanded)
+  'rose-gold',
+  'pharaoh-gold',
+  'black-gold',
+  'solar-gold',
+  'dragon-gold',
+  'dual-gold',
+  'gold-titanium',
+  'metal',
+
+  // 2. 🔥 Fantasy & Elemental
   'fire-ice',
   'cosmic-galaxy',
   'blood-ruby',
   'ethereal-spirit',
-  // 2. Sci-Fi & Cyber
+
+  // 3. 🤖 Sci-Fi & Cyber
   'cyber-mech',
   'cyber-neon',
   'steampunk',
   'toxic-acid',
-  // 3. Heritage & Art
+
+  // 4. 🎴 Heritage & Art
   'korean-pearl',
   'marble',
   'royal-ebony',
   'jade',
   'damascus',
-  // 4. Pop & Retro
+
+  // 5. 💥 Pop & Retro
   'cel-comic',
   'retro-pixel',
-  // 5. Classic 3D & Luxury
-  'gold-titanium',
+
+  // 6. 👑 Classic 3D
   'luxury',
-  'metal',
   'wood',
   'crystal'
 ];
 
-function create3DPiece(type, color, style = 'luxury') {
+function create3DPiece(type, color, style = 'rose-gold') {
   const isWhite = color === 'w';
   const idSuffix = `_${style.replace(/[^a-zA-Z0-9]/g, '_')}_${color}_${type}`;
 
@@ -59,9 +71,234 @@ function create3DPiece(type, color, style = 'luxury') {
     customOverlay: ''
   };
 
-  // --- 1. Fantasy & Elemental ---
-  if (style === 'fire-ice') {
-    // White: Glacial Crystal Ice / Black: Magma Volcanic Lava
+  // ================= 1. PREMIUM GOLD MASTERPIECES =================
+  if (style === 'rose-gold') {
+    // 18K Royal Rose Gold & Platinum Silver
+    if (isWhite) {
+      fills = {
+        bodyGradStart: '#ffe4e6',
+        bodyGradMid: '#f43f5e',
+        bodyGradEnd: '#9f1239',
+        specular: '#fff1f2',
+        accent: '#fda4af',
+        rimStroke: '#881337',
+        goldTrim: '#fecdd3',
+        innerGlow: 'rgba(254,205,211,0.95)',
+        shadowColor: 'rgba(244,63,94,0.5)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Rose Gold Floral Filigree -->
+          <path d="M 18,24 C 20,20 22.5,22 22.5,18 C 22.5,22 25,20 27,24" fill="none" stroke="#fff1f2" stroke-width="0.9" opacity="0.85"/>
+          <circle cx="22.5" cy="23" r="1.2" fill="#ffe4e6"/>
+          <path d="M 17,33 Q 22.5,30 28,33" stroke="#fecdd3" stroke-width="1.1" fill="none"/>
+        `
+      };
+    } else {
+      fills = {
+        bodyGradStart: '#f8fafc',
+        bodyGradMid: '#94a3b8',
+        bodyGradEnd: '#334155',
+        specular: '#ffffff',
+        accent: '#f43f5e',
+        rimStroke: '#1e293b',
+        goldTrim: '#fda4af',
+        innerGlow: 'rgba(255,255,255,0.9)',
+        shadowColor: 'rgba(0,0,0,0.65)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Platinum & Rose Gold Inlay -->
+          <path d="M 18,24 C 20,20 22.5,22 22.5,18 C 22.5,22 25,20 27,24" fill="none" stroke="#fda4af" stroke-width="1" opacity="0.9"/>
+          <circle cx="22.5" cy="23" r="1.2" fill="#fb7185"/>
+          <path d="M 17,33 Q 22.5,30 28,33" stroke="#fda4af" stroke-width="1.2" fill="none"/>
+        `
+      };
+    }
+  } else if (style === 'pharaoh-gold') {
+    // Egyptian Tutankhamun Pharaoh 24K Gold & Lapis Lazuli
+    if (isWhite) {
+      fills = {
+        bodyGradStart: '#fef08a',
+        bodyGradMid: '#eab308',
+        bodyGradEnd: '#854d0e',
+        specular: '#ffffff',
+        accent: '#0284c7',
+        rimStroke: '#713f12',
+        goldTrim: '#38bdf8',
+        innerGlow: 'rgba(254,240,138,0.95)',
+        shadowColor: 'rgba(161,98,7,0.6)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Pharaoh Royal Nemes Lapis Lazuli Stripes -->
+          <path d="M 16,19 L 29,19 M 16,24 L 29,24 M 17,29 L 28,29" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="22.5" cy="11" r="1.5" fill="#0284c7"/>
+          <circle cx="22.5" cy="11" r="0.7" fill="#fde047"/>
+        `
+      };
+    } else {
+      fills = {
+        bodyGradStart: '#1e293b',
+        bodyGradMid: '#0f172a',
+        bodyGradEnd: '#020617',
+        specular: '#fde047',
+        accent: '#fbbf24',
+        rimStroke: '#000000',
+        goldTrim: '#f59e0b',
+        innerGlow: 'rgba(251,191,36,0.9)',
+        shadowColor: 'rgba(0,0,0,0.85)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Obsidian with Ancient Egyptian Gold Hieroglyphs -->
+          <path d="M 16,19 L 29,19 M 16,24 L 29,24 M 17,29 L 28,29" stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="22.5" cy="11" r="1.5" fill="#f59e0b"/>
+          <circle cx="22.5" cy="11" r="0.7" fill="#ffffff"/>
+        `
+      };
+    }
+  } else if (style === 'black-gold') {
+    // Obsidian Black Gold & Champagne Sparkle
+    if (isWhite) {
+      fills = {
+        bodyGradStart: '#fffbeb',
+        bodyGradMid: '#fef3c7',
+        bodyGradEnd: '#d97706',
+        specular: '#ffffff',
+        accent: '#fbbf24',
+        rimStroke: '#92400e',
+        goldTrim: '#fde68a',
+        innerGlow: 'rgba(254,243,199,0.95)',
+        shadowColor: 'rgba(180,83,9,0.45)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Champagne Gold Sparkle Geometric Lines -->
+          <polygon points="22.5,12 27,24 22.5,32 18,24" fill="none" stroke="#d97706" stroke-width="0.8" opacity="0.75"/>
+          <circle cx="22.5" cy="24" r="1.3" fill="#ffffff"/>
+        `
+      };
+    } else {
+      fills = {
+        bodyGradStart: '#27272a',
+        bodyGradMid: '#18181b',
+        bodyGradEnd: '#09090b',
+        specular: '#fde047',
+        accent: '#f59e0b',
+        rimStroke: '#000000',
+        goldTrim: '#fbbf24',
+        innerGlow: 'rgba(251,191,36,0.85)',
+        shadowColor: 'rgba(0,0,0,0.85)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Black Obsidian 24K Inlaid Gold Vector Lines -->
+          <polygon points="22.5,12 27,24 22.5,32 18,24" fill="none" stroke="#fbbf24" stroke-width="1.1"/>
+          <circle cx="22.5" cy="24" r="1.5" fill="#fbbf24"/>
+        `
+      };
+    }
+  } else if (style === 'solar-gold') {
+    // Divine Solar God Apollo Sunshine Gold
+    fills = {
+      bodyGradStart: isWhite ? '#ffffff' : '#451a03',
+      bodyGradMid: isWhite ? '#fde047' : '#92400e',
+      bodyGradEnd: isWhite ? '#f59e0b' : '#1c0a00',
+      specular: '#ffffff',
+      accent: isWhite ? '#f97316' : '#fde047',
+      rimStroke: isWhite ? '#b45309' : '#000000',
+      goldTrim: isWhite ? '#fbbf24' : '#f59e0b',
+      innerGlow: 'rgba(253,224,71,0.98)',
+      shadowColor: isWhite ? 'rgba(245,158,11,0.6)' : 'rgba(0,0,0,0.7)',
+      isRaytrace: true,
+      customOverlay: `
+        <!-- Solar Flare Sun Rays -->
+        <circle cx="22.5" cy="22" r="5" fill="none" stroke="${isWhite ? '#ffffff' : '#fbbf24'}" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <circle cx="22.5" cy="22" r="2.5" fill="${isWhite ? '#fef08a' : '#f59e0b'}"/>
+      `
+    };
+  } else if (style === 'dragon-gold') {
+    // Imperial Dragon 24K Scale Gold & Cinnabar Lacquer
+    if (isWhite) {
+      fills = {
+        bodyGradStart: '#fffbeb',
+        bodyGradMid: '#f59e0b',
+        bodyGradEnd: '#78350f',
+        specular: '#ffffff',
+        accent: '#dc2626',
+        rimStroke: '#92400e',
+        goldTrim: '#fef08a',
+        innerGlow: 'rgba(254,240,138,0.95)',
+        shadowColor: 'rgba(180,83,9,0.6)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Golden Dragon Scales -->
+          <path d="M 18,22 Q 20.5,25 23,22 Q 25.5,25 28,22 M 19,27 Q 22.5,30 26,27" fill="none" stroke="#78350f" stroke-width="0.9"/>
+          <circle cx="22.5" cy="14" r="1.3" fill="#dc2626"/>
+        `
+      };
+    } else {
+      fills = {
+        bodyGradStart: '#ef4444',
+        bodyGradMid: '#991b1b',
+        bodyGradEnd: '#450a0a',
+        specular: '#fde047',
+        accent: '#fbbf24',
+        rimStroke: '#450a0a',
+        goldTrim: '#fbbf24',
+        innerGlow: 'rgba(251,191,36,0.9)',
+        shadowColor: 'rgba(185,28,28,0.65)',
+        isRaytrace: true,
+        customOverlay: `
+          <!-- Cinnabar Dragon Armor Gold Inlay -->
+          <path d="M 18,22 Q 20.5,25 23,22 Q 25.5,25 28,22 M 19,27 Q 22.5,30 26,27" fill="none" stroke="#fbbf24" stroke-width="1.1"/>
+          <circle cx="22.5" cy="14" r="1.4" fill="#fbbf24"/>
+        `
+      };
+    }
+  } else if (style === 'dual-gold') {
+    // Two-Tone 18K White & Yellow Gold Luxury Watch Finish
+    fills = {
+      bodyGradStart: isWhite ? '#ffffff' : '#fef08a',
+      bodyGradMid: isWhite ? '#cbd5e1' : '#eab308',
+      bodyGradEnd: isWhite ? '#64748b' : '#854d0e',
+      specular: '#ffffff',
+      accent: isWhite ? '#eab308' : '#e2e8f0',
+      rimStroke: isWhite ? '#475569' : '#713f12',
+      goldTrim: isWhite ? '#eab308' : '#cbd5e1',
+      innerGlow: 'rgba(255,255,255,0.9)',
+      shadowColor: 'rgba(0,0,0,0.6)',
+      isRaytrace: true,
+      customOverlay: `
+        <!-- Two-Tone Bezel Center Ribbon -->
+        <rect x="21" y="16" width="3" height="18" fill="${isWhite ? '#eab308' : '#f8fafc'}" opacity="0.9" rx="0.5"/>
+      `
+    };
+  } else if (style === 'gold-titanium') {
+    fills = {
+      bodyGradStart: isWhite ? '#fffbeb' : '#3f3f46',
+      bodyGradMid: isWhite ? '#f59e0b' : '#18181b',
+      bodyGradEnd: isWhite ? '#78350f' : '#030712',
+      specular: '#ffffff',
+      accent: isWhite ? '#ef4444' : '#60a5fa',
+      rimStroke: isWhite ? '#92400e' : '#000000',
+      goldTrim: isWhite ? '#fef08a' : '#d4d4d8',
+      innerGlow: isWhite ? 'rgba(254,240,138,0.9)' : 'rgba(212,212,216,0.6)',
+      shadowColor: 'rgba(0,0,0,0.65)',
+      isRaytrace: true
+    };
+  } else if (style === 'metal') {
+    fills = {
+      bodyGradStart: isWhite ? '#fef08a' : '#f1f5f9',
+      bodyGradMid: isWhite ? '#eab308' : '#94a3b8',
+      bodyGradEnd: isWhite ? '#854d0e' : '#334155',
+      specular: '#ffffff',
+      accent: isWhite ? '#ef4444' : '#06b6d4',
+      rimStroke: isWhite ? '#713f12' : '#1e293b',
+      goldTrim: isWhite ? '#fef08a' : '#cbd5e1',
+      innerGlow: 'rgba(255,255,255,0.85)',
+      shadowColor: 'rgba(0,0,0,0.5)',
+      isRaytrace: false
+    };
+  }
+
+  // ================= 2. FANTASY & ELEMENTAL =================
+  else if (style === 'fire-ice') {
     if (isWhite) {
       fills = {
         bodyGradStart: '#e0f2fe',
@@ -75,7 +312,6 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(2,132,199,0.5)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Frost Ice Crystal Facets -->
           <path d="M 17,25 L 22.5,18 L 28,25 L 22.5,32 Z" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.85"/>
           <path d="M 22.5,10 L 25,16 L 22.5,18 L 20,16 Z" fill="#ffffff" opacity="0.5"/>
           <circle cx="22.5" cy="22" r="2.5" fill="#e0f2fe" opacity="0.6"/>
@@ -94,7 +330,6 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(220,38,38,0.6)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Molten Lava Magma Cracks -->
           <path d="M 18,34 Q 21,26 19,20 Q 24,24 27,33" fill="none" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/>
           <path d="M 20,17 Q 23,12 25,16" fill="none" stroke="#f97316" stroke-width="1.2" stroke-linecap="round"/>
           <circle cx="22.5" cy="24" r="1.8" fill="#fde047" opacity="0.9"/>
@@ -102,7 +337,6 @@ function create3DPiece(type, color, style = 'luxury') {
       };
     }
   } else if (style === 'cosmic-galaxy') {
-    // Deep Space Nebula & Starlight
     fills = {
       bodyGradStart: isWhite ? '#c084fc' : '#38bdf8',
       bodyGradMid: isWhite ? '#6b21a8' : '#1e1b4b',
@@ -115,7 +349,6 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: isWhite ? 'rgba(168,85,247,0.5)' : 'rgba(56,189,248,0.5)',
       isRaytrace: true,
       customOverlay: `
-        <!-- Cosmic Stars & Nebula Particles -->
         <circle cx="18" cy="22" r="0.8" fill="#ffffff"/>
         <circle cx="27" cy="26" r="0.6" fill="#ffffff" opacity="0.8"/>
         <circle cx="22.5" cy="14" r="1" fill="#fef08a"/>
@@ -124,7 +357,6 @@ function create3DPiece(type, color, style = 'luxury') {
       `
     };
   } else if (style === 'blood-ruby') {
-    // Blood Ruby Red vs Brilliant Diamond Crystal
     if (isWhite) {
       fills = {
         bodyGradStart: '#ffffff',
@@ -138,7 +370,6 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(0,0,0,0.4)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Brilliant Diamond Cut Facets -->
           <polygon points="22.5,8 29,18 22.5,28 16,18" fill="none" stroke="#ffffff" stroke-width="0.9" opacity="0.8"/>
           <line x1="16" y1="18" x2="29" y2="18" stroke="#ffffff" stroke-width="0.7" opacity="0.9"/>
           <line x1="22.5" y1="8" x2="22.5" y2="28" stroke="#38bdf8" stroke-width="0.8" opacity="0.7"/>
@@ -157,14 +388,12 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(225,29,72,0.6)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Ruby Gem Facets -->
           <polygon points="22.5,10 28,19 22.5,30 17,19" fill="none" stroke="#ffe4e6" stroke-width="0.9" opacity="0.85"/>
           <line x1="17" y1="19" x2="28" y2="19" stroke="#ffe4e6" stroke-width="0.8"/>
         `
       };
     }
   } else if (style === 'ethereal-spirit') {
-    // Ethereal Ghost & Phantom Mist
     fills = {
       bodyGradStart: isWhite ? '#ccfbf1' : '#ede9fe',
       bodyGradMid: isWhite ? '#14b8a6' : '#7c3aed',
@@ -177,16 +406,14 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: isWhite ? 'rgba(20,184,166,0.5)' : 'rgba(124,58,237,0.5)',
       isRaytrace: true,
       customOverlay: `
-        <!-- Spirit Aura Waves -->
         <path d="M 16,30 Q 14,20 22.5,12 Q 31,20 29,30" fill="none" stroke="${isWhite ? '#a7f3d0' : '#e9d5ff'}" stroke-width="1.3" opacity="0.7" stroke-dasharray="3,2"/>
         <circle cx="22.5" cy="18" r="3" fill="#ffffff" opacity="0.3"/>
       `
     };
   }
 
-  // --- 2. Sci-Fi & Cyber ---
+  // ================= 3. SCI-FI & CYBER =================
   else if (style === 'cyber-mech') {
-    // Cyberpunk Mech 2077 Armor & Circuits
     fills = {
       bodyGradStart: isWhite ? '#f8fafc' : '#1e293b',
       bodyGradMid: isWhite ? '#64748b' : '#0f172a',
@@ -199,7 +426,6 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: 'rgba(0,0,0,0.7)',
       isRaytrace: true,
       customOverlay: `
-        <!-- Circuit Board Lines & Mech Visor HUD -->
         <path d="M 16,28 L 22.5,28 L 26,22 L 29,22" fill="none" stroke="${isWhite ? '#00f0ff' : '#ff003c'}" stroke-width="1.1" stroke-linecap="round"/>
         <circle cx="16" cy="28" r="1.2" fill="${isWhite ? '#00f0ff' : '#ff003c'}"/>
         <circle cx="29" cy="22" r="1.2" fill="${isWhite ? '#00f0ff' : '#ff003c'}"/>
@@ -207,7 +433,6 @@ function create3DPiece(type, color, style = 'luxury') {
       `
     };
   } else if (style === 'cyber-neon') {
-    // Cyber Neon Glow
     fills = {
       bodyGradStart: isWhite ? '#67e8f9' : '#f472b6',
       bodyGradMid: isWhite ? '#0284c7' : '#db2777',
@@ -221,7 +446,6 @@ function create3DPiece(type, color, style = 'luxury') {
       isRaytrace: true
     };
   } else if (style === 'steampunk') {
-    // Steampunk Brass & Copper Gears
     fills = {
       bodyGradStart: isWhite ? '#fef08a' : '#b45309',
       bodyGradMid: isWhite ? '#ca8a04' : '#78350f',
@@ -234,17 +458,13 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: 'rgba(0,0,0,0.65)',
       isRaytrace: true,
       customOverlay: `
-        <!-- Gear / Cogwheel Motifs & Rivets -->
         <circle cx="22.5" cy="24" r="3.5" fill="none" stroke="${isWhite ? '#713f12' : '#fbbf24'}" stroke-width="1.2"/>
         <circle cx="22.5" cy="24" r="1.5" fill="${isWhite ? '#713f12' : '#fbbf24'}"/>
         <circle cx="16" cy="34" r="0.9" fill="#fde047"/>
         <circle cx="29" cy="34" r="0.9" fill="#fde047"/>
-        <line x1="22.5" y1="19" x2="22.5" y2="29" stroke="${isWhite ? '#713f12' : '#fbbf24'}" stroke-width="0.8"/>
-        <line x1="17.5" y1="24" x2="27.5" y2="24" stroke="${isWhite ? '#713f12' : '#fbbf24'}" stroke-width="0.8"/>
       `
     };
   } else if (style === 'toxic-acid') {
-    // Toxic Radioactive Neon Bio
     fills = {
       bodyGradStart: isWhite ? '#bef264' : '#15803d',
       bodyGradMid: isWhite ? '#65a30d' : '#14532d',
@@ -257,16 +477,14 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: 'rgba(101,163,13,0.6)',
       isRaytrace: true,
       customOverlay: `
-        <!-- Biohazard Radioactive Core Glow -->
         <circle cx="22.5" cy="22" r="2.2" fill="#d9f99d"/>
         <path d="M 19,25 L 26,25 L 22.5,30 Z" fill="#84cc16" opacity="0.8"/>
       `
     };
   }
 
-  // --- 3. Heritage & Art ---
+  // ================= 4. HERITAGE & ART =================
   else if (style === 'korean-pearl') {
-    // Korean Traditional Mother-of-Pearl & Black Lacquer (나전칠기)
     if (isWhite) {
       fills = {
         bodyGradStart: '#ffffff',
@@ -280,10 +498,8 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(99,102,241,0.4)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Mother-of-Pearl Iridescent Waves -->
           <path d="M 16,22 Q 22.5,16 29,22 Q 22.5,28 16,22 Z" fill="url(#pearlRainbowGrad${idSuffix})" opacity="0.85"/>
           <circle cx="22.5" cy="22" r="1.5" fill="#ffffff"/>
-          <path d="M 18,34 Q 22.5,31 27,34" stroke="#fbbf24" stroke-width="1" fill="none"/>
         `
       };
     } else {
@@ -299,10 +515,8 @@ function create3DPiece(type, color, style = 'luxury') {
         shadowColor: 'rgba(0,0,0,0.85)',
         isRaytrace: true,
         customOverlay: `
-          <!-- Korean Lacquer Inlaid Mother-of-Pearl -->
           <path d="M 16,22 Q 22.5,16 29,22 Q 22.5,28 16,22 Z" fill="url(#pearlRainbowGrad${idSuffix})" opacity="0.95"/>
           <circle cx="22.5" cy="22" r="1.5" fill="#fbbf24"/>
-          <path d="M 17,33 Q 22.5,30 28,33" stroke="#fbbf24" stroke-width="1.2" fill="none"/>
         `
       };
     }
@@ -356,17 +570,12 @@ function create3DPiece(type, color, style = 'luxury') {
       goldTrim: isWhite ? '#cbd5e1' : '#a1a1aa',
       innerGlow: isWhite ? 'rgba(255,255,255,0.9)' : 'rgba(161,161,170,0.5)',
       shadowColor: 'rgba(0,0,0,0.6)',
-      isRaytrace: true,
-      customOverlay: `
-        <!-- Damascus Wave Layers -->
-        <path d="M 15,22 Q 22.5,25 30,22 M 16,27 Q 22.5,30 29,27 M 17,17 Q 22.5,14 28,17" fill="none" stroke="${isWhite ? '#94a3b8' : '#71717a'}" stroke-width="0.9" opacity="0.6"/>
-      `
+      isRaytrace: true
     };
   }
 
-  // --- 4. Pop & Retro ---
+  // ================= 5. POP & RETRO =================
   else if (style === 'cel-comic') {
-    // Pop Art Comic Cel-Shading
     fills = {
       bodyGradStart: isWhite ? '#fef08a' : '#f43f5e',
       bodyGradMid: isWhite ? '#eab308' : '#be123c',
@@ -379,16 +588,11 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: 'rgba(0,0,0,0.7)',
       isRaytrace: false,
       customOverlay: `
-        <!-- Comic Inking & Halftone Ben-Day Dots -->
-        <path d="M 18,12 L 20,12" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
-        <path d="M 26,22 L 28,24" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
         <circle cx="21" cy="24" r="1" fill="#000000"/>
         <circle cx="24" cy="24" r="1" fill="#000000"/>
-        <circle cx="22.5" cy="27" r="1" fill="#000000"/>
       `
     };
   } else if (style === 'retro-pixel') {
-    // 8-Bit Pixel Art Retro
     fills = {
       bodyGradStart: isWhite ? '#a3e635' : '#a855f7',
       bodyGradMid: isWhite ? '#65a30d' : '#7e22ce',
@@ -401,41 +605,13 @@ function create3DPiece(type, color, style = 'luxury') {
       shadowColor: 'rgba(0,0,0,0.7)',
       isRaytrace: false,
       customOverlay: `
-        <!-- Pixel Grid Blocks -->
         <rect x="20.5" y="10" width="4" height="4" fill="#ffffff" opacity="0.9"/>
-        <rect x="18.5" y="20" width="8" height="3" fill="#000000" opacity="0.5"/>
       `
     };
   }
 
-  // --- 5. Classics ---
-  else if (style === 'gold-titanium') {
-    fills = {
-      bodyGradStart: isWhite ? '#fffbeb' : '#3f3f46',
-      bodyGradMid: isWhite ? '#f59e0b' : '#18181b',
-      bodyGradEnd: isWhite ? '#78350f' : '#030712',
-      specular: '#ffffff',
-      accent: isWhite ? '#ef4444' : '#60a5fa',
-      rimStroke: isWhite ? '#92400e' : '#000000',
-      goldTrim: isWhite ? '#fef08a' : '#d4d4d8',
-      innerGlow: isWhite ? 'rgba(254,240,138,0.9)' : 'rgba(212,212,216,0.6)',
-      shadowColor: 'rgba(0,0,0,0.65)',
-      isRaytrace: true
-    };
-  } else if (style === 'metal') {
-    fills = {
-      bodyGradStart: isWhite ? '#fef08a' : '#f1f5f9',
-      bodyGradMid: isWhite ? '#eab308' : '#94a3b8',
-      bodyGradEnd: isWhite ? '#854d0e' : '#334155',
-      specular: '#ffffff',
-      accent: isWhite ? '#ef4444' : '#06b6d4',
-      rimStroke: isWhite ? '#713f12' : '#1e293b',
-      goldTrim: isWhite ? '#fef08a' : '#cbd5e1',
-      innerGlow: 'rgba(255,255,255,0.85)',
-      shadowColor: 'rgba(0,0,0,0.5)',
-      isRaytrace: false
-    };
-  } else if (style === 'wood') {
+  // ================= 6. CLASSIC 3D =================
+  else if (style === 'wood') {
     fills = {
       bodyGradStart: isWhite ? '#fed7aa' : '#78350f',
       bodyGradMid: isWhite ? '#d97706' : '#451a03',
@@ -637,7 +813,7 @@ function create3DPiece(type, color, style = 'luxury') {
   `;
 }
 
-export function generatePieceSet(style = 'luxury') {
+export function generatePieceSet(style = 'rose-gold') {
   const pieces = {};
   const colors = ['w', 'b'];
   const types = ['P', 'N', 'B', 'R', 'Q', 'K'];
@@ -650,7 +826,7 @@ export function generatePieceSet(style = 'luxury') {
   return pieces;
 }
 
-export let currentPieceStyle = (typeof localStorage !== 'undefined' && localStorage.getItem('chess_piece_style')) || 'fire-ice';
+export let currentPieceStyle = (typeof localStorage !== 'undefined' && localStorage.getItem('chess_piece_style')) || 'rose-gold';
 
 export let PIECE_SVGS = generatePieceSet(currentPieceStyle);
 

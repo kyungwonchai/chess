@@ -103,6 +103,60 @@ body.theme-ebony-gold .square.dark {
   background: linear-gradient(135deg, #292524 0%, #0c0a09 100%);
 }
 
+/* Theme: 👑 Pharaoh Gold & Lapis Lazuli */
+body.theme-pharaoh-gold {
+  --sq-light: #fef08a;
+  --sq-dark: #0369a1;
+  --sq-last-move: rgba(234, 179, 8, 0.6);
+}
+body.theme-pharaoh-gold .chessboard-wrapper {
+  border-color: #eab308;
+  background: linear-gradient(145deg, #713f12, #0c4a6e);
+  box-shadow: 0 25px 50px rgba(234, 179, 8, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.35);
+}
+body.theme-pharaoh-gold .square.light {
+  background: linear-gradient(135deg, #fef9c3 0%, #facc15 100%);
+}
+body.theme-pharaoh-gold .square.dark {
+  background: linear-gradient(135deg, #0284c7 0%, #082f49 100%);
+}
+
+/* Theme: 🌸 Royal Rose Gold & Platinum */
+body.theme-rose-gold {
+  --sq-light: #fff1f2;
+  --sq-dark: #be123c;
+  --sq-last-move: rgba(244, 63, 94, 0.55);
+}
+body.theme-rose-gold .chessboard-wrapper {
+  border-color: #fb7185;
+  background: linear-gradient(145deg, #881337, #4c0519);
+  box-shadow: 0 25px 50px rgba(251, 113, 133, 0.35), inset 0 0 20px rgba(254, 205, 211, 0.3);
+}
+body.theme-rose-gold .square.light {
+  background: linear-gradient(135deg, #ffffff 0%, #ffe4e6 100%);
+}
+body.theme-rose-gold .square.dark {
+  background: linear-gradient(135deg, #e11d48 0%, #881337 100%);
+}
+
+/* Theme: 🖤 Obsidian Black Gold & Champagne */
+body.theme-black-gold {
+  --sq-light: #fef3c7;
+  --sq-dark: #18181b;
+  --sq-last-move: rgba(245, 158, 11, 0.65);
+}
+body.theme-black-gold .chessboard-wrapper {
+  border-color: #d97706;
+  background: linear-gradient(145deg, #18181b, #000000);
+  box-shadow: 0 25px 50px rgba(217, 119, 6, 0.45), inset 0 0 0 2px #fbbf24;
+}
+body.theme-black-gold .square.light {
+  background: linear-gradient(135deg, #fffbeb 0%, #fde68a 100%);
+}
+body.theme-black-gold .square.dark {
+  background: linear-gradient(135deg, #27272a 0%, #09090b 100%);
+}
+
 /* Theme: Photoreal Cyber Quartz Glass */
 body.theme-cyber-grid {
   --sq-light: #e0f2fe;
