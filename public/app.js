@@ -2038,6 +2038,8 @@ function setupEventListeners() {
 
   el.selectTheme.addEventListener('change', (e) => {
     document.body.className = e.target.value;
+    localStorage.setItem('chess_theme', e.target.value);
+    showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
   });
 
   el.btnToggle3D.addEventListener('click', () => {
@@ -2528,6 +2530,12 @@ async function init() {
   initWorker();
   await initNetworkInfo();
   
+  const savedTheme = localStorage.getItem('chess_theme') || 'theme-lava';
+  document.body.className = savedTheme;
+  if (el.selectTheme) {
+    el.selectTheme.value = savedTheme;
+  }
+
   if (el.selectPieceStyle) {
     el.selectPieceStyle.value = currentPieceStyle;
   }
