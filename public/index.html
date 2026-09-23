@@ -32,21 +32,37 @@
 
       <div class="header-right">
         <div class="theme-select-wrapper">
-          <select id="select-piece-style" class="theme-select" title="체스말 3D 스타일 변경">
-            <option value="luxury">👑 3D 럭셔리 마스터</option>
-            <option value="metal">✨ 3D 골드 & 실버 메탈</option>
-            <option value="wood">🪵 3D 클래식 우드조각</option>
-            <option value="crystal">💎 3D 사이버 크리스탈</option>
+          <select id="select-piece-style" class="theme-select" title="체스말 3D & 실사 레이트레이스 스타일 변경">
+            <optgroup label="✨ 실사 레이트레이스 (PBR / Ray-Traced)">
+              <option value="marble">🏛️ 실사 이탈리아 카라라 대리석</option>
+              <option value="gold-titanium">👑 실사 24K 골드 & 티타늄 블랙</option>
+              <option value="royal-ebony">🌲 실사 로열 오크 & 버마 흑단목</option>
+              <option value="cyber-neon">🔮 실사 사이버 네온 글래스</option>
+              <option value="jade">🪨 실사 황실 에메랄드 옥 & 흑비취</option>
+              <option value="damascus">⚔️ 실사 다마스커스 강철 & 플래티넘</option>
+            </optgroup>
+            <optgroup label="👑 3D 마스터 스타일">
+              <option value="luxury" selected>👑 3D 럭셔리 마스터 (펄 & 흑요석)</option>
+              <option value="metal">✨ 3D 골드 & 실버 메탈</option>
+              <option value="wood">🪵 3D 클래식 우드조각</option>
+              <option value="crystal">💎 3D 사이버 크리스탈</option>
+            </optgroup>
           </select>
         </div>
         <div class="theme-select-wrapper">
           <select id="select-theme" class="theme-select" title="체스판 테마 변경">
             <option value="theme-slate">⬛ 다크 슬레이트</option>
+            <option value="theme-marble-luxury">🏛️ 실사 로열 카라라 대리석</option>
+            <option value="theme-ebony-gold">👑 실사 흑단목 & 골드 인레이</option>
+            <option value="theme-cyber-grid">🔮 실사 사이버 쿼츠 글래스</option>
             <option value="theme-wood">🪵 클래식 우드</option>
             <option value="theme-emerald">🌿 에메랄드 그린</option>
             <option value="theme-midnight">🌌 미드나잇 골드</option>
           </select>
         </div>
+        <button id="btn-toggle-raytrace" class="btn-header-action" title="실사 레이트레이스 렌더링 모드 (바닥 반사, 스튜디오 광원 및 앰비언트 오클루전 섀도우) 켜기/끄기">
+          <span class="raytrace-icon">✨</span> <span class="raytrace-text">실사 RTX</span>
+        </button>
         <button id="btn-open-settings" class="btn-header-action" title="게임 설정 (최선수 힌트 횟수, 수 시각화 등)">
           <span>⚙️ 설정</span>
         </button>
@@ -111,6 +127,7 @@
                     <option value="5">5분 (스피드)</option>
                     <option value="10" selected>10분 (래피드)</option>
                     <option value="15">15분 (스탠다드)</option>
+                    <option value="20">20분 (클래식/장고)</option>
                   </select>
                 </div>
 
@@ -154,6 +171,7 @@
                     <option value="5">5분 (스피드)</option>
                     <option value="10" selected>10분 (래피드)</option>
                     <option value="15">15분 (스탠다드)</option>
+                    <option value="20">20분 (클래식/장고)</option>
                     <option value="0">무제한</option>
                   </select>
                 </div>
@@ -221,6 +239,8 @@
                     <option value="0" selected>무제한</option>
                     <option value="5">5분</option>
                     <option value="10">10분</option>
+                    <option value="15">15분</option>
+                    <option value="20">20분</option>
                   </select>
                 </div>
               </div>
@@ -365,7 +385,30 @@
             <!-- TAB 1: Controls & AI Training Tools -->
             <div class="side-tab-content active" id="tab-controls">
               <div class="tools-card">
-                <h3 class="tools-title">AI 트레이닝 도구</h3>
+                <h3 class="tools-title">AI 트레이닝 & 시간 조절 도구</h3>
+
+                <!-- Real-time Dynamic AI Response Time Slider -->
+                <div class="ai-speed-control-box" id="ai-speed-control-box">
+                  <div class="speed-control-header">
+                    <span class="speed-title">⚡ AI 응수 시간 (최대 딜레이)</span>
+                    <span class="speed-val-badge" id="ai-speed-badge">1.0초</span>
+                  </div>
+                  <div class="speed-slider-row">
+                    <input type="range" id="ai-speed-slider" min="0.1" max="10.0" step="0.1" value="1.0" class="custom-range-slider" title="AI가 생각하고 응수하는 최대 시간을 판을 두는 도중에도 즉시 조정합니다.">
+                  </div>
+                  <div class="speed-quick-chips">
+                    <button type="button" class="speed-chip" data-speed="0.2">⚡ 0.2s 즉시</button>
+                    <button type="button" class="speed-chip" data-speed="0.5">🚀 0.5s</button>
+                    <button type="button" class="speed-chip active" data-speed="1.0">⏱️ 1.0s</button>
+                    <button type="button" class="speed-chip" data-speed="2.0">🧠 2.0s</button>
+                    <button type="button" class="speed-chip" data-speed="3.0">🎯 3.0s</button>
+                    <button type="button" class="speed-chip" data-speed="5.0">🏆 5.0s</button>
+                  </div>
+                  <div class="speed-guarantee-note">
+                    <span class="guarantee-icon">🛡️</span> <b>시간 엄격 보장</b>: 설정한 초를 절대로 초과하지 않고 즉시 착수합니다.
+                  </div>
+                </div>
+
                 <div class="ai-tools-grid">
                   <button class="btn-tool" id="btn-ai-hint" title="현재 국면에서 가장 좋은 최선수를 추천받습니다.">
                     <span class="tool-icon">💡</span>
@@ -634,6 +677,32 @@
               <input type="checkbox" id="setting-show-threat" class="toggle-checkbox">
               <label for="setting-show-threat" class="toggle-label"></label>
             </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">✨ 실사 레이트레이스 렌더링 모드 (Ultra Photoreal Ray-Tracing & PBR)</label>
+              <p class="setting-subtext">바닥 실사 반사(Floor Mirror Reflection), 스튜디오 림라이트, 컨택트 오클루전 그림자 효과를 활성화합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-show-raytrace" class="toggle-checkbox" checked>
+              <label for="setting-show-raytrace" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">⚡ AI 기본 응수 시간 / 딜레이</label>
+              <p class="setting-subtext">AI 대국 시 기본 사고 시간 상한선을 설정합니다. (대국 중 실시간 변경 가능)</p>
+            </div>
+            <select id="setting-ai-delay" class="custom-select setting-control-select">
+              <option value="200">⚡ 0.2초 (초고속 즉시)</option>
+              <option value="500">🚀 0.5초 (스피드)</option>
+              <option value="1000" selected>⏱️ 1.0초 (표준 래피드)</option>
+              <option value="2000">🧠 2.0초 (심층 분석)</option>
+              <option value="3000">🎯 3.0초 (스탠다드)</option>
+              <option value="5000">🏆 5.0초 (그랜드마스터 수읽기)</option>
+            </select>
           </div>
 
           <div class="setting-item-box">

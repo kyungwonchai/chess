@@ -67,6 +67,60 @@ body.theme-midnight .chessboard-wrapper {
   background: linear-gradient(145deg, #451a03, #181105);
 }
 
+/* Theme: Photoreal Royal Carrara Marble */
+body.theme-marble-luxury {
+  --sq-light: #f1f5f9;
+  --sq-dark: #334155;
+  --sq-last-move: rgba(56, 189, 248, 0.45);
+}
+body.theme-marble-luxury .chessboard-wrapper {
+  border-color: #64748b;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.3);
+}
+body.theme-marble-luxury .square.light {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+body.theme-marble-luxury .square.dark {
+  background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+}
+
+/* Theme: Photoreal Royal Ebony & Gold Inlay */
+body.theme-ebony-gold {
+  --sq-light: #fef3c7;
+  --sq-dark: #1c1917;
+  --sq-last-move: rgba(245, 158, 11, 0.5);
+}
+body.theme-ebony-gold .chessboard-wrapper {
+  border-color: #d97706;
+  background: linear-gradient(145deg, #292524, #0c0a09);
+  box-shadow: 0 22px 45px rgba(0,0,0,0.85), inset 0 0 0 1px #fbbf24;
+}
+body.theme-ebony-gold .square.light {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+body.theme-ebony-gold .square.dark {
+  background: linear-gradient(135deg, #292524 0%, #0c0a09 100%);
+}
+
+/* Theme: Photoreal Cyber Quartz Glass */
+body.theme-cyber-grid {
+  --sq-light: #e0f2fe;
+  --sq-dark: #0c4a6e;
+  --sq-last-move: rgba(6, 182, 212, 0.5);
+}
+body.theme-cyber-grid .chessboard-wrapper {
+  border-color: #0284c7;
+  background: linear-gradient(145deg, #082f49, #020617);
+  box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.2);
+}
+body.theme-cyber-grid .square.light {
+  background: linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%);
+}
+body.theme-cyber-grid .square.dark {
+  background: linear-gradient(135deg, #075985 0%, #0369a1 100%);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1089,6 +1143,197 @@ body.fullscreen-mode .board-stage {
 
 .board-stage.perspective-3d-active .piece-elevated {
   transform: rotateX(-20deg) scale(1.08) !important;
+}
+
+/* ================= PHOTOREAL RAY-TRACING & PBR ENGINE ================= */
+.board-stage.raytrace-active .chessboard-wrapper {
+  box-shadow: 
+    0 30px 60px -10px rgba(0, 0, 0, 0.9),
+    0 15px 30px -5px rgba(0, 0, 0, 0.7),
+    0 0 40px rgba(56, 189, 248, 0.15),
+    inset 0 1px 3px rgba(255, 255, 255, 0.35),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.95);
+  border-image: linear-gradient(to bottom, #94a3b8, #1e293b, #0f172a) 1;
+}
+
+/* Photoreal Floor Mirror Ray-Traced Reflections on Squares */
+.board-stage.raytrace-active .square {
+  position: relative;
+  overflow: visible;
+}
+
+.board-stage.raytrace-active .square::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Floor Ambient Ray-Traced Shadow under pieces */
+.board-stage.raytrace-active .chess-piece-container::after {
+  content: '';
+  position: absolute;
+  bottom: 2%;
+  left: 18%;
+  width: 64%;
+  height: 18%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 50%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(1.5px);
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Floor Mirror Pseudo-Reflection & Raytrace Specular Lighting */
+.board-stage.raytrace-active .chess-piece-container .chess-piece-svg {
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.65)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.board-stage.raytrace-active .piece-raytraced {
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.7)) drop-shadow(0 1px 1px rgba(255, 255, 255, 0.2));
+}
+
+/* Raytraced Highlight on Hover / Pick up */
+.board-stage.raytrace-active .piece-elevated .chess-piece-svg {
+  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.8)) !important;
+}
+
+.board-stage.raytrace-active.perspective-3d-active .chessboard-wrapper {
+  transform: rotateX(25deg) scale(1.03);
+  box-shadow: 
+    0 45px 65px -12px rgba(0, 0, 0, 0.95),
+    0 25px 30px -6px rgba(0, 0, 0, 0.8),
+    0 0 50px rgba(56, 189, 248, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.4),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.95);
+}
+
+/* Raytrace Toggle Header Button */
+#btn-toggle-raytrace.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #f0f9ff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+/* ================= DYNAMIC AI SPEED CONTROL UI ================= */
+.ai-speed-control-box {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.speed-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.speed-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #bae6fd;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.speed-val-badge {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+.speed-slider-row {
+  margin-bottom: 8px;
+}
+
+.custom-range-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #334155;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+  transition: transform 0.1s ease;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.speed-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.speed-chip {
+  flex: 1 1 auto;
+  min-width: 50px;
+  padding: 4px 6px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.speed-chip:hover {
+  background: rgba(51, 65, 85, 0.9);
+  color: #f1f5f9;
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.speed-chip.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+.speed-guarantee-note {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.25;
+}
+
+.speed-guarantee-note b {
+  color: #38bdf8;
 }
 
 /* Captured Icon 3D Thumbnail */

@@ -15,6 +15,8 @@ const state = {
   boardFlipped: false,
   autoFlip: true,
   is3DView: localStorage.getItem('chess_is_3d') === 'true',
+  isRaytrace: localStorage.getItem('chess_is_raytrace') !== 'false', // Default ON for hyper-realism
+  aiMoveDelay: parseInt(localStorage.getItem('chess_ai_move_delay') || '1000', 10), // ms (Default 1.0s)
   aiLevel: 3,
   evalEnabled: true,
   selectedSquare: null,
@@ -77,10 +79,17 @@ const el = {
   btnOpenQr: document.getElementById('btn-open-qr'),
   selectPieceStyle: document.getElementById('select-piece-style'),
   selectTheme: document.getElementById('select-theme'),
+  btnToggleRaytrace: document.getElementById('btn-toggle-raytrace'),
   btnOpenSettings: document.getElementById('btn-open-settings'),
   btnToggle3D: document.getElementById('btn-toggle-3d'),
   btnToggleFullscreen: document.getElementById('btn-toggle-fullscreen'),
   btnSoundToggle: document.getElementById('btn-sound-toggle'),
+
+  // Dynamic AI Speed Controls
+  aiSpeedControlBox: document.getElementById('ai-speed-control-box'),
+  aiSpeedSlider: document.getElementById('ai-speed-slider'),
+  aiSpeedBadge: document.getElementById('ai-speed-badge'),
+  speedChips: document.querySelectorAll('.speed-chip'),
 
   // Lobby
   aiColorPicker: document.getElementById('ai-color-picker'),
@@ -232,6 +241,8 @@ const el = {
   settingShowAttack: document.getElementById('setting-show-attack'),
   settingShowThreat: document.getElementById('setting-show-threat'),
   settingShowPreview: document.getElementById('setting-show-preview'),
+  settingShowRaytrace: document.getElementById('setting-show-raytrace'),
+  settingAiDelay: document.getElementById('setting-ai-delay'),
   btnSaveSettings: document.getElementById('btn-save-settings'),
 
   // Draw Offer Modal
@@ -303,7 +314,7 @@ async function initNetworkInfo() {
   }
 }
 
-// ================= 3D VIEW TOGGLE HELPER =================
+// ================= 3D & RAYTRACE RENDER HELPERS =================
 function apply3DViewState() {
   const is3D = state.is3DView;
   if (el.boardStage) {
@@ -329,6 +340,67 @@ function toggle3DView() {
   state.is3DView = !state.is3DView;
   apply3DViewState();
   showToast(state.is3DView ? '✨ 3D 입체 원근 모드 켜짐' : '📐 2D 평면 모드 켜짐');
+}
+
+function applyRaytraceState() {
+  const isRTX = state.isRaytrace;
+  if (el.boardStage) {
+    if (isRTX) {
+      el.boardStage.classList.add('raytrace-active');
+    } else {
+      el.boardStage.classList.remove('raytrace-active');
+    }
+  }
+  if (el.btnToggleRaytrace) {
+    if (isRTX) {
+      el.btnToggleRaytrace.classList.add('active');
+      el.btnToggleRaytrace.innerHTML = '<span class="raytrace-icon">✨</span> <span class="raytrace-text">RTX 켜짐</span>';
+    } else {
+      el.btnToggleRaytrace.classList.remove('active');
+      el.btnToggleRaytrace.innerHTML = '<span class="raytrace-icon">💡</span> <span class="raytrace-text">RTX 꺼짐</span>';
+    }
+  }
+  if (el.settingShowRaytrace) {
+    el.settingShowRaytrace.checked = isRTX;
+  }
+  localStorage.setItem('chess_is_raytrace', isRTX);
+}
+
+function toggleRaytraceMode() {
+  state.isRaytrace = !state.isRaytrace;
+  applyRaytraceState();
+  showToast(state.isRaytrace ? '✨ 실사 레이트레이스 PBR 렌더링 켜짐' : '💡 표준 렌더링 모드 전환');
+}
+
+// ================= DYNAMIC AI SPEED / DELAY CONTROL =================
+function updateAiSpeedUi(ms, save = true) {
+  state.aiMoveDelay = Math.max(100, Math.min(10000, ms));
+  const secStr = (state.aiMoveDelay / 1000).toFixed(1);
+
+  if (el.aiSpeedBadge) {
+    el.aiSpeedBadge.innerText = `${secStr}초`;
+  }
+  if (el.aiSpeedSlider) {
+    el.aiSpeedSlider.value = secStr;
+  }
+  if (el.settingAiDelay) {
+    el.settingAiDelay.value = String(state.aiMoveDelay);
+  }
+
+  // Update quick preset chips
+  const chips = document.querySelectorAll('.speed-chip');
+  chips.forEach(chip => {
+    const chipSec = parseFloat(chip.dataset.speed);
+    if (Math.abs(chipSec - (state.aiMoveDelay / 1000)) < 0.05) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+
+  if (save) {
+    localStorage.setItem('chess_ai_move_delay', String(state.aiMoveDelay));
+  }
 }
 
 // ================= FULLSCREEN MONITOR SUPPORT =================
@@ -819,14 +891,17 @@ async function triggerAIMove() {
 
   state.aiThinking = true;
   const isStockfishReady = state.stockfish && state.stockfish.isReady;
-  el.gameStatusText.innerText = isStockfishReady
-    ? '🤖 현존 최강 Stockfish가 수를 계산 중입니다... (최대 3초)'
-    : '🤖 AI가 수를 계산 중입니다... (최대 3초)';
+  const maxTimeMs = state.aiMoveDelay || 1000;
+  const secDisplay = (maxTimeMs / 1000).toFixed(1);
 
-  // 1. Try World-Class Stockfish Engine
+  el.gameStatusText.innerText = isStockfishReady
+    ? `🤖 Stockfish가 수를 계산 중입니다... (최대 ${secDisplay}초)`
+    : `🤖 AI가 수를 계산 중입니다... (최대 ${secDisplay}초)`;
+
+  // 1. Try World-Class Stockfish Engine with strict zero-overrun time cap
   if (isStockfishReady) {
     try {
-      const uciMove = await state.stockfish.getAIMove(state.game.fen(), state.aiLevel, 3000);
+      const uciMove = await state.stockfish.getAIMove(state.game.fen(), state.aiLevel, maxTimeMs);
       if (uciMove && state.gameStatus === 'playing') {
         const moveObj = {
           from: uciMove.slice(0, 2),
@@ -842,20 +917,20 @@ async function triggerAIMove() {
     }
   }
 
-  // 2. Fallback to built-in engine (capped at 3s)
+  // 2. Fallback to built-in engine (capped at maxTimeMs)
   if (state.worker) {
     state.worker.postMessage({
       type: 'get_ai_move',
       fen: state.game.fen(),
       level: state.aiLevel,
-      maxTime: 3000
+      maxTime: maxTimeMs
     });
   } else {
     setTimeout(() => {
-      const aiMove = state.engine.getAIMove(state.game, state.aiLevel, 3000);
+      const aiMove = state.engine.getAIMove(state.game, state.aiLevel, maxTimeMs);
       state.aiThinking = false;
       handleAIMoveResult(aiMove);
-    }, 50);
+    }, Math.min(50, Math.floor(maxTimeMs * 0.2)));
   }
 }
 
@@ -2135,6 +2210,30 @@ function setupEventListeners() {
     });
   }
 
+  if (el.btnToggleRaytrace) {
+    el.btnToggleRaytrace.addEventListener('click', () => {
+      toggleRaytraceMode();
+    });
+  }
+
+  // Dynamic AI Speed Slider & Preset Chips
+  if (el.aiSpeedSlider) {
+    el.aiSpeedSlider.addEventListener('input', (e) => {
+      const ms = Math.round(parseFloat(e.target.value) * 1000);
+      updateAiSpeedUi(ms, true);
+    });
+  }
+
+  if (el.speedChips) {
+    el.speedChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const ms = Math.round(parseFloat(chip.dataset.speed) * 1000);
+        updateAiSpeedUi(ms, true);
+        showToast(`⚡ AI 응수 시간이 ${(ms / 1000).toFixed(1)}초로 변경되었습니다.`);
+      });
+    });
+  }
+
   // Settings Modal Controls
   if (el.btnOpenSettings) {
     el.btnOpenSettings.addEventListener('click', () => {
@@ -2143,6 +2242,8 @@ function setupEventListeners() {
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
         if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
+        if (el.settingShowRaytrace) el.settingShowRaytrace.checked = state.isRaytrace;
+        if (el.settingAiDelay) el.settingAiDelay.value = String(state.aiMoveDelay);
         el.modalSettings.classList.add('active');
       }
     });
@@ -2177,11 +2278,19 @@ function setupEventListeners() {
         localStorage.setItem('chess_show_preview_lines', String(state.showPreviewLines));
         if (el.chkShowPreviewLines) el.chkShowPreviewLines.checked = state.showPreviewLines;
       }
+      if (el.settingShowRaytrace) {
+        state.isRaytrace = el.settingShowRaytrace.checked;
+        applyRaytraceState();
+      }
+      if (el.settingAiDelay) {
+        const ms = parseInt(el.settingAiDelay.value, 10);
+        updateAiSpeedUi(ms, true);
+      }
 
       if (el.modalSettings) el.modalSettings.classList.remove('active');
       updateHintUi();
       renderBoardLines();
-      showToast('게임 설정이 저장되었습니다.');
+      showToast('게임 환경 설정이 저장되었습니다.');
     });
   }
 
@@ -2443,11 +2552,16 @@ async function init() {
   if (el.settingShowThreat) {
     el.settingShowThreat.checked = state.showThreatLines;
   }
-  if (el.settingShowPreview) {
-    el.settingShowPreview.checked = state.showPreviewLines;
+  if (el.settingShowRaytrace) {
+    el.settingShowRaytrace.checked = state.isRaytrace;
+  }
+  if (el.settingAiDelay) {
+    el.settingAiDelay.value = String(state.aiMoveDelay);
   }
 
   apply3DViewState();
+  applyRaytraceState();
+  updateAiSpeedUi(state.aiMoveDelay, false);
   updateHintUi();
 
   setupEventListeners();

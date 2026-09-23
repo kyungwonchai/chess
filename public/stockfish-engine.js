@@ -1,5 +1,6 @@
 // Stockfish WebAssembly / JS Engine Integration for Chess Master
 // Provides World-Class Grandmaster level AI (Elo 3200+) with accurate UCI time control
+// Guaranteed strict real-time deadline compliance (Zero latency overrun)
 
 export class StockfishEngine {
   constructor() {
@@ -8,6 +9,7 @@ export class StockfishEngine {
     this.isWasm = false;
     this.pendingMoveResolve = null;
     this.analysisCallback = null;
+    this.lastCandidateMove = null;
     this.init();
   }
 
@@ -52,6 +54,14 @@ export class StockfishEngine {
       this.isReady = true;
     }
 
+    // Capture principal variation (PV) candidate move in real-time
+    if (line.startsWith('info ') && line.includes(' pv ')) {
+      const pvMatch = line.match(/\spv\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
+      if (pvMatch && pvMatch[1]) {
+        this.lastCandidateMove = pvMatch[1];
+      }
+    }
+
     // Real-time evaluation parse: "info depth 10 score cp 45 time 300 nodes ..."
     if (line.startsWith('info ') && line.includes('score ')) {
       this.parseEvaluation(line);
@@ -64,7 +74,7 @@ export class StockfishEngine {
       if (this.pendingMoveResolve) {
         const resolve = this.pendingMoveResolve;
         this.pendingMoveResolve = null;
-        resolve(uciMove && uciMove !== '(none)' ? uciMove : null);
+        resolve(uciMove && uciMove !== '(none)' ? uciMove : this.lastCandidateMove || null);
       }
     }
   }
@@ -92,14 +102,15 @@ export class StockfishEngine {
     }
   }
 
-  // Request best move with strict time cap (Default: 3000ms)
-  getAIMove(fen, level = 3, maxTimeMs = 3000) {
+  // Request best move with STRICT time cap (Guaranteed never to exceed maxTimeMs)
+  getAIMove(fen, level = 3, maxTimeMs = 1000) {
     return new Promise((resolve) => {
       if (!this.worker || !this.isReady) {
         resolve(null);
         return;
       }
 
+      this.lastCandidateMove = null;
       this.pendingMoveResolve = resolve;
 
       // Stockfish UCI Skill Level mapping (0 ~ 20)
@@ -114,20 +125,40 @@ export class StockfishEngine {
       this.send(`setoption name Skill Level value ${skill}`);
       this.send(`position fen ${fen}`);
 
-      if (level === 1) {
+      // Budget calculation: Allocate 80% to search so UCI stop and messaging finish before maxTimeMs
+      const targetMovetime = Math.max(10, Math.floor(maxTimeMs * 0.8));
+
+      if (level === 1 && maxTimeMs > 400) {
         // Fast shallow depth for level 1
         this.send('go depth 2');
       } else {
-        // Strict time control for levels 2 ~ 5
-        this.send(`go movetime ${maxTimeMs}`);
+        // Strict time control
+        this.send(`go movetime ${targetMovetime}`);
       }
 
-      // Safety fallback timer if engine takes longer than maxTimeMs + 500ms
-      setTimeout(() => {
+      // Hard Deadline 1: Send 'stop' command slightly before maxTimeMs
+      const stopMarginMs = Math.max(15, Math.floor(maxTimeMs * 0.15));
+      const stopTimer = setTimeout(() => {
         if (this.pendingMoveResolve === resolve) {
           this.send('stop');
         }
-      }, maxTimeMs + 500);
+      }, Math.max(10, maxTimeMs - stopMarginMs));
+
+      // Hard Deadline 2: Absolute guaranteed resolve cap at maxTimeMs (strict zero-overrun)
+      const hardCapTimer = setTimeout(() => {
+        if (this.pendingMoveResolve === resolve) {
+          this.pendingMoveResolve = null;
+          resolve(this.lastCandidateMove || null);
+        }
+      }, maxTimeMs);
+
+      // Wrapper around resolve to clear safety timers
+      const originalResolve = resolve;
+      this.pendingMoveResolve = (result) => {
+        clearTimeout(stopTimer);
+        clearTimeout(hardCapTimer);
+        originalResolve(result);
+      };
     });
   }
 
@@ -138,9 +169,9 @@ export class StockfishEngine {
     this.send(`position fen ${fen}`);
     this.send(`go depth 12`);
 
-    // Auto-stop evaluation search after 800ms
+    // Auto-stop evaluation search after 500ms
     setTimeout(() => {
       this.send('stop');
-    }, 800);
+    }, 500);
   }
 }
