@@ -382,6 +382,50 @@ function toggleRaytraceMode() {
   showToast(state.isRaytrace ? '✨ 실사 레이트레이스 PBR 렌더링 켜짐' : '💡 표준 렌더링 모드 전환');
 }
 
+// Safely apply board theme without clearing other body classes (e.g. in-game, board-only-mode)
+function applyTheme(themeName) {
+  const currentClasses = Array.from(document.body.classList).filter(c => !c.startsWith('theme-'));
+  document.body.className = [...currentClasses, themeName].join(' ');
+  localStorage.setItem('chess_theme', themeName);
+  if (el.selectTheme && el.selectTheme.value !== themeName) {
+    el.selectTheme.value = themeName;
+  }
+}
+
+// Enable smooth horizontal drag and swipe on header for mobile & folded screens
+function setupHeaderDragScroll() {
+  const header = document.querySelector('.app-header');
+  if (!header) return;
+
+  let isDown = false;
+  let startX = 0;
+  let scrollLeft = 0;
+
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.closest('select') || e.target.closest('button')) {
+      return;
+    }
+    isDown = true;
+    header.classList.add('dragging');
+    startX = e.pageX - header.offsetLeft;
+    scrollLeft = header.scrollLeft;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDown) {
+      isDown = false;
+      header.classList.remove('dragging');
+    }
+  });
+
+  header.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    const x = e.pageX - header.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    header.scrollLeft = scrollLeft - walk;
+  });
+}
+
 // ================= DYNAMIC AI SPEED / DELAY CONTROL =================
 function updateAiSpeedUi(ms, save = true) {
   state.aiMoveDelay = Math.max(100, Math.min(10000, ms));
@@ -2100,8 +2144,7 @@ function setupEventListeners() {
   });
 
   el.selectTheme.addEventListener('change', (e) => {
-    document.body.className = e.target.value;
-    localStorage.setItem('chess_theme', e.target.value);
+    applyTheme(e.target.value);
     showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
   });
 
@@ -2640,10 +2683,7 @@ async function init() {
   await initNetworkInfo();
   
   const savedTheme = localStorage.getItem('chess_theme') || 'theme-lava';
-  document.body.className = savedTheme;
-  if (el.selectTheme) {
-    el.selectTheme.value = savedTheme;
-  }
+  applyTheme(savedTheme);
 
   if (el.selectPieceStyle) {
     el.selectPieceStyle.value = currentPieceStyle;
@@ -2697,6 +2737,7 @@ async function init() {
   }
 
   setupEventListeners();
+  setupHeaderDragScroll();
   renderBoard();
 
   // Load lobby recent games on startup
