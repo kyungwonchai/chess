@@ -13,7 +13,7 @@ const state = {
   worker: null,
   playerColor: 'w', // 'w', 'b', 'spectator'
   boardFlipped: false,
-  autoFlip: true,
+  autoFlip: localStorage.getItem('chess_auto_flip') === 'true', // Default OFF so board does not flip every move
   is3DView: localStorage.getItem('chess_is_3d') === 'true',
   isRaytrace: localStorage.getItem('chess_is_raytrace') !== 'false', // Default ON for hyper-realism
   isBoardOnly: localStorage.getItem('chess_is_board_only') === 'true', // Phone/Fold Focus Fit Mode
@@ -2680,6 +2680,15 @@ async function init() {
   updateAiSpeedUi(state.aiMoveDelay, false);
   updateHintUi();
   updateBoardOnlyStatus();
+
+  if (el.toggleAutoFlip) {
+    el.toggleAutoFlip.checked = state.autoFlip;
+    el.toggleAutoFlip.addEventListener('change', (e) => {
+      state.autoFlip = e.target.checked;
+      localStorage.setItem('chess_auto_flip', state.autoFlip ? 'true' : 'false');
+      showToast(state.autoFlip ? '턴마다 판 180° 자동 회전 켜짐' : '판 자동 회전 꺼짐 (고정)');
+    });
+  }
 
   setupEventListeners();
   renderBoard();
