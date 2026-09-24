@@ -111,6 +111,9 @@
         <button id="btn-open-records" class="btn-header-action" title="전적/승률 랭킹 및 기보 보관소">
           <span>🏆 전적/기보</span>
         </button>
+        <button id="btn-toggle-board-only" class="btn-header-action" title="폰/폴드 화면 맞춤 '판만 보기' 모드 (최상단 되돌리기 버튼 지원)">
+          <span class="board-only-icon">📱</span> <span class="board-only-text">판만보기</span>
+        </button>
         <button id="btn-toggle-3d" class="btn-header-action" title="3D 입체 원근 뷰 켜기/끄기">
           <span class="view-3d-icon">🧊</span> <span class="view-3d-text">3D 뷰</span>
         </button>
@@ -313,6 +316,25 @@
           <!-- LEFT / CENTER: Chess Board Section -->
           <div class="board-column">
             
+            <!-- Board-Only Focus Topbar (Compact Mobile / Fold Mode) -->
+            <div class="board-only-topbar" id="board-only-topbar">
+              <div class="bot-left">
+                <button type="button" class="btn-bot-action" id="btn-bot-leave" title="대국 나가기 / 로비 이동">🏠 나가기</button>
+                <span class="bot-status-pill" id="bot-status-pill">⚪ 백 차례</span>
+              </div>
+              <div class="bot-center">
+                <button type="button" class="btn-bot-undo-main" id="btn-bot-undo" title="방금 둔 수 되돌리기 (Undo)">
+                  <span class="bot-undo-icon">↩️</span>
+                  <span class="bot-undo-text">되돌리기</span>
+                </button>
+              </div>
+              <div class="bot-right">
+                <button type="button" class="btn-bot-mini-icon" id="btn-bot-hint" title="최선수 힌트">💡</button>
+                <button type="button" class="btn-bot-mini-icon" id="btn-bot-flip" title="판 180도 회전">🔄</button>
+                <button type="button" class="btn-bot-action btn-bot-close" id="btn-bot-exit" title="일반 화면으로 복귀">✖️ 일반뷰</button>
+              </div>
+            </div>
+
             <!-- Online Room Top Bar -->
             <div class="online-room-topbar" id="online-room-topbar" style="display:none;">
               <div class="room-topbar-left">
@@ -452,6 +474,10 @@
                 </div>
 
                 <div class="ai-tools-grid">
+                  <button class="btn-tool" id="btn-side-board-only" title="스마트폰/폴더블 화면에 딱 맞게 보드 집중 모드로 전환 (최상단 되돌리기 버튼)">
+                    <span class="tool-icon">📱</span>
+                    <span class="tool-label">판만 보기</span>
+                  </button>
                   <button class="btn-tool" id="btn-ai-hint" title="현재 국면에서 가장 좋은 최선수를 추천받습니다.">
                     <span class="tool-icon">💡</span>
                     <span class="tool-label" id="lbl-ai-hint">최선수 힌트</span>

@@ -16,6 +16,7 @@ const state = {
   autoFlip: true,
   is3DView: localStorage.getItem('chess_is_3d') === 'true',
   isRaytrace: localStorage.getItem('chess_is_raytrace') !== 'false', // Default ON for hyper-realism
+  isBoardOnly: localStorage.getItem('chess_is_board_only') === 'true', // Phone/Fold Focus Fit Mode
   aiMoveDelay: parseInt(localStorage.getItem('chess_ai_move_delay') || '1000', 10), // ms (Default 1.0s)
   aiLevel: 3,
   evalEnabled: true,
@@ -81,6 +82,15 @@ const el = {
   selectTheme: document.getElementById('select-theme'),
   btnToggleRaytrace: document.getElementById('btn-toggle-raytrace'),
   btnOpenSettings: document.getElementById('btn-open-settings'),
+  btnToggleBoardOnly: document.getElementById('btn-toggle-board-only'),
+  btnSideBoardOnly: document.getElementById('btn-side-board-only'),
+  boardOnlyTopbar: document.getElementById('board-only-topbar'),
+  btnBotLeave: document.getElementById('btn-bot-leave'),
+  botStatusPill: document.getElementById('bot-status-pill'),
+  btnBotUndo: document.getElementById('btn-bot-undo'),
+  btnBotHint: document.getElementById('btn-bot-hint'),
+  btnBotFlip: document.getElementById('btn-bot-flip'),
+  btnBotExit: document.getElementById('btn-bot-exit'),
   btnToggle3D: document.getElementById('btn-toggle-3d'),
   btnToggleFullscreen: document.getElementById('btn-toggle-fullscreen'),
   btnSoundToggle: document.getElementById('btn-sound-toggle'),
@@ -451,6 +461,52 @@ function updateFullscreenUI() {
 document.addEventListener('fullscreenchange', updateFullscreenUI);
 document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
 
+// ================= BOARD-ONLY (PHONE / FOLD FIT) MODE =================
+function toggleBoardOnlyMode(forceState = null) {
+  state.isBoardOnly = (forceState !== null) ? forceState : !state.isBoardOnly;
+  localStorage.setItem('chess_is_board_only', state.isBoardOnly ? 'true' : 'false');
+
+  if (state.isBoardOnly) {
+    document.body.classList.add('board-only-mode');
+    if (el.btnToggleBoardOnly) {
+      el.btnToggleBoardOnly.classList.add('active');
+      el.btnToggleBoardOnly.title = '일반 모드로 복귀 (B키)';
+    }
+    if (el.btnSideBoardOnly) {
+      el.btnSideBoardOnly.classList.add('active');
+    }
+    showToast('📱 판만 보기(모바일/폴드 맞춤) 켜짐 - 최상단 [되돌리기] 제공');
+  } else {
+    document.body.classList.remove('board-only-mode');
+    if (el.btnToggleBoardOnly) {
+      el.btnToggleBoardOnly.classList.remove('active');
+      el.btnToggleBoardOnly.title = "폰/폴드 화면 맞춤 '판만 보기' 모드 (최상단 되돌리기 버튼 지원)";
+    }
+    if (el.btnSideBoardOnly) {
+      el.btnSideBoardOnly.classList.remove('active');
+    }
+    showToast('🗗 일반 화면 모드로 복귀');
+  }
+  updateBoardOnlyStatus();
+  renderBoard();
+}
+
+function updateBoardOnlyStatus() {
+  if (!el.botStatusPill) return;
+  const turn = state.game.turn();
+  const isWhite = (turn === 'w');
+  const turnText = isWhite ? '⚪ 백 차례' : '⚫ 흑 차례';
+  if (state.game.inCheck()) {
+    el.botStatusPill.innerText = `⚠️ ${turnText} (체크!)`;
+    el.botStatusPill.style.borderColor = '#ef4444';
+    el.botStatusPill.style.color = '#f87171';
+  } else {
+    el.botStatusPill.innerText = turnText;
+    el.botStatusPill.style.borderColor = '';
+    el.botStatusPill.style.color = '';
+  }
+}
+
 // ================= ULTRA-FAST BOARD RENDERING =================
 function renderBoard(fullRebuild = false) {
   const board = state.game.board();
@@ -563,6 +619,7 @@ function renderBoard(fullRebuild = false) {
 
   updateCapturedAndMaterial();
   updateStatusBanner();
+  updateBoardOnlyStatus();
   renderNotation();
   updateHintUi();
 }
@@ -2046,6 +2103,48 @@ function setupEventListeners() {
     toggle3DView();
   });
 
+  if (el.btnToggleBoardOnly) {
+    el.btnToggleBoardOnly.addEventListener('click', () => {
+      toggleBoardOnlyMode();
+    });
+  }
+
+  if (el.btnSideBoardOnly) {
+    el.btnSideBoardOnly.addEventListener('click', () => {
+      toggleBoardOnlyMode();
+    });
+  }
+
+  if (el.btnBotExit) {
+    el.btnBotExit.addEventListener('click', () => {
+      toggleBoardOnlyMode(false);
+    });
+  }
+
+  if (el.btnBotLeave) {
+    el.btnBotLeave.addEventListener('click', () => {
+      if (el.btnLeaveGame) el.btnLeaveGame.click();
+    });
+  }
+
+  if (el.btnBotUndo) {
+    el.btnBotUndo.addEventListener('click', () => {
+      if (el.btnUndoMove) el.btnUndoMove.click();
+    });
+  }
+
+  if (el.btnBotHint) {
+    el.btnBotHint.addEventListener('click', () => {
+      if (el.btnAiHint) el.btnAiHint.click();
+    });
+  }
+
+  if (el.btnBotFlip) {
+    el.btnBotFlip.addEventListener('click', () => {
+      if (el.btnFlipBoard) el.btnFlipBoard.click();
+    });
+  }
+
   if (el.btnToggleFullscreen) {
     el.btnToggleFullscreen.addEventListener('click', () => {
       toggleFullscreen();
@@ -2056,6 +2155,10 @@ function setupEventListeners() {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'f' || e.key === 'F') {
       toggleFullscreen();
+    } else if (e.key === 'b' || e.key === 'B') {
+      toggleBoardOnlyMode();
+    } else if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) {
+      if (el.btnUndoMove) el.btnUndoMove.click();
     }
   });
 
@@ -2569,8 +2672,14 @@ async function init() {
 
   apply3DViewState();
   applyRaytraceState();
+  if (state.isBoardOnly) {
+    document.body.classList.add('board-only-mode');
+    if (el.btnToggleBoardOnly) el.btnToggleBoardOnly.classList.add('active');
+    if (el.btnSideBoardOnly) el.btnSideBoardOnly.classList.add('active');
+  }
   updateAiSpeedUi(state.aiMoveDelay, false);
   updateHintUi();
+  updateBoardOnlyStatus();
 
   setupEventListeners();
   renderBoard();

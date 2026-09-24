@@ -2078,53 +2078,292 @@ body.fullscreen-mode .side-column {
   100% { opacity: 0; transform: translateY(-10px); }
 }
 
+/* ================= BOARD-ONLY FOCUS MODE (갤럭시 폴드 & 모바일 100% 핏) ================= */
+.board-only-topbar {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  gap: 6px;
+}
+
+.bot-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.bot-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1.5;
+}
+
+.bot-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 1;
+}
+
+.btn-bot-action {
+  background: rgba(51, 65, 85, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn-bot-action:hover {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+.btn-bot-close {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.btn-bot-close:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.bot-status-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  white-space: nowrap;
+}
+
+/* 최상단 메인 되돌리기 버튼 */
+.btn-bot-undo-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.btn-bot-undo-main:active {
+  transform: scale(0.94);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.bot-undo-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.btn-bot-mini-icon {
+  background: rgba(51, 65, 85, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-bot-mini-icon:hover {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+/* ================= 판만 보기 모드 활성화 시 전체 레이아웃 (갤럭시 폴드 & 모바일 최적화) ================= */
+body.board-only-mode {
+  overflow: hidden;
+  height: 100dvh;
+}
+
+body.board-only-mode .app-header {
+  display: none !important;
+}
+
+body.board-only-mode .side-column {
+  display: none !important;
+}
+
+body.board-only-mode .online-room-topbar {
+  display: none !important;
+}
+
+body.board-only-mode .board-only-topbar {
+  display: flex !important;
+}
+
+body.board-only-mode .main-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.board-only-mode .arena-container {
+  padding: 2px 4px !important;
+  margin: 0 !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  gap: 0 !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+body.board-only-mode .board-column {
+  width: 100% !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 4px 6px !important;
+  box-sizing: border-box !important;
+}
+
+body.board-only-mode .player-bar {
+  padding: 2px 8px !important;
+  min-height: 28px !important;
+  max-height: 32px !important;
+  font-size: 0.8rem !important;
+  margin: 2px 0 !important;
+  width: min(calc(100dvh - 100px), calc(100vw - 12px), 800px) !important;
+}
+
+body.board-only-mode .player-avatar {
+  width: 22px !important;
+  height: 22px !important;
+  font-size: 0.9rem !important;
+}
+
+body.board-only-mode .player-clock-box {
+  padding: 2px 6px !important;
+  font-size: 0.82rem !important;
+}
+
+body.board-only-mode .board-stage {
+  height: min(calc(100dvh - 102px), calc(100vw - 12px), 800px) !important;
+  width: min(calc(100dvh - 102px), calc(100vw - 12px), 800px) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: auto !important;
+}
+
+body.board-only-mode .chessboard-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 6px !important;
+  border-width: 3px !important;
+}
+
 /* ================= RESPONSIVENESS ================= */
 @media (max-width: 900px) {
   .arena-container {
     flex-direction: column;
-    padding: 0.75rem;
+    padding: 0.5rem;
     align-items: center;
+    gap: 0.5rem;
   }
 
   .board-column {
     width: 100%;
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .player-bar {
+    width: min(calc(100dvh - 230px), calc(100vw - 16px), 640px);
+    padding: 0.35rem 0.65rem;
   }
 
   .board-stage {
-    height: auto;
-    width: 100%;
+    height: min(calc(100dvh - 230px), calc(100vw - 16px), 640px);
+    width: min(calc(100dvh - 230px), calc(100vw - 16px), 640px);
+    margin: 0 auto;
   }
 
   .chessboard-wrapper {
     width: 100%;
-    height: auto;
+    height: 100%;
     aspect-ratio: 1 / 1;
   }
 
   .eval-bar-wrapper {
-    height: auto;
+    height: 100%;
     align-self: stretch;
+    width: 16px;
   }
 
   .side-column {
     width: 100%;
-    max-width: 100%;
+    max-width: min(calc(100dvh - 230px), calc(100vw - 16px), 640px);
     max-height: none;
   }
 
   .app-header {
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
+    height: 48px;
   }
 
   .wifi-label {
+    display: none;
+  }
+
+  .logo-text small {
     display: none;
   }
 }
 
 @media (max-width: 600px) {
   .hero-title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .modes-grid {
@@ -2132,7 +2371,11 @@ body.fullscreen-mode .side-column {
   }
 
   .eval-bar-wrapper {
-    width: 14px;
+    width: 12px;
+  }
+
+  .btn-header-action span:not(.board-only-icon):not(.raytrace-icon):not(.view-3d-icon):not(.fs-icon) {
+    display: none;
   }
 }
 
