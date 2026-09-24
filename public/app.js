@@ -1651,6 +1651,7 @@ function handleServerMessage(msg) {
 // ================= VIEW SWITCHER =================
 function switchView(viewName) {
   if (viewName === 'lobby') {
+    document.body.classList.remove('in-game');
     el.viewLobby.classList.add('active');
     el.viewGame.classList.remove('active');
     el.modalGameOver.classList.remove('active');
@@ -1664,8 +1665,13 @@ function switchView(viewName) {
     // Refresh lobby recent games panel
     loadLobbyRecentGames();
   } else if (viewName === 'game') {
+    document.body.classList.add('in-game');
     el.viewLobby.classList.remove('active');
     el.viewGame.classList.add('active');
+    if (el.onlineRoomTopbar) {
+      el.onlineRoomTopbar.style.display = (state.mode === 'wifi') ? 'flex' : 'none';
+    }
+    updateBoardOnlyStatus();
     renderBoard();
   }
 }
