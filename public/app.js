@@ -78,6 +78,7 @@ const el = {
   headerWifiIp: document.getElementById('header-wifi-ip'),
   btnCopyIp: document.getElementById('btn-copy-ip'),
   btnOpenQr: document.getElementById('btn-open-qr'),
+  selectIntegratedTheme: document.getElementById('select-integrated-theme'),
   selectPieceStyle: document.getElementById('select-piece-style'),
   selectTheme: document.getElementById('select-theme'),
   btnToggleRaytrace: document.getElementById('btn-toggle-raytrace'),
@@ -353,42 +354,58 @@ function toggle3DView() {
 }
 
 function applyRaytraceState() {
-  const isRTX = state.isRaytrace;
+  // Raytracing completely disabled for eye comfort & clean performance
+  state.isRaytrace = false;
   if (el.boardStage) {
-    if (isRTX) {
-      el.boardStage.classList.add('raytrace-active');
-    } else {
-      el.boardStage.classList.remove('raytrace-active');
-    }
+    el.boardStage.classList.remove('raytrace-active');
   }
-  if (el.btnToggleRaytrace) {
-    if (isRTX) {
-      el.btnToggleRaytrace.classList.add('active');
-      el.btnToggleRaytrace.innerHTML = '<span class="raytrace-icon">✨</span> <span class="raytrace-text">RTX 켜짐</span>';
-    } else {
-      el.btnToggleRaytrace.classList.remove('active');
-      el.btnToggleRaytrace.innerHTML = '<span class="raytrace-icon">💡</span> <span class="raytrace-text">RTX 꺼짐</span>';
-    }
-  }
-  if (el.settingShowRaytrace) {
-    el.settingShowRaytrace.checked = isRTX;
-  }
-  localStorage.setItem('chess_is_raytrace', isRTX);
+  localStorage.removeItem('chess_is_raytrace');
 }
 
 function toggleRaytraceMode() {
-  state.isRaytrace = !state.isRaytrace;
   applyRaytraceState();
-  showToast(state.isRaytrace ? '✨ 실사 레이트레이스 PBR 렌더링 켜짐' : '💡 표준 렌더링 모드 전환');
+}
+
+// Curated Eye-Friendly Integrated Themes (Board + Pieces All-in-One)
+const THEME_PRESETS = {
+  'emerald-classic': { theme: 'theme-emerald', piece: 'classic', label: '🌿 클래식 에메랄드' },
+  'slate-slate': { theme: 'theme-slate', piece: 'slate', label: '⬛ 모던 다크 슬레이트' },
+  'wood-wood': { theme: 'theme-wood', piece: 'wood', label: '🪵 클래식 내추럴 우드' },
+  'ocean-classic': { theme: 'theme-ocean', piece: 'classic', label: '🌊 토너먼트 오션 블루' },
+  'gold-gold': { theme: 'theme-gold', piece: 'gold', label: '👑 로열 골드 & 흑단목' },
+  'pearl-korean': { theme: 'theme-pearl', piece: 'korean-pearl', label: '🎴 전통 자개 & 흑칠' }
+};
+
+function applyThemePreset(presetKey, notify = true) {
+  const preset = THEME_PRESETS[presetKey] || THEME_PRESETS['emerald-classic'];
+  applyTheme(preset.theme, false);
+  setPieceStyle(preset.piece);
+  if (el.selectIntegratedTheme) el.selectIntegratedTheme.value = presetKey;
+  if (el.selectPieceStyle) el.selectPieceStyle.value = preset.piece;
+  if (el.selectTheme) el.selectTheme.value = preset.theme;
+  renderBoard();
+  updateCapturedAndMaterial();
+  localStorage.setItem('chess_integrated_preset', presetKey);
+  if (notify) {
+    showToast(`${preset.label} 테마가 적용되었습니다.`);
+  }
 }
 
 // Safely apply board theme without clearing other body classes (e.g. in-game, board-only-mode)
-function applyTheme(themeName) {
+function applyTheme(themeName, syncPreset = true) {
   const currentClasses = Array.from(document.body.classList).filter(c => !c.startsWith('theme-'));
   document.body.className = [...currentClasses, themeName].join(' ');
   localStorage.setItem('chess_theme', themeName);
   if (el.selectTheme && el.selectTheme.value !== themeName) {
     el.selectTheme.value = themeName;
+  }
+  if (syncPreset && el.selectIntegratedTheme) {
+    for (const [key, p] of Object.entries(THEME_PRESETS)) {
+      if (p.theme === themeName && p.piece === currentPieceStyle) {
+        el.selectIntegratedTheme.value = key;
+        break;
+      }
+    }
   }
 }
 
@@ -2136,17 +2153,27 @@ function setupEventListeners() {
   el.btnOpenQr.addEventListener('click', () => showQrModal());
   el.btnShowLobbyQr.addEventListener('click', () => showQrModal());
 
-  el.selectPieceStyle.addEventListener('change', (e) => {
-    setPieceStyle(e.target.value);
-    renderBoard();
-    updateCapturedAndMaterial();
-    showToast(`체스말 스타일이 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
-  });
+  if (el.selectIntegratedTheme) {
+    el.selectIntegratedTheme.addEventListener('change', (e) => {
+      applyThemePreset(e.target.value, true);
+    });
+  }
 
-  el.selectTheme.addEventListener('change', (e) => {
-    applyTheme(e.target.value);
-    showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
-  });
+  if (el.selectPieceStyle) {
+    el.selectPieceStyle.addEventListener('change', (e) => {
+      setPieceStyle(e.target.value);
+      renderBoard();
+      updateCapturedAndMaterial();
+      showToast(`체스말 스타일이 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+  }
+
+  if (el.selectTheme) {
+    el.selectTheme.addEventListener('change', (e) => {
+      applyTheme(e.target.value);
+      showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+  }
 
   el.btnToggle3D.addEventListener('click', () => {
     toggle3DView();
@@ -2364,12 +2391,6 @@ function setupEventListeners() {
     });
   }
 
-  if (el.btnToggleRaytrace) {
-    el.btnToggleRaytrace.addEventListener('click', () => {
-      toggleRaytraceMode();
-    });
-  }
-
   // Dynamic AI Speed Slider & Preset Chips
   if (el.aiSpeedSlider) {
     el.aiSpeedSlider.addEventListener('input', (e) => {
@@ -2396,7 +2417,8 @@ function setupEventListeners() {
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
         if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
-        if (el.settingShowRaytrace) el.settingShowRaytrace.checked = state.isRaytrace;
+        if (el.selectTheme) el.selectTheme.value = localStorage.getItem('chess_theme') || 'theme-emerald';
+        if (el.selectPieceStyle) el.selectPieceStyle.value = currentPieceStyle;
         if (el.settingAiDelay) el.settingAiDelay.value = String(state.aiMoveDelay);
         el.modalSettings.classList.add('active');
       }
@@ -2432,9 +2454,13 @@ function setupEventListeners() {
         localStorage.setItem('chess_show_preview_lines', String(state.showPreviewLines));
         if (el.chkShowPreviewLines) el.chkShowPreviewLines.checked = state.showPreviewLines;
       }
-      if (el.settingShowRaytrace) {
-        state.isRaytrace = el.settingShowRaytrace.checked;
-        applyRaytraceState();
+      if (el.selectTheme) {
+        applyTheme(el.selectTheme.value);
+      }
+      if (el.selectPieceStyle) {
+        setPieceStyle(el.selectPieceStyle.value);
+        renderBoard();
+        updateCapturedAndMaterial();
       }
       if (el.settingAiDelay) {
         const ms = parseInt(el.settingAiDelay.value, 10);
@@ -2682,11 +2708,18 @@ async function init() {
   initWorker();
   await initNetworkInfo();
   
-  const savedTheme = localStorage.getItem('chess_theme') || 'theme-lava';
+  const savedTheme = localStorage.getItem('chess_theme') || 'theme-emerald';
   applyTheme(savedTheme);
 
+  const savedPreset = localStorage.getItem('chess_integrated_preset') || 'emerald-classic';
+  if (el.selectIntegratedTheme) {
+    el.selectIntegratedTheme.value = savedPreset;
+  }
   if (el.selectPieceStyle) {
     el.selectPieceStyle.value = currentPieceStyle;
+  }
+  if (el.selectTheme) {
+    el.selectTheme.value = savedTheme;
   }
   if (el.aiHintPicker) {
     el.aiHintPicker.value = String(state.maxHints);
@@ -2708,9 +2741,6 @@ async function init() {
   }
   if (el.settingShowThreat) {
     el.settingShowThreat.checked = state.showThreatLines;
-  }
-  if (el.settingShowRaytrace) {
-    el.settingShowRaytrace.checked = state.isRaytrace;
   }
   if (el.settingAiDelay) {
     el.settingAiDelay.value = String(state.aiMoveDelay);

@@ -18,13 +18,13 @@
   --accent-green: #10b981;
   --accent-red: #ef4444;
 
-  /* Default Square Colors (Slate) */
-  --sq-light: #e2e8f0;
-  --sq-dark: #64748b;
-  --sq-highlight: rgba(245, 158, 11, 0.45);
-  --sq-last-move: rgba(250, 204, 21, 0.38);
-  --sq-hint: rgba(16, 185, 129, 0.5);
-  --sq-check: rgba(239, 68, 68, 0.7);
+  /* Default Square Colors: High-Contrast Emerald Green (World Tournament Standard) */
+  --sq-light: #ebecd0;
+  --sq-dark: #739552;
+  --sq-highlight: rgba(245, 158, 11, 0.4);
+  --sq-last-move: rgba(250, 204, 21, 0.42);
+  --sq-hint: rgba(16, 185, 129, 0.45);
+  --sq-check: rgba(239, 68, 68, 0.65);
 
   --font-main: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -34,271 +34,131 @@
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
 }
 
-/* Theme: Classic Wood */
+/* ================= EYE-FRIENDLY REFINED BOARD THEMES ================= */
+
+/* 1. Theme: 🌿 Emerald Green (Standard Chess.com / Tournament) */
+body.theme-emerald {
+  --sq-light: #ebecd0;
+  --sq-dark: #739552;
+  --sq-last-move: rgba(247, 247, 105, 0.45);
+}
+body.theme-emerald .chessboard-wrapper {
+  border-color: #2e4a38;
+  background: #132219;
+}
+
+/* 2. Theme: ⬛ Modern Slate (Calm & Minimal) */
+body.theme-slate {
+  --sq-light: #dee3e6;
+  --sq-dark: #8ca2ad;
+  --sq-last-move: rgba(250, 204, 21, 0.4);
+}
+body.theme-slate .chessboard-wrapper {
+  border-color: #334155;
+  background: #182230;
+}
+
+/* 3. Theme: 🪵 Classic Wood (Warm Natural Beech & Walnut) */
 body.theme-wood {
   --sq-light: #f0d9b5;
   --sq-dark: #b58863;
-  --sq-last-move: rgba(205, 210, 106, 0.5);
+  --sq-last-move: rgba(205, 210, 106, 0.45);
 }
 body.theme-wood .chessboard-wrapper {
-  border-color: #78350f;
-  background: linear-gradient(145deg, #451a03, #1c0a00);
+  border-color: #4a2810;
+  background: #241306;
 }
 
-/* Theme: Emerald Green */
-body.theme-emerald {
-  --sq-light: #eeeed2;
-  --sq-dark: #769656;
-  --sq-last-move: rgba(247, 247, 105, 0.5);
-}
-body.theme-emerald .chessboard-wrapper {
-  border-color: #14532d;
-  background: linear-gradient(145deg, #166534, #052e16);
-}
-
-/* Theme: Midnight Gold */
-body.theme-midnight {
-  --sq-light: #e6dfd5;
-  --sq-dark: #383434;
-  --sq-last-move: rgba(245, 158, 11, 0.5);
-}
-body.theme-midnight .chessboard-wrapper {
-  border-color: #854d0e;
-  background: linear-gradient(145deg, #451a03, #181105);
-}
-
-/* Theme: Photoreal Royal Carrara Marble */
-body.theme-marble-luxury {
-  --sq-light: #f1f5f9;
-  --sq-dark: #334155;
+/* 4. Theme: 🌊 Tournament Ocean Blue */
+body.theme-ocean, body.theme-frozen, body.theme-cyber-grid {
+  --sq-light: #eaeff5;
+  --sq-dark: #4d7ea8;
   --sq-last-move: rgba(56, 189, 248, 0.45);
 }
+body.theme-ocean .chessboard-wrapper,
+body.theme-frozen .chessboard-wrapper,
+body.theme-cyber-grid .chessboard-wrapper {
+  border-color: #1e3a54;
+  background: #0f1d2a;
+}
+
+/* 5. Theme: 👑 Royal Ebony & Gold */
+body.theme-gold, body.theme-ebony-gold, body.theme-black-gold, body.theme-pharaoh-gold, body.theme-midnight {
+  --sq-light: #f5eedc;
+  --sq-dark: #3a322c;
+  --sq-last-move: rgba(245, 158, 11, 0.45);
+}
+body.theme-gold .chessboard-wrapper,
+body.theme-ebony-gold .chessboard-wrapper,
+body.theme-black-gold .chessboard-wrapper,
+body.theme-pharaoh-gold .chessboard-wrapper,
+body.theme-midnight .chessboard-wrapper {
+  border-color: #524233;
+  background: #1c1815;
+}
+
+/* 6. Theme: 🎴 Korean Traditional Lacquer & Pearl (자개 & 흑칠) */
+body.theme-pearl, body.theme-galaxy {
+  --sq-light: #f1f5f9;
+  --sq-dark: #3730a3;
+  --sq-last-move: rgba(168, 85, 247, 0.45);
+}
+body.theme-pearl .chessboard-wrapper,
+body.theme-galaxy .chessboard-wrapper {
+  border-color: #2e2a52;
+  background: #141424;
+}
+
+/* Clean normalization for remaining legacy themes (no eye fatigue) */
+body.theme-marble-luxury {
+  --sq-light: #f1f5f9;
+  --sq-dark: #475569;
+  --sq-last-move: rgba(56, 189, 248, 0.4);
+}
 body.theme-marble-luxury .chessboard-wrapper {
-  border-color: #64748b;
-  background: linear-gradient(145deg, #1e293b, #0f172a);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.3);
-}
-body.theme-marble-luxury .square.light {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-body.theme-marble-luxury .square.dark {
-  background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+  border-color: #334155;
+  background: #182230;
 }
 
-/* Theme: Photoreal Royal Ebony & Gold Inlay */
-body.theme-ebony-gold {
-  --sq-light: #fef3c7;
-  --sq-dark: #1c1917;
-  --sq-last-move: rgba(245, 158, 11, 0.5);
-}
-body.theme-ebony-gold .chessboard-wrapper {
-  border-color: #d97706;
-  background: linear-gradient(145deg, #292524, #0c0a09);
-  box-shadow: 0 22px 45px rgba(0,0,0,0.85), inset 0 0 0 1px #fbbf24;
-}
-body.theme-ebony-gold .square.light {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-}
-body.theme-ebony-gold .square.dark {
-  background: linear-gradient(135deg, #292524 0%, #0c0a09 100%);
-}
-
-/* Theme: 👑 Pharaoh Gold & Lapis Lazuli */
-body.theme-pharaoh-gold {
-  --sq-light: #fef08a;
-  --sq-dark: #0369a1;
-  --sq-last-move: rgba(234, 179, 8, 0.6);
-}
-body.theme-pharaoh-gold .chessboard-wrapper {
-  border-color: #eab308;
-  background: linear-gradient(145deg, #713f12, #0c4a6e);
-  box-shadow: 0 25px 50px rgba(234, 179, 8, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.35);
-}
-body.theme-pharaoh-gold .square.light {
-  background: linear-gradient(135deg, #fef9c3 0%, #facc15 100%);
-}
-body.theme-pharaoh-gold .square.dark {
-  background: linear-gradient(135deg, #0284c7 0%, #082f49 100%);
-}
-
-/* Theme: 🌸 Royal Rose Gold & Platinum */
 body.theme-rose-gold {
   --sq-light: #fff1f2;
-  --sq-dark: #be123c;
-  --sq-last-move: rgba(244, 63, 94, 0.55);
+  --sq-dark: #881337;
+  --sq-last-move: rgba(244, 63, 94, 0.45);
 }
 body.theme-rose-gold .chessboard-wrapper {
-  border-color: #fb7185;
-  background: linear-gradient(145deg, #881337, #4c0519);
-  box-shadow: 0 25px 50px rgba(251, 113, 133, 0.35), inset 0 0 20px rgba(254, 205, 211, 0.3);
-}
-body.theme-rose-gold .square.light {
-  background: linear-gradient(135deg, #ffffff 0%, #ffe4e6 100%);
-}
-body.theme-rose-gold .square.dark {
-  background: linear-gradient(135deg, #e11d48 0%, #881337 100%);
+  border-color: #5c1128;
+  background: #240a13;
 }
 
-/* Theme: 🖤 Obsidian Black Gold & Champagne */
-body.theme-black-gold {
-  --sq-light: #fef3c7;
-  --sq-dark: #18181b;
-  --sq-last-move: rgba(245, 158, 11, 0.65);
-}
-body.theme-black-gold .chessboard-wrapper {
-  border-color: #d97706;
-  background: linear-gradient(145deg, #18181b, #000000);
-  box-shadow: 0 25px 50px rgba(217, 119, 6, 0.45), inset 0 0 0 2px #fbbf24;
-}
-body.theme-black-gold .square.light {
-  background: linear-gradient(135deg, #fffbeb 0%, #fde68a 100%);
-}
-body.theme-black-gold .square.dark {
-  background: linear-gradient(135deg, #27272a 0%, #09090b 100%);
-}
-
-/* Theme: Photoreal Cyber Quartz Glass */
-body.theme-cyber-grid {
-  --sq-light: #e0f2fe;
-  --sq-dark: #0c4a6e;
-  --sq-last-move: rgba(6, 182, 212, 0.5);
-}
-body.theme-cyber-grid .chessboard-wrapper {
-  border-color: #0284c7;
-  background: linear-gradient(145deg, #082f49, #020617);
-  box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3), inset 0 0 15px rgba(56, 189, 248, 0.2);
-}
-body.theme-cyber-grid .square.light {
-  background: linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%);
-}
-body.theme-cyber-grid .square.dark {
-  background: linear-gradient(135deg, #075985 0%, #0369a1 100%);
-}
-
-/* Theme: 🌋 Volcanic Magma Lava */
 body.theme-lava {
-  --sq-light: #fef08a;
-  --sq-dark: #7f1d1d;
-  --sq-last-move: rgba(239, 68, 68, 0.6);
+  --sq-light: #fef3c7;
+  --sq-dark: #78350f;
+  --sq-last-move: rgba(245, 158, 11, 0.45);
 }
 body.theme-lava .chessboard-wrapper {
-  border-color: #ef4444;
-  background: linear-gradient(145deg, #450a0a, #1a0303);
-  box-shadow: 0 25px 50px rgba(239, 68, 68, 0.35), inset 0 0 20px rgba(249, 115, 22, 0.3);
-}
-body.theme-lava .square.light {
-  background: linear-gradient(135deg, #fffbeb 0%, #fed7aa 100%);
-}
-body.theme-lava .square.dark {
-  background: linear-gradient(135deg, #991b1b 0%, #450a0a 100%);
+  border-color: #451a03;
+  background: #1f0b01;
 }
 
-/* Theme: 🌃 Cyberpunk Neon 2077 */
 body.theme-cyber {
-  --sq-light: #fdf4ff;
-  --sq-dark: #701a75;
-  --sq-last-move: rgba(244, 63, 94, 0.5);
+  --sq-light: #f1f5f9;
+  --sq-dark: #475569;
+  --sq-last-move: rgba(56, 189, 248, 0.4);
 }
 body.theme-cyber .chessboard-wrapper {
-  border-color: #d946ef;
-  background: linear-gradient(145deg, #4a044e, #0f0212);
-  box-shadow: 0 25px 50px rgba(217, 70, 239, 0.35), inset 0 0 20px rgba(6, 182, 212, 0.3);
-}
-body.theme-cyber .square.light {
-  background: linear-gradient(135deg, #fae8ff 0%, #e879f9 100%);
-}
-body.theme-cyber .square.dark {
-  background: linear-gradient(135deg, #86198f 0%, #3b0764 100%);
+  border-color: #334155;
+  background: #182230;
 }
 
-/* Theme: 🌌 Deep Cosmic Galaxy */
-body.theme-galaxy {
-  --sq-light: #e0e7ff;
-  --sq-dark: #312e81;
-  --sq-last-move: rgba(168, 85, 247, 0.55);
+body.theme-steampunk, body.theme-comic {
+  --sq-light: #f0d9b5;
+  --sq-dark: #b58863;
+  --sq-last-move: rgba(205, 210, 106, 0.45);
 }
-body.theme-galaxy .chessboard-wrapper {
-  border-color: #6366f1;
-  background: linear-gradient(145deg, #1e1b4b, #030712);
-  box-shadow: 0 25px 50px rgba(99, 102, 241, 0.4), inset 0 0 25px rgba(168, 85, 247, 0.35);
-}
-body.theme-galaxy .square.light {
-  background: linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%);
-}
-body.theme-galaxy .square.dark {
-  background: linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%);
-}
-
-/* Theme: 🎴 Korean Lacquer & Pearl (나전칠기) */
-body.theme-pearl {
-  --sq-light: #fdf4ff;
-  --sq-dark: #18181b;
-  --sq-last-move: rgba(244, 63, 94, 0.5);
-}
-body.theme-pearl .chessboard-wrapper {
-  border-color: #fbbf24;
-  background: linear-gradient(145deg, #27272a, #000000);
-  box-shadow: 0 25px 50px rgba(251, 191, 36, 0.25), inset 0 0 0 2px #d97706;
-}
-body.theme-pearl .square.light {
-  background: linear-gradient(135deg, #ffffff 0%, #fae8ff 60%, #e0e7ff 100%);
-}
-body.theme-pearl .square.dark {
-  background: linear-gradient(135deg, #27272a 0%, #09090b 100%);
-}
-
-/* Theme: ❄️ Glacial Frozen Ice */
-body.theme-frozen {
-  --sq-light: #f0f9ff;
-  --sq-dark: #0369a1;
-  --sq-last-move: rgba(56, 189, 248, 0.55);
-}
-body.theme-frozen .chessboard-wrapper {
-  border-color: #38bdf8;
-  background: linear-gradient(145deg, #0c4a6e, #082f49);
-  box-shadow: 0 25px 50px rgba(56, 189, 248, 0.4), inset 0 0 20px rgba(186, 230, 253, 0.35);
-}
-body.theme-frozen .square.light {
-  background: linear-gradient(135deg, #ffffff 0%, #bae6fd 100%);
-}
-body.theme-frozen .square.dark {
-  background: linear-gradient(135deg, #0284c7 0%, #075985 100%);
-}
-
-/* Theme: ⚙️ Steampunk Antique Brass */
-body.theme-steampunk {
-  --sq-light: #fef08a;
-  --sq-dark: #78350f;
-  --sq-last-move: rgba(245, 158, 11, 0.6);
-}
-body.theme-steampunk .chessboard-wrapper {
-  border-color: #d97706;
-  background: linear-gradient(145deg, #451a03, #1c0a00);
-  box-shadow: 0 25px 50px rgba(217, 119, 6, 0.4), inset 0 0 0 2px #b45309;
-}
-body.theme-steampunk .square.light {
-  background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%);
-}
-body.theme-steampunk .square.dark {
-  background: linear-gradient(135deg, #92400e 0%, #451a03 100%);
-}
-
-/* Theme: 💥 Pop Art Comic */
-body.theme-comic {
-  --sq-light: #fef08a;
-  --sq-dark: #f43f5e;
-  --sq-last-move: rgba(6, 182, 212, 0.65);
-}
+body.theme-steampunk .chessboard-wrapper,
 body.theme-comic .chessboard-wrapper {
-  border: 5px solid #000000;
-  background: #000000;
-  box-shadow: 10px 10px 0px #000000, 0 25px 35px rgba(0,0,0,0.5);
-}
-body.theme-comic .square.light {
-  background: #fde047;
-}
-body.theme-comic .square.dark {
-  background: #e11d48;
+  border-color: #4a2810;
+  background: #241306;
 }
 
 * {
@@ -457,21 +317,24 @@ body.fullscreen-mode .app-header {
   background: var(--bg-card);
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  padding: 0.38rem 0.65rem;
+  padding: 0.38rem 0.75rem;
   border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s;
-  max-width: 145px;
+  transition: all 0.2s ease;
+  min-width: 155px;
+  max-width: 195px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .theme-select:hover {
-  border-color: var(--accent-gold);
+  border-color: var(--accent-blue);
+  background: var(--bg-card-hover);
 }
 
 .btn-header-action {
@@ -1162,47 +1025,30 @@ body.fullscreen-mode .board-stage {
   padding-top: 10px;
 }
 
-/* 3D Chessboard Wrapper & Frame */
+/* Chessboard Wrapper & Frame - Clean, matte, eye-friendly tournament design */
 .chessboard-wrapper {
   height: 100%;
   aspect-ratio: 1 / 1;
   max-width: 100%;
-  background: linear-gradient(145deg, #1f2937, #0b0f19);
-  border-radius: 12px;
-  padding: 12px;
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 10px;
   box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.6),
-    0 3px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.15),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.8);
-  border: 4px solid #374151;
+    0 12px 28px rgba(0, 0, 0, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  border: 2px solid #334155;
   position: relative;
   transform-origin: center 65%;
-  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease, border-color 0.3s ease;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-/* Beveled Outer 3D Wood / Marble Frame Inset */
-.chessboard-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  right: 6px;
-  bottom: 6px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  pointer-events: none;
-}
-
-/* 3D Tilted View Transformation */
+/* 3D Tilted View Transformation (Optional 3D mode) */
 .board-stage.perspective-3d-active .chessboard-wrapper {
-  transform: rotateX(24deg) scale(1.02);
+  transform: rotateX(22deg) scale(1.02);
   transform-style: preserve-3d;
   box-shadow: 
-    0 35px 50px -10px rgba(0, 0, 0, 0.85),
-    0 20px 25px -5px rgba(0, 0, 0, 0.6),
-    inset 0 2px 2px rgba(255, 255, 255, 0.25),
-    inset 0 -8px 12px rgba(0, 0, 0, 0.9);
+    0 28px 45px -10px rgba(0, 0, 0, 0.75),
+    0 15px 20px -5px rgba(0, 0, 0, 0.5);
 }
 
 .chessboard {
@@ -1213,9 +1059,9 @@ body.fullscreen-mode .board-stage {
   grid-template-rows: repeat(8, 1fr);
   user-select: none;
   touch-action: none;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .square {
@@ -1224,21 +1070,19 @@ body.fullscreen-mode .board-stage {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.12s ease;
 }
 
 .square.light {
   background-color: var(--sq-light);
-  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.05);
 }
 
 .square.dark {
   background-color: var(--sq-dark);
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25);
 }
 
 .square.selected {
-  box-shadow: inset 0 0 0 3.5px #f59e0b, inset 0 0 12px rgba(245, 158, 11, 0.4) !important;
+  box-shadow: inset 0 0 0 3px #f59e0b !important;
 }
 
 .square.last-move {
@@ -1246,17 +1090,17 @@ body.fullscreen-mode .board-stage {
 }
 
 .square.hint-from, .square.hint-to {
-  box-shadow: inset 0 0 0 3.5px #10b981, inset 0 0 12px rgba(16, 185, 129, 0.4) !important;
+  box-shadow: inset 0 0 0 3px #10b981 !important;
 }
 
 .square.in-check {
-  background: radial-gradient(circle, #ef4444 15%, rgba(239, 68, 68, 0.1) 85%) !important;
+  background: radial-gradient(circle, #ef4444 20%, rgba(239, 68, 68, 0.15) 85%) !important;
   animation: pulse-check 1.4s infinite alternate ease-in-out;
 }
 
 @keyframes pulse-check {
-  0% { box-shadow: inset 0 0 4px rgba(239, 68, 68, 0.6); }
-  100% { box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.95); }
+  0% { box-shadow: inset 0 0 4px rgba(239, 68, 68, 0.5); }
+  100% { box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.85); }
 }
 
 /* Square Coordinates */
@@ -1290,15 +1134,13 @@ body.fullscreen-mode .board-stage {
 /* Legal Move Indicators */
 .legal-dot {
   position: absolute;
-  width: 26%;
-  height: 26%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.75) 0%, rgba(5, 150, 105, 0.5) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  width: 28%;
+  height: 28%;
+  background: rgba(16, 185, 129, 0.8);
   border-radius: 50%;
   pointer-events: none;
   z-index: 10;
-  animation: pop-indicator 0.18s ease-out;
+  animation: pop-indicator 0.15s ease-out;
 }
 
 .legal-capture-ring {
@@ -1307,11 +1149,10 @@ body.fullscreen-mode .board-stage {
   height: 86%;
   border: 3.5px solid #ef4444;
   background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 80%);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5), inset 0 0 8px rgba(239, 68, 68, 0.3);
   border-radius: 50%;
   pointer-events: none;
   z-index: 10;
-  animation: pop-indicator 0.18s ease-out;
+  animation: pop-indicator 0.15s ease-out;
 }
 
 @keyframes pop-indicator {
@@ -1319,7 +1160,7 @@ body.fullscreen-mode .board-stage {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ================= 3D CHESS PIECES & ANIMATIONS ================= */
+/* ================= CHESS PIECES & ANIMATIONS ================= */
 .chess-piece-container {
   width: 100%;
   height: 100%;
@@ -1331,106 +1172,32 @@ body.fullscreen-mode .board-stage {
   will-change: transform;
 }
 
+/* Optimized Large Piece Size: 95% fills the square prominently without clipping */
 .chess-piece-svg {
-  width: 92%;
-  height: 92%;
+  width: 95%;
+  height: 95%;
   display: block;
   pointer-events: none;
   overflow: visible;
 }
 
-/* Subtle clean highlight on selected piece without shaking */
+/* Subtle clean lift on selected piece */
 .piece-elevated {
-  transform: scale(1.05) !important;
+  transform: scale(1.08) translateY(-2px) !important;
   z-index: 20;
 }
 
 .piece-elevated .chess-piece-svg {
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)) !important;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)) !important;
 }
 
 /* 3D Billboard Stance in Perspective Mode */
 .board-stage.perspective-3d-active .chess-piece-container {
-  transform: rotateX(-20deg);
+  transform: rotateX(-18deg);
 }
 
 .board-stage.perspective-3d-active .piece-elevated {
-  transform: rotateX(-20deg) scale(1.08) !important;
-}
-
-/* ================= PHOTOREAL RAY-TRACING & PBR ENGINE ================= */
-.board-stage.raytrace-active .chessboard-wrapper {
-  box-shadow: 
-    0 30px 60px -10px rgba(0, 0, 0, 0.9),
-    0 15px 30px -5px rgba(0, 0, 0, 0.7),
-    0 0 40px rgba(56, 189, 248, 0.15),
-    inset 0 1px 3px rgba(255, 255, 255, 0.35),
-    inset 0 -10px 18px rgba(0, 0, 0, 0.95);
-  border-image: linear-gradient(to bottom, #94a3b8, #1e293b, #0f172a) 1;
-}
-
-/* Photoreal Floor Mirror Ray-Traced Reflections on Squares */
-.board-stage.raytrace-active .square {
-  position: relative;
-  overflow: visible;
-}
-
-.board-stage.raytrace-active .square::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
-  pointer-events: none;
-  opacity: 0.8;
-}
-
-/* Floor Ambient Ray-Traced Shadow under pieces */
-.board-stage.raytrace-active .chess-piece-container::after {
-  content: '';
-  position: absolute;
-  bottom: 2%;
-  left: 18%;
-  width: 64%;
-  height: 18%;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 50%, transparent 80%);
-  border-radius: 50%;
-  filter: blur(1.5px);
-  z-index: -1;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-/* Floor Mirror Pseudo-Reflection & Raytrace Specular Lighting */
-.board-stage.raytrace-active .chess-piece-container .chess-piece-svg {
-  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.65)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
-  transition: filter 0.2s ease, transform 0.2s ease;
-}
-
-.board-stage.raytrace-active .piece-raytraced {
-  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.7)) drop-shadow(0 1px 1px rgba(255, 255, 255, 0.2));
-}
-
-/* Raytraced Highlight on Hover / Pick up */
-.board-stage.raytrace-active .piece-elevated .chess-piece-svg {
-  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.8)) !important;
-}
-
-.board-stage.raytrace-active.perspective-3d-active .chessboard-wrapper {
-  transform: rotateX(25deg) scale(1.03);
-  box-shadow: 
-    0 45px 65px -12px rgba(0, 0, 0, 0.95),
-    0 25px 30px -6px rgba(0, 0, 0, 0.8),
-    0 0 50px rgba(56, 189, 248, 0.2),
-    inset 0 2px 4px rgba(255, 255, 255, 0.4),
-    inset 0 -12px 18px rgba(0, 0, 0, 0.95);
-}
-
-/* Raytrace Toggle Header Button */
-#btn-toggle-raytrace.active {
-  background: linear-gradient(135deg, #0284c7, #0369a1);
-  color: #f0f9ff;
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+  transform: rotateX(-18deg) scale(1.1) translateY(-3px) !important;
 }
 
 /* ================= DYNAMIC AI SPEED CONTROL UI ================= */
