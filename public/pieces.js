@@ -15,10 +15,16 @@ export const PIECE_VALUES = {
 // Clean, curated styles (with backward-compatibility fallbacks)
 export const SUPPORTED_STYLES = [
   'classic',       // 1. 최고 가독성 마스터 스타운톤 (권장 기본값)
-  'slate',         // 2. 모던 미니멀 다크 슬레이트
+  'mocha',         // 2. 부드러운 카페 모카 & 초콜릿
   'wood',          // 3. 내추럴 클래식 우드
-  'gold',          // 4. 로열 골드 & 흑요석
-  'korean-pearl',  // 5. 한국 전통 자개 & 흑칠
+  'slate',         // 4. 모던 미니멀 다크 슬레이트
+  'forest',        // 5. 세이지 민트 & 포레스트
+  'amber',         // 6. 가을 앰버 & 웜 오크
+  'silver',        // 7. 플래티넘 실버 & 흑요석
+  'wine',          // 8. 메이플 & 보르도 와인
+  'nordic',        // 9. 노르딕 프로스트 & 스틸
+  'gold',          // 10. 로열 골드 & 흑단목
+  'korean-pearl',  // 11. 한국 전통 자개 & 흑칠
 
   // 레거시 호환 목록 (기존 저장값 오류 방지)
   'rose-gold', 'pharaoh-gold', 'black-gold', 'solar-gold', 'dragon-gold',
@@ -60,7 +66,193 @@ function getPalette(style, isWhite) {
     }
   }
 
-  // 2. MODERN SLATE (Minimal Matte Dark)
+  // 2. CAFÉ MOCHA (Cream Latte & Roasted Espresso)
+  if (style === 'mocha') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#fffdfa',
+        bodyGradMid: '#f5ebe0',
+        bodyGradEnd: '#e6ccb2',
+        specular: '#ffffff',
+        accent: '#b08968',
+        rimStroke: '#5c3d2e',
+        strokeWidth: 1.3,
+        baseRim: '#ddb892',
+        shadowColor: 'rgba(92, 61, 46, 0.25)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#4a2c1d',
+        bodyGradMid: '#2d1810',
+        bodyGradEnd: '#150a05',
+        specular: '#7f4f24',
+        accent: '#936639',
+        rimStroke: '#100603',
+        strokeWidth: 1.3,
+        baseRim: '#5c3d2e',
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(245,235,224,0.75)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))'
+      };
+    }
+  }
+
+  // 3. SAGE MINT & EVERGREEN FOREST
+  if (style === 'forest') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#f4f7f4',
+        bodyGradMid: '#e2ebe2',
+        bodyGradEnd: '#c8d6c8',
+        specular: '#ffffff',
+        accent: '#52795d',
+        rimStroke: '#223826',
+        strokeWidth: 1.3,
+        baseRim: '#a3b899',
+        shadowColor: 'rgba(34, 56, 38, 0.25)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#2d4432',
+        bodyGradMid: '#1b2e20',
+        bodyGradEnd: '#0c190f',
+        specular: '#4f7756',
+        accent: '#587d5e',
+        rimStroke: '#060f08',
+        strokeWidth: 1.3,
+        baseRim: '#2d4432',
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(226,235,226,0.8)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))'
+      };
+    }
+  }
+
+  // 4. AUTUMN AMBER & WARM OAK
+  if (style === 'amber') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#fffbf0',
+        bodyGradMid: '#fde8cd',
+        bodyGradEnd: '#f3cba5',
+        specular: '#ffffff',
+        accent: '#c27838',
+        rimStroke: '#7c441b',
+        strokeWidth: 1.3,
+        baseRim: '#e6a15c',
+        shadowColor: 'rgba(124, 68, 27, 0.3)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#522b10',
+        bodyGradMid: '#381a07',
+        bodyGradEnd: '#1a0a02',
+        specular: '#8a4e1e',
+        accent: '#a35d25',
+        rimStroke: '#100501',
+        strokeWidth: 1.3,
+        baseRim: '#663311',
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(253,232,205,0.75)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))'
+      };
+    }
+  }
+
+  // 5. PLATINUM SILVER & OBSIDIAN
+  if (style === 'silver') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#ffffff',
+        bodyGradMid: '#f1f5f9',
+        bodyGradEnd: '#cbd5e1',
+        specular: '#ffffff',
+        accent: '#64748b',
+        rimStroke: '#1e293b',
+        strokeWidth: 1.3,
+        baseRim: '#94a3b8',
+        shadowColor: 'rgba(0, 0, 0, 0.25)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#18181b',
+        bodyGradMid: '#0f0f11',
+        bodyGradEnd: '#000000',
+        specular: '#71717a',
+        accent: '#52525b',
+        rimStroke: '#000000',
+        strokeWidth: 1.3,
+        baseRim: '#3f3f46',
+        shadowColor: 'rgba(0, 0, 0, 0.6)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(241,245,249,0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.8))'
+      };
+    }
+  }
+
+  // 6. BORDEAUX WINE & MAPLE
+  if (style === 'wine') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#fffafa',
+        bodyGradMid: '#fce7e7',
+        bodyGradEnd: '#f3c4c4',
+        specular: '#ffffff',
+        accent: '#9f3d57',
+        rimStroke: '#5c1729',
+        strokeWidth: 1.3,
+        baseRim: '#e29797',
+        shadowColor: 'rgba(92, 23, 41, 0.25)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#4c1624',
+        bodyGradMid: '#2f0a14',
+        bodyGradEnd: '#140307',
+        specular: '#882b43',
+        accent: '#a03652',
+        rimStroke: '#0d0205',
+        strokeWidth: 1.3,
+        baseRim: '#5c1729',
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(252,231,231,0.8)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))'
+      };
+    }
+  }
+
+  // 7. NORDIC FROST & STEEL
+  if (style === 'nordic') {
+    if (isWhite) {
+      return {
+        bodyGradStart: '#f8fafc',
+        bodyGradMid: '#e2e8f0',
+        bodyGradEnd: '#cbd5e1',
+        specular: '#ffffff',
+        accent: '#475569',
+        rimStroke: '#1e293b',
+        strokeWidth: 1.3,
+        baseRim: '#94a3b8',
+        shadowColor: 'rgba(30, 41, 59, 0.25)',
+        filterHalo: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+      };
+    } else {
+      return {
+        bodyGradStart: '#2e3440',
+        bodyGradMid: '#1e232a',
+        bodyGradEnd: '#0e1115',
+        specular: '#5e6879',
+        accent: '#434c5e',
+        rimStroke: '#080a0c',
+        strokeWidth: 1.3,
+        baseRim: '#3b4252',
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+        filterHalo: 'drop-shadow(0 0 1.2px rgba(226,232,240,0.8)) drop-shadow(0 2px 5px rgba(0,0,0,0.6))'
+      };
+    }
+  }
+
+  // 8. MODERN SLATE (Minimal Matte Dark)
   if (style === 'slate' || style === 'marble' || style === 'damascus') {
     if (isWhite) {
       return {
@@ -91,7 +283,7 @@ function getPalette(style, isWhite) {
     }
   }
 
-  // 3. CLASSIC WOOD (Warm Natural Beech & Walnut)
+  // 9. CLASSIC WOOD (Warm Natural Beech & Walnut)
   if (style === 'wood' || style === 'royal-ebony' || style === 'steampunk') {
     if (isWhite) {
       return {
@@ -122,7 +314,7 @@ function getPalette(style, isWhite) {
     }
   }
 
-  // 4. ROYAL GOLD & OBSIDIAN (Subtle Champagne Gold & Ebony)
+  // 10. ROYAL GOLD & OBSIDIAN (Subtle Champagne Gold & Ebony)
   if (style === 'gold' || style === 'rose-gold' || style === 'pharaoh-gold' || style === 'black-gold' || style === 'solar-gold' || style === 'dragon-gold' || style === 'dual-gold' || style === 'gold-titanium') {
     if (isWhite) {
       return {
@@ -153,7 +345,7 @@ function getPalette(style, isWhite) {
     }
   }
 
-  // 5. KOREAN PEARL & LACQUER (전통 자개 & 흑칠)
+  // 11. KOREAN PEARL & LACQUER (전통 자개 & 흑칠)
   if (style === 'korean-pearl' || style === 'jade') {
     if (isWhite) {
       return {

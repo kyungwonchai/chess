@@ -369,11 +369,17 @@ function toggleRaytraceMode() {
 // Curated Eye-Friendly Integrated Themes (Board + Pieces All-in-One)
 const THEME_PRESETS = {
   'emerald-classic': { theme: 'theme-emerald', piece: 'classic', label: '🌿 클래식 에메랄드' },
-  'slate-slate': { theme: 'theme-slate', piece: 'slate', label: '⬛ 모던 다크 슬레이트' },
-  'wood-wood': { theme: 'theme-wood', piece: 'wood', label: '🪵 클래식 내추럴 우드' },
-  'ocean-classic': { theme: 'theme-ocean', piece: 'classic', label: '🌊 토너먼트 오션 블루' },
-  'gold-gold': { theme: 'theme-gold', piece: 'gold', label: '👑 로열 골드 & 흑단목' },
-  'pearl-korean': { theme: 'theme-pearl', piece: 'korean-pearl', label: '🎴 전통 자개 & 흑칠' }
+  'mocha-mocha':     { theme: 'theme-mocha', piece: 'mocha', label: '☕ 카페 모카 & 초콜릿' },
+  'wood-wood':       { theme: 'theme-wood', piece: 'wood', label: '🪵 클래식 내추럴 우드' },
+  'slate-slate':     { theme: 'theme-slate', piece: 'slate', label: '⬛ 모던 다크 슬레이트' },
+  'forest-forest':   { theme: 'theme-forest', piece: 'forest', label: '🍃 세이지 민트 & 포레스트' },
+  'ocean-classic':   { theme: 'theme-ocean', piece: 'classic', label: '🌊 토너먼트 오션 블루' },
+  'amber-amber':     { theme: 'theme-amber', piece: 'amber', label: '🍂 가을 앰버 & 웜 오크' },
+  'marble-slate':    { theme: 'theme-marble', piece: 'slate', label: '🏛️ 카라라 대리석 & 네로' },
+  'wine-wine':       { theme: 'theme-wine', piece: 'wine', label: '🍷 보르도 와인 & 메이플' },
+  'nordic-nordic':   { theme: 'theme-nordic', piece: 'nordic', label: '❄️ 노르딕 프로스트 & 스틸' },
+  'gold-gold':       { theme: 'theme-gold', piece: 'gold', label: '👑 로열 골드 & 흑단목' },
+  'pearl-korean':    { theme: 'theme-pearl', piece: 'korean-pearl', label: '🎴 전통 자개 & 흑칠' }
 };
 
 function applyThemePreset(presetKey, notify = true) {

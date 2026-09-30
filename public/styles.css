@@ -109,16 +109,74 @@ body.theme-galaxy .chessboard-wrapper {
   background: #141424;
 }
 
-/* Clean normalization for remaining legacy themes (no eye fatigue) */
-body.theme-marble-luxury {
+/* 7. Theme: ☕ Café Mocha & Warm Latte */
+body.theme-mocha {
+  --sq-light: #f4ece4;
+  --sq-dark: #9c7353;
+  --sq-last-move: rgba(217, 119, 6, 0.4);
+}
+body.theme-mocha .chessboard-wrapper {
+  border-color: #3d2b20;
+  background: #231812;
+}
+
+/* 8. Theme: 🍃 Sage Mint & Forest Green */
+body.theme-forest {
+  --sq-light: #e8ede6;
+  --sq-dark: #587d5e;
+  --sq-last-move: rgba(247, 247, 105, 0.45);
+}
+body.theme-forest .chessboard-wrapper {
+  border-color: #213d29;
+  background: #112015;
+}
+
+/* 9. Theme: 🍂 Autumn Amber & Warm Oak */
+body.theme-amber {
+  --sq-light: #f5ebe0;
+  --sq-dark: #b67d4b;
+  --sq-last-move: rgba(245, 158, 11, 0.45);
+}
+body.theme-amber .chessboard-wrapper {
+  border-color: #452b16;
+  background: #24150b;
+}
+
+/* 10. Theme: 🏛️ Italian Carrara Marble & Nero */
+body.theme-marble, body.theme-marble-luxury {
   --sq-light: #f1f5f9;
   --sq-dark: #475569;
   --sq-last-move: rgba(56, 189, 248, 0.4);
 }
+body.theme-marble .chessboard-wrapper,
 body.theme-marble-luxury .chessboard-wrapper {
   border-color: #334155;
   background: #182230;
 }
+
+/* 11. Theme: 🍷 Bordeaux Wine & Maple */
+body.theme-wine {
+  --sq-light: #f4eee9;
+  --sq-dark: #7c4354;
+  --sq-last-move: rgba(244, 63, 94, 0.45);
+}
+body.theme-wine .chessboard-wrapper {
+  border-color: #3d1f27;
+  background: #241217;
+}
+
+/* 12. Theme: ❄️ Nordic Frost & Steel */
+body.theme-nordic {
+  --sq-light: #e5e9f0;
+  --sq-dark: #4c566a;
+  --sq-last-move: rgba(56, 189, 248, 0.45);
+}
+body.theme-nordic .chessboard-wrapper {
+  border-color: #2e3440;
+  background: #1c2026;
+}
+
+/* Clean normalization for remaining legacy themes (no eye fatigue) */
 
 body.theme-rose-gold {
   --sq-light: #fff1f2;
