@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <link rel="manifest" href="/chess/manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>체스 마스터 (Chess Master) - 온라인 WiFi & AI 훈련</title>
@@ -781,5 +782,14 @@
   </div>
 
   <script type="module" src="app.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/chess/sw.js', { scope: '/chess/' }).catch(() => {});
+  });
+}
+</script>
+
 </body>
 </html>
