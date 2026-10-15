@@ -330,9 +330,15 @@
                 </div>
               </div>
 
-              <div class="player-clock-box" id="opponent-clock-box">
-                <span class="clock-icon">⏱️</span>
-                <span class="clock-digits" id="opponent-timer">10:00</span>
+              <div class="player-clock-actions">
+                <button type="button" class="btn-clock-hint opponent-clock-hint" id="btn-opponent-clock-hint" title="현재 국면 최선수 힌트 및 전술 이유 보기" style="display: none;">
+                  <span class="clock-hint-icon">💡</span>
+                  <span class="clock-hint-text">최선수</span>
+                </button>
+                <div class="player-clock-box" id="opponent-clock-box">
+                  <span class="clock-icon">⏱️</span>
+                  <span class="clock-digits" id="opponent-timer">10:00</span>
+                </div>
               </div>
             </div>
 
@@ -397,9 +403,16 @@
                 </div>
               </div>
 
-              <div class="player-clock-box" id="user-clock-box">
-                <span class="clock-icon">⏱️</span>
-                <span class="clock-digits" id="user-timer">10:00</span>
+              <div class="player-clock-actions">
+                <button type="button" class="btn-clock-hint" id="btn-clock-hint" title="현재 국면 최선수 힌트 및 전술 이유 보기">
+                  <span class="clock-hint-icon">💡</span>
+                  <span class="clock-hint-text">최선수</span>
+                  <span class="clock-hint-count" id="clock-hint-count" style="display: none;"></span>
+                </button>
+                <div class="player-clock-box" id="user-clock-box">
+                  <span class="clock-icon">⏱️</span>
+                  <span class="clock-digits" id="user-timer">10:00</span>
+                </div>
               </div>
             </div>
 
@@ -953,6 +966,55 @@
           </button>
           <button class="btn-action-secondary" id="btn-discard-resume" style="flex: 1; padding: 0.85rem 1rem; font-size: 0.9rem;">
             새 대국 시작
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 9: Best Move Tactical Explanation Popup Modal -->
+    <div class="modal-overlay" id="modal-hint-popup">
+      <div class="modal-card hint-popup-card" style="max-width: 490px; padding: 1.75rem; position: relative;">
+        <button class="modal-close" id="btn-close-hint-modal">&times;</button>
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.1rem;">
+          <span style="font-size: 1.8rem; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));">💡</span>
+          <div>
+            <h3 class="modal-title" style="margin: 0; font-size: 1.25rem;">AI 엔진 최선수 전술 해설</h3>
+            <span id="hint-popup-engine-tag" style="font-size: 0.8rem; color: #94a3b8;">Stockfish 16 · 17수 앞 심층 탐색</span>
+          </div>
+        </div>
+
+        <!-- Piece & Move Highlight Box -->
+        <div class="hint-popup-movebox" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.1rem; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div id="hint-popup-piece-icon" style="font-size: 2.5rem; line-height: 1; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));">♞</div>
+            <div>
+              <div id="hint-popup-piece-title" style="font-size: 1.15rem; font-weight: 700; color: #f8fafc;">백 나이트</div>
+              <div id="hint-popup-move-coords" style="font-family: var(--font-mono); font-size: 1.05rem; color: #fbbf24; font-weight: 700;">f3 ➔ e5 (Nf3e5)</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+            <span id="hint-popup-tactical-badge" class="hint-tactical-badge hint-badge-attack" style="font-size: 0.85rem; padding: 4px 10px;">⚔️ 퀸 위협</span>
+            <span id="hint-popup-eval-score" style="font-size: 0.78rem; color: #94a3b8; font-family: var(--font-mono);">형세: +1.8</span>
+          </div>
+        </div>
+
+        <!-- Why Move Here (Tactical Explanation) -->
+        <div style="margin-bottom: 1.35rem;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 5px;">
+            <span>🎯</span> 왜 이 수가 가장 좋은가요?
+          </div>
+          <div id="hint-popup-explanation" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.95rem 1.1rem; font-size: 0.96rem; line-height: 1.65; color: #f1f5f9; word-break: keep-all;">
+            상대 퀸을 직접 위협하여 주도권을 빼앗고, 체스판의 최고 요충지인 e5 칸을 장악하여 백 진영의 공격력을 극대화하는 결정적인 공격수입니다.
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center;">
+          <button type="button" class="btn-action-secondary" id="btn-popup-hint-tts" style="display: flex; align-items: center; gap: 5px; padding: 0.65rem 1rem; font-size: 0.88rem;">
+            🔊 설명 음성 듣기
+          </button>
+          <button type="button" class="btn-action-primary" id="btn-confirm-hint-modal" style="padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 700;">
+            판 가이드 확인 (닫기)
           </button>
         </div>
       </div>

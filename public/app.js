@@ -200,6 +200,9 @@ const el = {
   hintDepthBadge: document.getElementById('hint-depth-badge'),
   hintExplanationText: document.getElementById('hint-explanation-text'),
   btnHintTts: document.getElementById('btn-hint-tts'),
+  btnClockHint: document.getElementById('btn-clock-hint'),
+  clockHintCount: document.getElementById('clock-hint-count'),
+  btnOpponentClockHint: document.getElementById('btn-opponent-clock-hint'),
   btnOfferDraw: document.getElementById('btn-offer-draw'),
   btnResign: document.getElementById('btn-resign'),
   btnLeaveGame: document.getElementById('btn-leave-game'),
@@ -313,6 +316,19 @@ const el = {
   lobbyResumeDesc: document.getElementById('lobby-resume-desc'),
   btnLobbyResume: document.getElementById('btn-lobby-resume'),
   btnLobbyDiscard: document.getElementById('btn-lobby-discard'),
+
+  // Best Move Tactical Explanation Popup Modal
+  modalHintPopup: document.getElementById('modal-hint-popup'),
+  btnCloseHintModal: document.getElementById('btn-close-hint-modal'),
+  btnConfirmHintModal: document.getElementById('btn-confirm-hint-modal'),
+  btnPopupHintTts: document.getElementById('btn-popup-hint-tts'),
+  hintPopupEngineTag: document.getElementById('hint-popup-engine-tag'),
+  hintPopupPieceIcon: document.getElementById('hint-popup-piece-icon'),
+  hintPopupPieceTitle: document.getElementById('hint-popup-piece-title'),
+  hintPopupMoveCoords: document.getElementById('hint-popup-move-coords'),
+  hintPopupTacticalBadge: document.getElementById('hint-popup-tactical-badge'),
+  hintPopupEvalScore: document.getElementById('hint-popup-eval-score'),
+  hintPopupExplanation: document.getElementById('hint-popup-explanation'),
 
   toastContainer: document.getElementById('toast-container')
 };
@@ -1012,6 +1028,44 @@ function updateHintUi() {
         el.btnBotHint.style.opacity = '1';
         el.btnBotHint.style.pointerEvents = 'auto';
       }
+    }
+  }
+
+  // Update Clock-adjacent Best Move buttons
+  if (el.btnClockHint) {
+    if (state.maxHints === 0) {
+      el.btnClockHint.style.display = 'none';
+    } else {
+      el.btnClockHint.style.display = 'inline-flex';
+      if (isUnlimited) {
+        if (el.clockHintCount) el.clockHintCount.style.display = 'none';
+        el.btnClockHint.style.opacity = '1';
+        el.btnClockHint.style.pointerEvents = 'auto';
+        el.btnClockHint.title = '세계 최강 Stockfish 16 최선수 힌트 (무제한 ♾️)';
+      } else {
+        const remaining = Math.max(0, state.maxHints - state.hintsUsed);
+        if (el.clockHintCount) {
+          el.clockHintCount.style.display = 'inline-block';
+          el.clockHintCount.innerText = String(remaining);
+        }
+        if (remaining <= 0) {
+          el.btnClockHint.style.opacity = '0.5';
+          el.btnClockHint.style.pointerEvents = 'none';
+          el.btnClockHint.title = `최선수 힌트 횟수를 모두 소진했습니다. (${state.maxHints}회)`;
+        } else {
+          el.btnClockHint.style.opacity = '1';
+          el.btnClockHint.style.pointerEvents = 'auto';
+          el.btnClockHint.title = `최선수 힌트 보기 (남은 횟수: ${remaining}회)`;
+        }
+      }
+    }
+  }
+
+  if (el.btnOpponentClockHint) {
+    if (state.maxHints === 0 || state.mode !== 'local') {
+      el.btnOpponentClockHint.style.display = 'none';
+    } else {
+      el.btnOpponentClockHint.style.display = 'inline-flex';
     }
   }
 }
@@ -2608,12 +2662,20 @@ const PIECE_NAMES_KO = {
   k: '킹'
 };
 
+const PIECE_ICONS_KO = {
+  w: { p: '♙', n: '♘', b: '♗', r: '♖', q: '♕', k: '♔' },
+  b: { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' }
+};
+
 function clearHintUi() {
   state.hintMove = null;
   state.hintTacticalData = null;
   state.lastHintTtsText = null;
   if (el.hintResultCard) {
     el.hintResultCard.style.display = 'none';
+  }
+  if (el.modalHintPopup) {
+    el.modalHintPopup.classList.remove('active');
   }
 }
 
@@ -2783,96 +2845,154 @@ async function requestBestMoveHint() {
     return;
   }
 
-  state.hintsUsed++;
-  updateHintUi();
-
-  const chosenModel = state.hintModel || 'stockfish';
-  const chosenLevel = state.hintLevel || 5;
-
-  const isStockfish = (chosenModel === 'stockfish') && state.stockfish && state.stockfish.isReady;
-  const engineName = isStockfish ? 'Stockfish 16 (젤리피쉬)' : 'Minimax AI';
-
-  if (el.engineHintText) {
-    el.engineHintText.innerText = `💡 ${engineName}이 최선수를 탐색 중입니다... (난이도 Lv.${chosenLevel})`;
+  // Set loading state on clock hint buttons
+  if (el.btnClockHint) {
+    el.btnClockHint.classList.add('loading');
+    el.btnClockHint.innerHTML = '<span class="clock-hint-icon">⏳</span><span class="clock-hint-text">탐색중...</span>';
+  }
+  if (el.btnOpponentClockHint) {
+    el.btnOpponentClockHint.classList.add('loading');
+    el.btnOpponentClockHint.innerHTML = '<span class="clock-hint-icon">⏳</span><span class="clock-hint-text">탐색중...</span>';
   }
 
-  let moveObj = null;
-  let calculatedDepth = chosenLevel;
+  try {
+    state.hintsUsed++;
+    updateHintUi();
 
-  if (isStockfish) {
-    const maxTime = chosenLevel === 5 ? 1800 : chosenLevel === 4 ? 1200 : chosenLevel === 3 ? 800 : 500;
-    const uciMove = await state.stockfish.getAIMove(state.game.fen(), chosenLevel, maxTime);
-    calculatedDepth = (state.stockfish.getLastDepth && state.stockfish.getLastDepth()) || (chosenLevel * 3 + 2);
+    const chosenModel = state.hintModel || 'stockfish';
+    const chosenLevel = state.hintLevel || 5;
 
-    if (uciMove) {
-      const from = uciMove.slice(0, 2);
-      const to = uciMove.slice(2, 4);
-      const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
-      moveObj = state.game.moves({ verbose: true }).find(m =>
-        m.from === from && m.to === to && (!promotion || m.promotion === promotion)
-      );
+    const isStockfish = (chosenModel === 'stockfish') && state.stockfish && state.stockfish.isReady;
+    const engineName = isStockfish ? 'Stockfish 16 (젤리피쉬)' : 'Minimax AI';
+
+    if (el.engineHintText) {
+      el.engineHintText.innerText = `💡 ${engineName}이 최선수를 탐색 중입니다... (난이도 Lv.${chosenLevel})`;
     }
-  }
 
-  // Fallback to Minimax if Stockfish returned null or Minimax was chosen
-  if (!moveObj) {
-    calculatedDepth = chosenLevel;
-    const aiMove = state.engine.getAIMove(state.game, chosenLevel, 2000);
-    if (aiMove) {
-      moveObj = state.game.moves({ verbose: true }).find(m =>
-        m.from === aiMove.from && m.to === aiMove.to && (!aiMove.promotion || m.promotion === aiMove.promotion)
-      );
+    let moveObj = null;
+    let calculatedDepth = chosenLevel;
+
+    if (isStockfish) {
+      const maxTime = chosenLevel === 5 ? 1800 : chosenLevel === 4 ? 1200 : chosenLevel === 3 ? 800 : 500;
+      const uciMove = await state.stockfish.getAIMove(state.game.fen(), chosenLevel, maxTime);
+      calculatedDepth = (state.stockfish.getLastDepth && state.stockfish.getLastDepth()) || (chosenLevel * 3 + 2);
+
+      if (uciMove) {
+        const from = uciMove.slice(0, 2);
+        const to = uciMove.slice(2, 4);
+        const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+        moveObj = state.game.moves({ verbose: true }).find(m =>
+          m.from === from && m.to === to && (!promotion || m.promotion === promotion)
+        );
+      }
     }
+
+    // Fallback to Minimax if Stockfish returned null or Minimax was chosen
     if (!moveObj) {
-      const analysis = state.engine.analyzePosition(state.game);
-      moveObj = analysis.bestMove;
+      calculatedDepth = chosenLevel;
+      const aiMove = state.engine.getAIMove(state.game, chosenLevel, 2000);
+      if (aiMove) {
+        moveObj = state.game.moves({ verbose: true }).find(m =>
+          m.from === aiMove.from && m.to === aiMove.to && (!aiMove.promotion || m.promotion === aiMove.promotion)
+        );
+      }
+      if (!moveObj) {
+        const analysis = state.engine.analyzePosition(state.game);
+        moveObj = analysis.bestMove;
+      }
     }
-  }
 
-  if (!moveObj) {
-    showToast('추천할 최선수를 찾을 수 없습니다.');
-    return;
-  }
+    if (!moveObj) {
+      showToast('추천할 최선수를 찾을 수 없습니다.');
+      return;
+    }
 
-  state.hintMove = moveObj;
-  const tactical = analyzeTacticalMove(state.game, moveObj);
-  state.hintTacticalData = tactical;
+    state.hintMove = moveObj;
+    const tactical = analyzeTacticalMove(state.game, moveObj);
+    state.hintTacticalData = tactical;
 
-  const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
-  const moveCoordStr = `${moveObj.from.toUpperCase()} ➔ ${moveObj.to.toUpperCase()}`;
-  const moveSanStr = moveObj.san;
+    const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
+    const moveCoordStr = `${moveObj.from.toUpperCase()} ➔ ${moveObj.to.toUpperCase()}`;
+    const moveSanStr = moveObj.san;
 
-  // Update UI Card
-  if (el.hintResultCard) {
-    el.hintResultCard.style.display = 'flex';
-  }
-  if (el.hintMoveTag) {
-    el.hintMoveTag.innerText = `${moveSanStr} (${moveCoordStr})`;
-  }
-  if (el.hintTacticalBadge) {
-    el.hintTacticalBadge.className = `hint-tactical-badge ${tactical.badgeClass}`;
-    el.hintTacticalBadge.innerText = tactical.badge;
-  }
-  if (el.hintDepthBadge) {
-    el.hintDepthBadge.innerText = `수읽기: ${calculatedDepth}수 앞 (Depth ${calculatedDepth})`;
-  }
-  if (el.hintExplanationText) {
-    el.hintExplanationText.innerText = tactical.explanation;
-  }
-  if (el.engineHintText) {
-    el.engineHintText.innerText = `💡 ${engineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
-  }
+    // Piece Details for Tactical Explanation Popup Modal
+    const pieceColor = moveObj.color === 'w' ? '백' : '흑';
+    const pieceName = PIECE_NAMES_KO[moveObj.piece.toLowerCase()] || '기물';
+    const pieceIcon = (PIECE_ICONS_KO[moveObj.color] && PIECE_ICONS_KO[moveObj.color][moveObj.piece.toLowerCase()]) || '♟';
 
-  showToast(`💡 최선수(${engineName}): ${moveSanStr} (${moveCoordStr}) · ${tactical.badge}`);
-  renderBoard();
-  audio.playNotify();
+    // Update Tactical Explanation Popup Modal
+    if (el.hintPopupEngineTag) {
+      el.hintPopupEngineTag.innerText = `${engineName} · ${calculatedDepth}수 앞 심층 탐색`;
+    }
+    if (el.hintPopupPieceIcon) {
+      el.hintPopupPieceIcon.innerText = pieceIcon;
+    }
+    if (el.hintPopupPieceTitle) {
+      el.hintPopupPieceTitle.innerText = `${pieceColor} ${pieceName}`;
+    }
+    if (el.hintPopupMoveCoords) {
+      el.hintPopupMoveCoords.innerText = `${moveCoordStr} (${moveSanStr})`;
+    }
+    if (el.hintPopupTacticalBadge) {
+      el.hintPopupTacticalBadge.className = `hint-tactical-badge ${tactical.badgeClass}`;
+      el.hintPopupTacticalBadge.innerText = tactical.badge;
+    }
+    if (el.hintPopupEvalScore) {
+      const evalVal = (state.evaluation !== undefined && state.evaluation !== null) ? state.evaluation : 0;
+      const evalSign = evalVal > 0 ? '+' : '';
+      el.hintPopupEvalScore.innerText = `형세: ${evalSign}${evalVal.toFixed(1)}`;
+    }
+    if (el.hintPopupExplanation) {
+      el.hintPopupExplanation.innerText = tactical.explanation;
+    }
 
-  // TTS Voice Output
-  const fullTtsText = `${calculatedDepth}수 앞을 내다본 ${engineName} 최선수는, ${moveObj.from}에서 ${moveObj.to}로 이동하는 ${moveSanStr}입니다. ${tactical.speechSummary}`;
-  state.lastHintTtsText = fullTtsText;
+    // Open the tactical explanation popup modal!
+    if (el.modalHintPopup) {
+      el.modalHintPopup.classList.add('active');
+    }
 
-  if (state.hintAutoTts) {
-    speakText(fullTtsText);
+    // Update Side UI Card if visible
+    if (el.hintResultCard) {
+      el.hintResultCard.style.display = 'flex';
+    }
+    if (el.hintMoveTag) {
+      el.hintMoveTag.innerText = `${moveSanStr} (${moveCoordStr})`;
+    }
+    if (el.hintTacticalBadge) {
+      el.hintTacticalBadge.className = `hint-tactical-badge ${tactical.badgeClass}`;
+      el.hintTacticalBadge.innerText = tactical.badge;
+    }
+    if (el.hintDepthBadge) {
+      el.hintDepthBadge.innerText = `수읽기: ${calculatedDepth}수 앞 (Depth ${calculatedDepth})`;
+    }
+    if (el.hintExplanationText) {
+      el.hintExplanationText.innerText = tactical.explanation;
+    }
+    if (el.engineHintText) {
+      el.engineHintText.innerText = `💡 ${engineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
+    }
+
+    showToast(`💡 최선수(${engineName}): ${pieceColor} ${pieceName} ${moveCoordStr} · ${tactical.badge}`);
+    renderBoard();
+    audio.playNotify();
+
+    // TTS Voice Output
+    const fullTtsText = `${calculatedDepth}수 앞을 내다본 ${engineName} 최선수는, ${pieceColor} ${pieceName} ${moveObj.from}에서 ${moveObj.to}로 이동하는 ${moveSanStr}입니다. ${tactical.speechSummary}`;
+    state.lastHintTtsText = fullTtsText;
+
+    if (state.hintAutoTts) {
+      speakText(fullTtsText);
+    }
+  } finally {
+    if (el.btnClockHint) {
+      el.btnClockHint.classList.remove('loading');
+      el.btnClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span><span class="clock-hint-count" id="clock-hint-count" style="display: none;"></span>';
+    }
+    if (el.btnOpponentClockHint) {
+      el.btnOpponentClockHint.classList.remove('loading');
+      el.btnOpponentClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span>';
+    }
+    updateHintUi();
   }
 }
 
@@ -3058,6 +3178,40 @@ function setupEventListeners() {
   if (el.btnAiHint) {
     el.btnAiHint.addEventListener('click', () => {
       requestBestMoveHint();
+    });
+  }
+
+  if (el.btnClockHint) {
+    el.btnClockHint.addEventListener('click', () => {
+      requestBestMoveHint();
+    });
+  }
+
+  if (el.btnOpponentClockHint) {
+    el.btnOpponentClockHint.addEventListener('click', () => {
+      requestBestMoveHint();
+    });
+  }
+
+  if (el.btnCloseHintModal) {
+    el.btnCloseHintModal.addEventListener('click', () => {
+      if (el.modalHintPopup) el.modalHintPopup.classList.remove('active');
+    });
+  }
+
+  if (el.btnConfirmHintModal) {
+    el.btnConfirmHintModal.addEventListener('click', () => {
+      if (el.modalHintPopup) el.modalHintPopup.classList.remove('active');
+    });
+  }
+
+  if (el.btnPopupHintTts) {
+    el.btnPopupHintTts.addEventListener('click', () => {
+      if (state.lastHintTtsText) {
+        speakText(state.lastHintTtsText);
+      } else if (state.hintTacticalData) {
+        speakText(state.hintTacticalData.explanation);
+      }
     });
   }
 

@@ -995,6 +995,69 @@ body.fullscreen-mode .board-column {
   margin-left: 4px;
 }
 
+.player-clock-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.btn-clock-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.45));
+  border: 1px solid #f59e0b;
+  color: #fef08a;
+  padding: 0.38rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-clock-hint:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.38), rgba(217, 119, 6, 0.65));
+  border-color: #fbbf24;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+}
+
+.btn-clock-hint:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.2);
+}
+
+.btn-clock-hint .clock-hint-icon {
+  font-size: 1rem;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+}
+
+.btn-clock-hint .clock-hint-count {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-family: var(--font-mono);
+}
+
+.btn-clock-hint.loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.hint-popup-card {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.15);
+}
+
 .player-clock-box {
   display: flex;
   align-items: center;
@@ -2190,6 +2253,20 @@ body.in-game.board-only-mode .player-avatar {
 
 body.in-game.board-only-mode .player-clock-box {
   padding: 2px 6px !important;
+  font-size: 0.82rem !important;
+}
+
+body.in-game.board-only-mode .player-clock-actions {
+  gap: 0.3rem !important;
+}
+
+body.in-game.board-only-mode .btn-clock-hint {
+  padding: 2px 6px !important;
+  font-size: 0.76rem !important;
+  gap: 0.2rem !important;
+}
+
+body.in-game.board-only-mode .btn-clock-hint .clock-hint-icon {
   font-size: 0.82rem !important;
 }
 
