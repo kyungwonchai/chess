@@ -370,9 +370,9 @@
                     <marker id="arrow-preview-attack" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399"/>
                     </marker>
-                    <!-- Marker for Last Move Trail Arrow (Vibrant Sky Blue / Cyan) -->
+                    <!-- Marker for Last Move Trail Arrow (Transparent Sky Blue) -->
                     <marker id="arrow-last-move" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8"/>
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="rgba(56, 189, 248, 0.45)"/>
                     </marker>
                   </defs>
                   <g id="svg-lastmove-group"></g>
@@ -518,10 +518,45 @@
 
                 <div class="analysis-box" id="analysis-box">
                   <div class="analysis-header">
-                    <span>엔진 분석:</span>
+                    <span>💡 최선수 정밀 분석</span>
                     <span class="analysis-val" id="engine-eval-text">균형 (0.0)</span>
                   </div>
-                  <div class="analysis-hint-text" id="engine-hint-text">최선수 힌트 버튼을 누르면 추천 수가 표시됩니다.</div>
+
+                  <!-- Quick Model & Difficulty Selector for Hint -->
+                  <div class="hint-engine-quickbar">
+                    <div class="hint-quick-item">
+                      <label for="hint-model-picker">엔진:</label>
+                      <select id="hint-model-picker" class="hint-mini-select" title="최선수 계산에 사용할 AI 엔진">
+                        <option value="stockfish" selected>🚀 Stockfish 16 (젤리피쉬)</option>
+                        <option value="minimax">🧸 Minimax (캐주얼)</option>
+                      </select>
+                    </div>
+                    <div class="hint-quick-item">
+                      <label for="hint-level-picker">수읽기:</label>
+                      <select id="hint-level-picker" class="hint-mini-select" title="최선수 계산 깊이/난이도">
+                        <option value="5" selected>Lv.5 최상위 (심층)</option>
+                        <option value="4">Lv.4 고급 (정밀)</option>
+                        <option value="3">Lv.3 중급 (표준)</option>
+                        <option value="2">Lv.2 초급</option>
+                        <option value="1">Lv.1 입문</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Tactical Hint Result Card -->
+                  <div class="hint-result-card" id="hint-result-card" style="display: none;">
+                    <div class="hint-card-top">
+                      <span class="hint-move-tag" id="hint-move-tag">e2 ➔ e4</span>
+                      <span class="hint-tactical-badge hint-badge-attack" id="hint-tactical-badge">⚔️ 공격수</span>
+                      <span class="hint-depth-badge" id="hint-depth-badge">수읽기 15수 앞</span>
+                      <button type="button" class="btn-hint-tts" id="btn-hint-tts" title="음성으로 설명 듣기 (TTS)">🔊 듣기</button>
+                    </div>
+                    <div class="hint-explanation-text" id="hint-explanation-text">
+                      상대 기물을 위협하고 중앙 영역을 장악하는 최선수입니다.
+                    </div>
+                  </div>
+
+                  <div class="analysis-hint-text" id="engine-hint-text">💡 최선수 힌트 버튼을 누르면 추천 수와 전술 이유가 표시됩니다.</div>
                 </div>
               </div>
 
@@ -722,6 +757,42 @@
               <option value="1">1회 허용</option>
               <option value="0">0회 (비활성화 / 숨김)</option>
             </select>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">💡 최선수(힌트) 추천 AI 엔진</label>
+              <p class="setting-subtext">최선수 버튼 클릭 시 추천 수를 계산할 모델입니다. 기본값은 가장 강력한 젤리피쉬(Stockfish 16) 최상위 모델입니다.</p>
+            </div>
+            <select id="setting-hint-model" class="custom-select setting-control-select">
+              <option value="stockfish" selected>🚀 Stockfish 16 (젤리피쉬 최상위 엔진 - 기본 추천)</option>
+              <option value="minimax">🧸 Minimax (캐주얼 엔진)</option>
+            </select>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🎯 최선수(힌트) 수읽기 깊이 & 난이도</label>
+              <p class="setting-subtext">AI가 몇 수 앞을 내다보고 최선수를 찾을지 지정합니다. 기본값은 15수 이상 심층 수읽기(Lv.5)입니다.</p>
+            </div>
+            <select id="setting-hint-level" class="custom-select setting-control-select">
+              <option value="5" selected>Lv.5 최상위 마스터 (15수 이상 심층 수읽기 / ELO 3200+ - 기본)</option>
+              <option value="4">Lv.4 고급자 (11~14수 정밀 수읽기 / ELO 2200)</option>
+              <option value="3">Lv.3 중급자 (7~10수 표준 수읽기 / ELO 1600)</option>
+              <option value="2">Lv.2 초중급 (4~6수 기본 수읽기 / ELO 1200)</option>
+              <option value="1">Lv.1 입문 (2~3수 단수 수읽기 / ELO 800)</option>
+            </select>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🔊 최선수 설명 한국어 음성(TTS) 자동 읽기</label>
+              <p class="setting-subtext">최선수 힌트 버튼을 눌렀을 때, 추천 수의 전술적 이유(공격수/방어수/기물 위협 등)를 음성으로 자동 안내합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-hint-tts" class="toggle-checkbox">
+              <label for="setting-hint-tts" class="toggle-label"></label>
+            </div>
           </div>
 
           <div class="setting-item-box">

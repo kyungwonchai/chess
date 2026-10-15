@@ -1156,19 +1156,19 @@ body.fullscreen-mode .board-stage {
 .square.last-move-from::before {
   content: '이전';
   position: absolute;
-  top: 3px;
+  bottom: 2px;
   left: 3px;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   line-height: 1;
   color: #fca5a5;
-  background: rgba(15, 23, 42, 0.85);
-  padding: 2px 5px;
+  background: rgba(15, 23, 42, 0.88);
+  padding: 1.5px 4.5px;
   border-radius: 3px;
-  border: 1px solid rgba(244, 63, 94, 0.6);
+  border: 1px solid rgba(244, 63, 94, 0.65);
   pointer-events: none;
-  z-index: 6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .square.last-move-to {
@@ -1180,19 +1180,19 @@ body.fullscreen-mode .board-stage {
 .square.last-move-to::before {
   content: '착수';
   position: absolute;
-  top: 3px;
+  bottom: 2px;
   right: 3px;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   line-height: 1;
   color: #7dd3fc;
-  background: rgba(15, 23, 42, 0.85);
-  padding: 2px 5px;
+  background: rgba(15, 23, 42, 0.88);
+  padding: 1.5px 4.5px;
   border-radius: 3px;
-  border: 1px solid rgba(56, 189, 248, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.65);
   pointer-events: none;
-  z-index: 6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .square.hint-from, .square.hint-to {
@@ -2816,12 +2816,12 @@ body.in-game.board-only-mode .chessboard-wrapper {
 }
 
 .last-move-trail-line {
-  stroke: #38bdf8;
-  stroke-width: 1.35;
+  stroke: rgba(56, 189, 248, 0.4);
+  stroke-width: 1.25;
   stroke-linecap: round;
   stroke-dasharray: 4 2.5;
-  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.9));
-  animation: last-move-flow 1.2s linear infinite;
+  filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.35));
+  animation: last-move-flow 1.4s linear infinite;
 }
 
 @keyframes last-move-flow {
@@ -3183,5 +3183,224 @@ body.in-game.board-only-mode .chessboard-wrapper {
 .btn-discard-action:hover {
   background: rgba(239, 68, 68, 0.2);
   color: #f87171;
+}
+
+/* ================= HINT ANALYSIS & TACTICAL CARDS ================= */
+.hint-engine-quickbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.hint-quick-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.hint-quick-item label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+.hint-mini-select {
+  width: 100%;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.hint-mini-select:focus {
+  border-color: #f59e0b;
+}
+
+.hint-result-card {
+  margin-top: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(15, 23, 42, 0.7));
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  animation: hint-fade-in 0.25s ease-out;
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hint-card-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hint-move-tag {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #fef08a;
+  background: rgba(245, 158, 11, 0.25);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.hint-tactical-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.hint-badge-attack {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+}
+
+.hint-badge-defense {
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+}
+
+.hint-badge-strategy {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.6);
+}
+
+.hint-badge-mate {
+  color: #fde047;
+  background: rgba(234, 179, 8, 0.3);
+  border: 1px solid rgba(234, 179, 8, 0.7);
+  animation: pulse 1s infinite alternate;
+}
+
+.hint-depth-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-hint-tts {
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.12s, filter 0.12s;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+}
+
+.btn-hint-tts:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}
+
+.btn-hint-tts.speaking {
+  background: linear-gradient(135deg, #10b981, #059669);
+  animation: pulse-tts 0.8s infinite alternate;
+}
+
+@keyframes pulse-tts {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+.hint-explanation-text {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #f59e0b;
+}
+
+/* Board Target Square Hint Badges */
+.square.hint-target-attack::before {
+  content: '공격';
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fca5a5;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1.5px 4.5px;
+  border-radius: 3px;
+  border: 1px solid rgba(239, 68, 68, 0.8);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.square.hint-target-defense::before {
+  content: '방어';
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #7dd3fc;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1.5px 4.5px;
+  border-radius: 3px;
+  border: 1px solid rgba(56, 189, 248, 0.8);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.square.hint-target-strategy::before {
+  content: '전략';
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #6ee7b7;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1.5px 4.5px;
+  border-radius: 3px;
+  border: 1px solid rgba(16, 185, 129, 0.8);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 

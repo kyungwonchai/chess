@@ -38,6 +38,11 @@ const state = {
     return -1; // Default to Unlimited (-1)
   })(),
   hintsUsed: 0,
+  hintModel: localStorage.getItem('chess_hint_model') || 'stockfish', // Default: Stockfish 16 (젤리피쉬 최상모델)
+  hintLevel: parseInt(localStorage.getItem('chess_hint_level') || '5', 10), // Default: Level 5 (최상위)
+  hintAutoTts: localStorage.getItem('chess_hint_auto_tts') === 'true', // Voice read aloud toggle
+  hintTacticalData: null,
+  lastHintTtsText: null,
 
   // Visual Assist Line Guides & AI Animation
   showAttackLines: localStorage.getItem('chess_show_attack_lines') === 'true',
@@ -187,6 +192,14 @@ const el = {
   btnToggleEval: document.getElementById('btn-toggle-eval'),
   engineEvalText: document.getElementById('engine-eval-text'),
   engineHintText: document.getElementById('engine-hint-text'),
+  hintModelPicker: document.getElementById('hint-model-picker'),
+  hintLevelPicker: document.getElementById('hint-level-picker'),
+  hintResultCard: document.getElementById('hint-result-card'),
+  hintMoveTag: document.getElementById('hint-move-tag'),
+  hintTacticalBadge: document.getElementById('hint-tactical-badge'),
+  hintDepthBadge: document.getElementById('hint-depth-badge'),
+  hintExplanationText: document.getElementById('hint-explanation-text'),
+  btnHintTts: document.getElementById('btn-hint-tts'),
   btnOfferDraw: document.getElementById('btn-offer-draw'),
   btnResign: document.getElementById('btn-resign'),
   btnLeaveGame: document.getElementById('btn-leave-game'),
@@ -270,6 +283,9 @@ const el = {
   modalSettings: document.getElementById('modal-settings'),
   btnCloseSettingsModal: document.getElementById('btn-close-settings-modal'),
   settingHintLimit: document.getElementById('setting-hint-limit'),
+  settingHintModel: document.getElementById('setting-hint-model'),
+  settingHintLevel: document.getElementById('setting-hint-level'),
+  settingHintTts: document.getElementById('setting-hint-tts'),
   settingAiModel: document.getElementById('setting-ai-model'),
   settingAiMoveAnim: document.getElementById('setting-ai-move-anim'),
   settingLastMoveTrail: document.getElementById('setting-last-move-trail'),
@@ -684,8 +700,18 @@ function renderBoard(fullRebuild = false) {
       }
 
       // Hint highlight
-      if (state.hintMove && (state.hintMove.from === squareName || state.hintMove.to === squareName)) {
-        sq.classList.add('hint-to');
+      if (state.hintMove) {
+        if (state.hintMove.from === squareName) {
+          sq.classList.add('hint-from');
+        }
+        if (state.hintMove.to === squareName) {
+          sq.classList.add('hint-to');
+          if (state.hintTacticalData) {
+            if (state.hintTacticalData.type === 'attack') sq.classList.add('hint-target-attack');
+            else if (state.hintTacticalData.type === 'defense') sq.classList.add('hint-target-defense');
+            else sq.classList.add('hint-target-strategy');
+          }
+        }
       }
 
       // Legal move indicators
@@ -1022,7 +1048,7 @@ function handleSquareClick(e, square) {
   if (piece && piece.color === currentTurn) {
     state.selectedSquare = square;
     state.legalMovesForSelected = state.game.moves({ square, verbose: true });
-    state.hintMove = null;
+    clearHintUi();
     renderBoard();
   } else {
     state.selectedSquare = null;
@@ -1065,6 +1091,7 @@ function executeMove(moveObj) {
         promotion: moveObj.promotion || 'q'
       }));
     }
+    clearHintUi();
     return;
   }
 
@@ -1074,6 +1101,7 @@ function executeMove(moveObj) {
     if (!move) return;
 
     state.lastMove = move;
+    clearHintUi();
 
     // Sound effect
     if (state.game.inCheck()) {
@@ -2746,58 +2774,317 @@ function setupEventListeners() {
     joinOnlineRoom();
   });
 
-  // AI Hint with limit checking (unlimited when maxHints < 0, or maxHints > 0)
-  el.btnAiHint.addEventListener('click', async () => {
-    if (state.gameStatus !== 'playing') return;
-    if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
-      showToast('상대 AI가 생각 중일 때는 힌트를 사용할 수 없습니다.');
-      return;
-    }
-    if (state.maxHints === 0) {
-      showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
-      return;
-    }
-    const isUnlimited = state.maxHints < 0;
-    if (!isUnlimited && state.hintsUsed >= state.maxHints) {
-      showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
-      return;
-    }
+// ================= AI HINT & TACTICAL ANALYSIS =================
+const PIECE_NAMES_KO = {
+  p: '폰',
+  n: '나이트',
+  b: '비숍',
+  r: '룩',
+  q: '퀸',
+  k: '킹'
+};
 
-    state.hintsUsed++;
-    updateHintUi();
+function clearHintUi() {
+  state.hintMove = null;
+  state.hintTacticalData = null;
+  state.lastHintTtsText = null;
+  if (el.hintResultCard) {
+    el.hintResultCard.style.display = 'none';
+  }
+}
 
-    if (state.stockfish && state.stockfish.isReady) {
-      el.engineHintText.innerText = '💡 세계 최강 Stockfish 16이 최선수를 찾는 중...';
-      const uciMove = await state.stockfish.getAIMove(state.game.fen(), 5, 1200);
-      if (uciMove) {
-        const from = uciMove.slice(0, 2);
-        const to = uciMove.slice(2, 4);
-        const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
-        const moveObj = state.game.moves({ verbose: true }).find(m =>
-          m.from === from && m.to === to && (!promotion || m.promotion === promotion)
-        );
-        if (moveObj) {
-          state.hintMove = moveObj;
-          const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
-          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to}) [${remainText}]`;
-          showToast(`💡 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to})`);
-          renderBoard();
-          audio.playNotify();
-          return;
-        }
+function speakText(text) {
+  if (!('speechSynthesis' in window)) {
+    showToast('이 브라우저는 음성(TTS) 읽기 기능을 지원하지 않습니다.');
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    if (el.btnHintTts) el.btnHintTts.classList.add('speaking');
+    utterance.onend = () => {
+      if (el.btnHintTts) el.btnHintTts.classList.remove('speaking');
+    };
+    utterance.onerror = () => {
+      if (el.btnHintTts) el.btnHintTts.classList.remove('speaking');
+    };
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn('TTS error:', e);
+  }
+}
+
+function analyzeTacticalMove(game, moveObj) {
+  const pieceName = PIECE_NAMES_KO[moveObj.piece.toLowerCase()] || '기물';
+  const oppColor = moveObj.color === 'w' ? 'b' : 'w';
+
+  let type = 'strategy'; // 'attack' | 'defense' | 'strategy'
+  let badge = '♟️ 전략수';
+  let badgeClass = 'hint-badge-strategy';
+  let explanation = '';
+  let speechSummary = '';
+
+  // 1. Checkmate or Check
+  if (moveObj.san.includes('#')) {
+    type = 'attack';
+    badge = '🏆 체크메이트';
+    badgeClass = 'hint-badge-mate';
+    explanation = `상대 킹을 외통수로 몰아넣어 승리를 결정짓는 완벽한 체크메이트입니다!`;
+    speechSummary = `승리를 결정짓는 결정적 체크메이트 공격수입니다!`;
+  } else if (moveObj.san.includes('+')) {
+    type = 'attack';
+    badge = '⚔️ 체크 공격';
+    badgeClass = 'hint-badge-attack';
+    explanation = `${pieceName}이(가) 상대 킹을 직접 겨누며 강력한 압박을 가하는 체크 공격수입니다.`;
+    speechSummary = `상대 킹을 직접 위협하는 체크 공격수입니다.`;
+  }
+  // 2. Promotion
+  else if (moveObj.promotion) {
+    const promoName = PIECE_NAMES_KO[moveObj.promotion.toLowerCase()] || '퀸';
+    type = 'attack';
+    badge = '👑 폰 승격';
+    badgeClass = 'hint-badge-attack';
+    explanation = `폰을 ${promoName}(으)로 승격시켜 전력을 극대화하는 결정적 전술수입니다.`;
+    speechSummary = `폰을 ${promoName}으로 승격시키는 결정적 공격수입니다.`;
+  }
+  // 3. Captures
+  else if (moveObj.captured) {
+    const capName = PIECE_NAMES_KO[moveObj.captured.toLowerCase()] || '기물';
+    type = 'attack';
+    badge = `⚔️ ${capName} 포획`;
+    badgeClass = 'hint-badge-attack';
+    explanation = `상대 ${capName}을(를) 포획하여 전력상 우위를 점하는 직접적인 공격수입니다.`;
+    speechSummary = `상대 ${capName}을 잡아 전력 우위를 점하는 공격수입니다.`;
+  }
+  // 4. Castling
+  else if (moveObj.flags && (moveObj.flags.includes('k') || moveObj.flags.includes('q'))) {
+    type = 'defense';
+    badge = '🛡️ 킹 보호 캐슬링';
+    badgeClass = 'hint-badge-defense';
+    explanation = `킹을 안전한 구석으로 대피시키고 룩의 활동 반경을 넓히는 핵심 방어·전개수입니다.`;
+    speechSummary = `킹을 안전하게 지키고 룩을 중앙으로 전개하는 캐슬링 방어수입니다.`;
+  }
+  // 5. Escape / Defense / Fork / Center
+  else {
+    let wasThreatened = false;
+    let threatPieces = [];
+    try {
+      const mockGame = new Chess(game.fen());
+      const tokens = mockGame.fen().split(' ');
+      tokens[1] = oppColor;
+      tokens[3] = '-';
+      mockGame.load(tokens.join(' '), { skipValidation: true });
+      const oppMoves = mockGame.moves({ verbose: true });
+      const threats = oppMoves.filter(m => m.to === moveObj.from);
+      if (threats.length > 0) {
+        wasThreatened = true;
+        threatPieces = threats.map(t => PIECE_NAMES_KO[t.piece.toLowerCase()] || '상대 기물');
+      }
+    } catch (e) {}
+
+    // Check if new destination threatens opponent pieces
+    let nowThreatens = [];
+    try {
+      const nextGame = new Chess(game.fen());
+      nextGame.move(moveObj);
+      const myNextMoves = nextGame.moves({ verbose: true });
+      const destAttacks = myNextMoves.filter(m => m.from === moveObj.to && m.captured);
+      nowThreatens = destAttacks.map(m => PIECE_NAMES_KO[m.captured.toLowerCase()] || '상대 기물');
+    } catch (e) {}
+
+    if (wasThreatened) {
+      type = 'defense';
+      const threatSource = threatPieces[0] || '상대';
+      badge = '🛡️ 기물 대피·방어';
+      badgeClass = 'hint-badge-defense';
+      explanation = `${threatSource}의 위협을 받고 있던 ${pieceName}을(를) 안전한 ${moveObj.to} 칸으로 대피시키는 방어수입니다.`;
+      speechSummary = `상대의 위협을 피해 ${pieceName}을 안전하게 대피시키는 방어수입니다.`;
+    } else if (nowThreatens.length > 1) {
+      type = 'attack';
+      badge = '⚡ 양수겸장(포크)';
+      badgeClass = 'hint-badge-attack';
+      explanation = `${pieceName}이(가) ${nowThreatens.slice(0, 2).join('와(과) ')}을(를) 동시에 위협하는 포크(Fork) 공격수입니다.`;
+      speechSummary = `상대 기물 여러 개를 동시에 노리는 포크 공격수입니다.`;
+    } else if (nowThreatens.length === 1) {
+      type = 'attack';
+      const target = nowThreatens[0];
+      badge = `⚔️ ${target} 위협`;
+      badgeClass = 'hint-badge-attack';
+      explanation = `${moveObj.to} 칸으로 진출하여 상대 ${target}을(를) 정조준하고 압박을 가하는 날카로운 공격수입니다.`;
+      speechSummary = `상대 ${target}을 겨냥하여 압박하는 날카로운 공격수입니다.`;
+    } else {
+      const centerSquares = ['d4', 'd5', 'e4', 'e5', 'c4', 'c5', 'f4', 'f5'];
+      const isCenter = centerSquares.includes(moveObj.to);
+      if (isCenter) {
+        badge = '♟️ 중앙 장악';
+        badgeClass = 'hint-badge-strategy';
+        explanation = `체스판의 핵심 요충지인 ${moveObj.to} 중앙 칸을 장악하여 전술적 주도권을 잡는 전략수입니다.`;
+        speechSummary = `중앙 요충지를 장악하여 판세를 유리하게 이끄는 전략수입니다.`;
+      } else {
+        badge = '♟️ 전개 및 포지션 강화';
+        badgeClass = 'hint-badge-strategy';
+        explanation = `${pieceName}의 활동 공간을 넓히고 아군 진영을 탄탄하게 구축하는 균형 잡힌 수입니다.`;
+        speechSummary = `${pieceName}의 활동 범위를 넓히는 포지션 강화수입니다.`;
       }
     }
+  }
 
-    const analysis = state.engine.analyzePosition(state.game);
-    if (analysis.bestMove) {
-      state.hintMove = analysis.bestMove;
-      const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
-      el.engineHintText.innerText = `💡 추천 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to}) [${remainText}]`;
-      showToast(`💡 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to})`);
-      renderBoard();
-      audio.playNotify();
+  return { type, badge, badgeClass, explanation, speechSummary };
+}
+
+function updateHintSettingsUi() {
+  if (el.hintModelPicker) el.hintModelPicker.value = state.hintModel;
+  if (el.hintLevelPicker) el.hintLevelPicker.value = String(state.hintLevel);
+  if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
+  if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
+  if (el.settingHintTts) el.settingHintTts.checked = state.hintAutoTts;
+}
+
+async function requestBestMoveHint() {
+  if (state.gameStatus !== 'playing') return;
+  if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
+    showToast('상대 AI가 생각 중일 때는 힌트를 사용할 수 없습니다.');
+    return;
+  }
+  if (state.maxHints === 0) {
+    showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
+    return;
+  }
+  const isUnlimited = state.maxHints < 0;
+  if (!isUnlimited && state.hintsUsed >= state.maxHints) {
+    showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
+    return;
+  }
+
+  state.hintsUsed++;
+  updateHintUi();
+
+  const chosenModel = state.hintModel || 'stockfish';
+  const chosenLevel = state.hintLevel || 5;
+
+  const isStockfish = (chosenModel === 'stockfish') && state.stockfish && state.stockfish.isReady;
+  const engineName = isStockfish ? 'Stockfish 16 (젤리피쉬)' : 'Minimax AI';
+
+  if (el.engineHintText) {
+    el.engineHintText.innerText = `💡 ${engineName}이 최선수를 탐색 중입니다... (난이도 Lv.${chosenLevel})`;
+  }
+
+  let moveObj = null;
+  let calculatedDepth = chosenLevel;
+
+  if (isStockfish) {
+    const maxTime = chosenLevel === 5 ? 1800 : chosenLevel === 4 ? 1200 : chosenLevel === 3 ? 800 : 500;
+    const uciMove = await state.stockfish.getAIMove(state.game.fen(), chosenLevel, maxTime);
+    calculatedDepth = (state.stockfish.getLastDepth && state.stockfish.getLastDepth()) || (chosenLevel * 3 + 2);
+
+    if (uciMove) {
+      const from = uciMove.slice(0, 2);
+      const to = uciMove.slice(2, 4);
+      const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+      moveObj = state.game.moves({ verbose: true }).find(m =>
+        m.from === from && m.to === to && (!promotion || m.promotion === promotion)
+      );
     }
+  }
+
+  // Fallback to Minimax if Stockfish returned null or Minimax was chosen
+  if (!moveObj) {
+    calculatedDepth = chosenLevel;
+    const aiMove = state.engine.getAIMove(state.game, chosenLevel, 2000);
+    if (aiMove) {
+      moveObj = state.game.moves({ verbose: true }).find(m =>
+        m.from === aiMove.from && m.to === aiMove.to && (!aiMove.promotion || m.promotion === aiMove.promotion)
+      );
+    }
+    if (!moveObj) {
+      const analysis = state.engine.analyzePosition(state.game);
+      moveObj = analysis.bestMove;
+    }
+  }
+
+  if (!moveObj) {
+    showToast('추천할 최선수를 찾을 수 없습니다.');
+    return;
+  }
+
+  state.hintMove = moveObj;
+  const tactical = analyzeTacticalMove(state.game, moveObj);
+  state.hintTacticalData = tactical;
+
+  const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
+  const moveCoordStr = `${moveObj.from.toUpperCase()} ➔ ${moveObj.to.toUpperCase()}`;
+  const moveSanStr = moveObj.san;
+
+  // Update UI Card
+  if (el.hintResultCard) {
+    el.hintResultCard.style.display = 'flex';
+  }
+  if (el.hintMoveTag) {
+    el.hintMoveTag.innerText = `${moveSanStr} (${moveCoordStr})`;
+  }
+  if (el.hintTacticalBadge) {
+    el.hintTacticalBadge.className = `hint-tactical-badge ${tactical.badgeClass}`;
+    el.hintTacticalBadge.innerText = tactical.badge;
+  }
+  if (el.hintDepthBadge) {
+    el.hintDepthBadge.innerText = `수읽기: ${calculatedDepth}수 앞 (Depth ${calculatedDepth})`;
+  }
+  if (el.hintExplanationText) {
+    el.hintExplanationText.innerText = tactical.explanation;
+  }
+  if (el.engineHintText) {
+    el.engineHintText.innerText = `💡 ${engineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
+  }
+
+  showToast(`💡 최선수(${engineName}): ${moveSanStr} (${moveCoordStr}) · ${tactical.badge}`);
+  renderBoard();
+  audio.playNotify();
+
+  // TTS Voice Output
+  const fullTtsText = `${calculatedDepth}수 앞을 내다본 ${engineName} 최선수는, ${moveObj.from}에서 ${moveObj.to}로 이동하는 ${moveSanStr}입니다. ${tactical.speechSummary}`;
+  state.lastHintTtsText = fullTtsText;
+
+  if (state.hintAutoTts) {
+    speakText(fullTtsText);
+  }
+}
+
+  el.btnAiHint.addEventListener('click', () => {
+    requestBestMoveHint();
   });
+
+  if (el.btnHintTts) {
+    el.btnHintTts.addEventListener('click', () => {
+      if (state.lastHintTtsText) {
+        speakText(state.lastHintTtsText);
+      } else if (state.hintTacticalData) {
+        speakText(state.hintTacticalData.explanation);
+      } else {
+        speakText('최선수 힌트 버튼을 먼저 눌러주세요.');
+      }
+    });
+  }
+
+  if (el.hintModelPicker) {
+    el.hintModelPicker.addEventListener('change', (e) => {
+      state.hintModel = e.target.value;
+      localStorage.setItem('chess_hint_model', state.hintModel);
+      if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
+      showToast(`최선수 AI 모델: ${state.hintModel === 'stockfish' ? 'Stockfish 16 (젤리피쉬)' : 'Minimax'}`);
+    });
+  }
+
+  if (el.hintLevelPicker) {
+    el.hintLevelPicker.addEventListener('change', (e) => {
+      state.hintLevel = parseInt(e.target.value, 10);
+      localStorage.setItem('chess_hint_level', String(state.hintLevel));
+      if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
+      showToast(`최선수 수읽기 난이도: Lv.${state.hintLevel}`);
+    });
+  }
 
   // Dynamic Visual Line Guides (Attack & Threat)
   if (el.chkShowAttackLines) {
@@ -2912,6 +3199,9 @@ function setupEventListeners() {
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
         if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
+        if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
+        if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
+        if (el.settingHintTts) el.settingHintTts.checked = state.hintAutoTts;
         if (el.settingAiMoveAnim) el.settingAiMoveAnim.checked = state.aiMoveAnim;
         if (el.settingLastMoveTrail) el.settingLastMoveTrail.checked = state.showLastMoveTrail;
         if (el.selectTheme) el.selectTheme.value = localStorage.getItem('chess_theme') || 'theme-emerald';
@@ -2936,6 +3226,20 @@ function setupEventListeners() {
         localStorage.setItem('chess_max_hints', String(val));
         localStorage.setItem('chess_max_hints_v2', String(val));
         if (el.aiHintPicker) el.aiHintPicker.value = String(val);
+      }
+      if (el.settingHintModel) {
+        state.hintModel = el.settingHintModel.value;
+        localStorage.setItem('chess_hint_model', state.hintModel);
+        if (el.hintModelPicker) el.hintModelPicker.value = state.hintModel;
+      }
+      if (el.settingHintLevel) {
+        state.hintLevel = parseInt(el.settingHintLevel.value, 10);
+        localStorage.setItem('chess_hint_level', String(state.hintLevel));
+        if (el.hintLevelPicker) el.hintLevelPicker.value = String(state.hintLevel);
+      }
+      if (el.settingHintTts) {
+        state.hintAutoTts = el.settingHintTts.checked;
+        localStorage.setItem('chess_hint_auto_tts', String(state.hintAutoTts));
       }
       if (el.settingAiModel) {
         state.aiModel = el.settingAiModel.value;
@@ -3333,6 +3637,7 @@ async function init() {
   }
   updateAiSpeedUi(state.aiMoveDelay, false);
   updateHintUi();
+  updateHintSettingsUi();
   updateBoardOnlyStatus();
 
   if (el.toggleAutoFlip) {

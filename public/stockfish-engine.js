@@ -54,6 +54,14 @@ export class StockfishEngine {
       this.isReady = true;
     }
 
+    // Real-time depth parse: "info depth 14 seldepth 18 ..."
+    if (line.startsWith('info ') && line.includes(' depth ')) {
+      const depthMatch = line.match(/\bdepth\s+(\d+)/);
+      if (depthMatch) {
+        this.lastDepth = parseInt(depthMatch[1], 10);
+      }
+    }
+
     // Capture principal variation (PV) candidate move in real-time
     if (line.startsWith('info ') && line.includes(' pv ')) {
       const pvMatch = line.match(/\spv\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
@@ -173,5 +181,10 @@ export class StockfishEngine {
     setTimeout(() => {
       this.send('stop');
     }, 500);
+  }
+
+  // Get the most recent search depth (number of moves ahead calculated)
+  getLastDepth() {
+    return this.lastDepth || 14;
   }
 }
