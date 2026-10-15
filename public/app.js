@@ -2603,177 +2603,6 @@ function setReplayStep(targetStep) {
   renderReplayBoard();
 }
 
-// ================= EVENT LISTENERS =================
-function setupEventListeners() {
-  el.btnHomeLogo.addEventListener('click', () => switchView('lobby'));
-
-  el.btnCopyIp.addEventListener('click', () => {
-    navigator.clipboard.writeText(state.serverUrl).then(() => showToast('접속 주소가 복사되었습니다.'));
-  });
-  el.btnOpenQr.addEventListener('click', () => showQrModal());
-  el.btnShowLobbyQr.addEventListener('click', () => showQrModal());
-
-  if (el.selectIntegratedTheme) {
-    el.selectIntegratedTheme.addEventListener('change', (e) => {
-      applyThemePreset(e.target.value, true);
-    });
-  }
-
-  if (el.selectPieceStyle) {
-    el.selectPieceStyle.addEventListener('change', (e) => {
-      setPieceStyle(e.target.value);
-      renderBoard();
-      updateCapturedAndMaterial();
-      showToast(`체스말 스타일이 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
-    });
-  }
-
-  if (el.selectTheme) {
-    el.selectTheme.addEventListener('change', (e) => {
-      applyTheme(e.target.value);
-      showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
-    });
-  }
-
-  el.btnToggle3D.addEventListener('click', () => {
-    toggle3DView();
-  });
-
-  if (el.btnToggleBoardOnly) {
-    el.btnToggleBoardOnly.addEventListener('click', () => {
-      toggleBoardOnlyMode();
-    });
-  }
-
-  if (el.btnSideBoardOnly) {
-    el.btnSideBoardOnly.addEventListener('click', () => {
-      toggleBoardOnlyMode();
-    });
-  }
-
-  if (el.btnBotExit) {
-    el.btnBotExit.addEventListener('click', () => {
-      toggleBoardOnlyMode(false);
-    });
-  }
-
-  if (el.btnBotLeave) {
-    el.btnBotLeave.addEventListener('click', () => {
-      if (el.btnLeaveGame) el.btnLeaveGame.click();
-    });
-  }
-
-  if (el.btnBotUndo) {
-    el.btnBotUndo.addEventListener('click', () => {
-      if (el.btnUndoMove) el.btnUndoMove.click();
-    });
-  }
-
-  if (el.btnBotHint) {
-    el.btnBotHint.addEventListener('click', () => {
-      if (el.btnAiHint) el.btnAiHint.click();
-    });
-  }
-
-  if (el.btnBotFlip) {
-    el.btnBotFlip.addEventListener('click', () => {
-      if (el.btnFlipBoard) el.btnFlipBoard.click();
-    });
-  }
-
-  if (el.btnToggleFullscreen) {
-    el.btnToggleFullscreen.addEventListener('click', () => {
-      toggleFullscreen();
-    });
-  }
-
-  window.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'f' || e.key === 'F') {
-      toggleFullscreen();
-    } else if (e.key === 'b' || e.key === 'B') {
-      toggleBoardOnlyMode();
-    } else if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) {
-      if (el.btnUndoMove) el.btnUndoMove.click();
-    }
-  });
-
-  el.btnSoundToggle.addEventListener('click', () => {
-    audio.enabled = !audio.enabled;
-    el.btnSoundToggle.innerText = audio.enabled ? '🔊' : '🔇';
-    showToast(audio.enabled ? '효과음 켜짐' : '효과음 음소거');
-  });
-
-  [el.aiColorPicker, el.createColorPicker].forEach(group => {
-    if (!group) return;
-    group.querySelectorAll('.btn-segment').forEach(btn => {
-      btn.addEventListener('click', () => {
-        group.querySelectorAll('.btn-segment').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-  });
-
-  el.tabCreateRoom.addEventListener('click', () => {
-    el.tabCreateRoom.classList.add('active');
-    el.tabJoinRoom.classList.remove('active');
-    el.formCreateRoom.classList.add('active');
-    el.formJoinRoom.classList.remove('active');
-  });
-  el.tabJoinRoom.addEventListener('click', () => {
-    el.tabJoinRoom.classList.add('active');
-    el.tabCreateRoom.classList.remove('active');
-    el.formJoinRoom.classList.add('active');
-    el.formCreateRoom.classList.remove('active');
-    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-      state.ws.send(JSON.stringify({ type: 'list_rooms' }));
-    }
-  });
-
-  if (el.btnRefreshRooms) {
-    el.btnRefreshRooms.addEventListener('click', () => {
-      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-        state.ws.send(JSON.stringify({ type: 'list_rooms' }));
-        showToast('대기방 목록을 갱신했습니다.');
-      } else {
-        connectWebSocket(() => {
-          state.ws.send(JSON.stringify({ type: 'list_rooms' }));
-        });
-      }
-    });
-  }
-
-  el.btnStartAi.addEventListener('click', startAiGame);
-  el.btnStartLocal.addEventListener('click', startLocalGame);
-
-  el.btnCreateOnlineRoom.addEventListener('click', () => {
-    const playerName = el.createPlayerName.value.trim() || '플레이어 1';
-    localStorage.setItem('chess_player_name', playerName);
-    const timeMinutes = el.createTimePicker.value;
-    const colorBtn = el.createColorPicker.querySelector('.btn-segment.active');
-    const preferredColor = colorBtn ? colorBtn.dataset.color : 'random';
-
-    const sendCreate = () => {
-      state.ws.send(JSON.stringify({
-        type: 'create_room',
-        playerName,
-        playerId: state.playerId,
-        timeMinutes,
-        preferredColor
-      }));
-    };
-
-    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-      sendCreate();
-    } else {
-      connectWebSocket(sendCreate);
-    }
-  });
-
-  el.btnSubmitJoinRoom.addEventListener('click', () => {
-    joinOnlineRoom();
-  });
-
 // ================= AI HINT & TACTICAL ANALYSIS =================
 const PIECE_NAMES_KO = {
   p: '폰',
@@ -3052,9 +2881,182 @@ async function requestBestMoveHint() {
   }
 }
 
-  el.btnAiHint.addEventListener('click', () => {
-    requestBestMoveHint();
+// ================= EVENT LISTENERS =================
+function setupEventListeners() {
+  el.btnHomeLogo.addEventListener('click', () => switchView('lobby'));
+
+  el.btnCopyIp.addEventListener('click', () => {
+    navigator.clipboard.writeText(state.serverUrl).then(() => showToast('접속 주소가 복사되었습니다.'));
   });
+  el.btnOpenQr.addEventListener('click', () => showQrModal());
+  el.btnShowLobbyQr.addEventListener('click', () => showQrModal());
+
+  if (el.selectIntegratedTheme) {
+    el.selectIntegratedTheme.addEventListener('change', (e) => {
+      applyThemePreset(e.target.value, true);
+    });
+  }
+
+  if (el.selectPieceStyle) {
+    el.selectPieceStyle.addEventListener('change', (e) => {
+      setPieceStyle(e.target.value);
+      renderBoard();
+      updateCapturedAndMaterial();
+      showToast(`체스말 스타일이 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+  }
+
+  if (el.selectTheme) {
+    el.selectTheme.addEventListener('change', (e) => {
+      applyTheme(e.target.value);
+      showToast(`체스판 테마가 변경되었습니다: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+  }
+
+  el.btnToggle3D.addEventListener('click', () => {
+    toggle3DView();
+  });
+
+  if (el.btnToggleBoardOnly) {
+    el.btnToggleBoardOnly.addEventListener('click', () => {
+      toggleBoardOnlyMode();
+    });
+  }
+
+  if (el.btnSideBoardOnly) {
+    el.btnSideBoardOnly.addEventListener('click', () => {
+      toggleBoardOnlyMode();
+    });
+  }
+
+  if (el.btnBotExit) {
+    el.btnBotExit.addEventListener('click', () => {
+      toggleBoardOnlyMode(false);
+    });
+  }
+
+  if (el.btnBotLeave) {
+    el.btnBotLeave.addEventListener('click', () => {
+      if (el.btnLeaveGame) el.btnLeaveGame.click();
+    });
+  }
+
+  if (el.btnBotUndo) {
+    el.btnBotUndo.addEventListener('click', () => {
+      if (el.btnUndoMove) el.btnUndoMove.click();
+    });
+  }
+
+  if (el.btnBotHint) {
+    el.btnBotHint.addEventListener('click', () => {
+      if (el.btnAiHint) el.btnAiHint.click();
+    });
+  }
+
+  if (el.btnBotFlip) {
+    el.btnBotFlip.addEventListener('click', () => {
+      if (el.btnFlipBoard) el.btnFlipBoard.click();
+    });
+  }
+
+  if (el.btnToggleFullscreen) {
+    el.btnToggleFullscreen.addEventListener('click', () => {
+      toggleFullscreen();
+    });
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'b' || e.key === 'B') {
+      toggleBoardOnlyMode();
+    } else if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) {
+      if (el.btnUndoMove) el.btnUndoMove.click();
+    }
+  });
+
+  el.btnSoundToggle.addEventListener('click', () => {
+    audio.enabled = !audio.enabled;
+    el.btnSoundToggle.innerText = audio.enabled ? '🔊' : '🔇';
+    showToast(audio.enabled ? '효과음 켜짐' : '효과음 음소거');
+  });
+
+  [el.aiColorPicker, el.createColorPicker].forEach(group => {
+    if (!group) return;
+    group.querySelectorAll('.btn-segment').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.btn-segment').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+
+  el.tabCreateRoom.addEventListener('click', () => {
+    el.tabCreateRoom.classList.add('active');
+    el.tabJoinRoom.classList.remove('active');
+    el.formCreateRoom.classList.add('active');
+    el.formJoinRoom.classList.remove('active');
+  });
+  el.tabJoinRoom.addEventListener('click', () => {
+    el.tabJoinRoom.classList.add('active');
+    el.tabCreateRoom.classList.remove('active');
+    el.formJoinRoom.classList.add('active');
+    el.formCreateRoom.classList.remove('active');
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+    }
+  });
+
+  if (el.btnRefreshRooms) {
+    el.btnRefreshRooms.addEventListener('click', () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+        showToast('대기방 목록을 갱신했습니다.');
+      } else {
+        connectWebSocket(() => {
+          state.ws.send(JSON.stringify({ type: 'list_rooms' }));
+        });
+      }
+    });
+  }
+
+  el.btnStartAi.addEventListener('click', startAiGame);
+  el.btnStartLocal.addEventListener('click', startLocalGame);
+
+  el.btnCreateOnlineRoom.addEventListener('click', () => {
+    const playerName = el.createPlayerName.value.trim() || '플레이어 1';
+    localStorage.setItem('chess_player_name', playerName);
+    const timeMinutes = el.createTimePicker.value;
+    const colorBtn = el.createColorPicker.querySelector('.btn-segment.active');
+    const preferredColor = colorBtn ? colorBtn.dataset.color : 'random';
+
+    const sendCreate = () => {
+      state.ws.send(JSON.stringify({
+        type: 'create_room',
+        playerName,
+        playerId: state.playerId,
+        timeMinutes,
+        preferredColor
+      }));
+    };
+
+    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+      sendCreate();
+    } else {
+      connectWebSocket(sendCreate);
+    }
+  });
+
+  el.btnSubmitJoinRoom.addEventListener('click', () => {
+    joinOnlineRoom();
+  });
+
+  if (el.btnAiHint) {
+    el.btnAiHint.addEventListener('click', () => {
+      requestBestMoveHint();
+    });
+  }
 
   if (el.btnHintTts) {
     el.btnHintTts.addEventListener('click', () => {
