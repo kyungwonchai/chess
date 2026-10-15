@@ -81,10 +81,10 @@
           <div class="modes-grid">
             <!-- Card 1: AI Training -->
             <div class="mode-card card-ai" id="card-mode-ai">
-              <div class="mode-badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">세계 1위 Stockfish 탑재</div>
+              <div class="mode-badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">스마트 AI & Stockfish 탑재</div>
               <div class="mode-icon">🤖</div>
-              <h2 class="mode-title">AI 트레이닝 <small style="font-size:0.5em; opacity:0.8; vertical-align:middle;">(Stockfish WASM)</small></h2>
-              <p class="mode-desc">현존 최강 체스 엔진 <b>Stockfish</b>가 탑재되었습니다. 최대 3초 안에 초고속으로 정확한 최선의 수를 두며, 난이도별 대국과 실시간 형세 분석을 제공합니다.</p>
+              <h2 class="mode-title">AI 트레이닝 <small style="font-size:0.5em; opacity:0.8; vertical-align:middle;">(Stockfish + 캐주얼 AI)</small></h2>
+              <p class="mode-desc">초보자도 승리의 쾌감을 맛볼 수 있는 <b>캐주얼 체스 AI</b>와 세계 1위 <b>Stockfish 16</b> 엔진을 자유롭게 선택하세요! 세계 최강의 <b>무제한 최선수 힌트</b>를 받으며 즐겁게 둘 수 있습니다.</p>
               
               <div class="mode-options">
                 <div class="option-row">
@@ -97,13 +97,21 @@
                 </div>
 
                 <div class="option-row">
+                  <label>상대 AI 모델:</label>
+                  <select id="ai-model-picker" class="custom-select">
+                    <option value="minimax" selected>🧸 캐주얼 체스 AI (초보/입문 추천 - 이기기 쉬움)</option>
+                    <option value="stockfish">🚀 Stockfish 16 (세계 1위 그랜드마스터)</option>
+                  </select>
+                </div>
+
+                <div class="option-row">
                   <label>난이도:</label>
                   <select id="ai-level-picker" class="custom-select">
-                    <option value="1">레벨 1 - 초심자 (Stockfish Skill 0)</option>
-                    <option value="2">레벨 2 - 캐주얼 (Stockfish Skill 4)</option>
-                    <option value="3" selected>레벨 3 - 중급자 (Stockfish Skill 10, 추천)</option>
-                    <option value="4">레벨 4 - 상급자 (Stockfish Skill 15)</option>
-                    <option value="5">레벨 5 - 그랜드마스터 (Stockfish 풀파워 Elo 3200+)</option>
+                    <option value="1" selected>레벨 1 - 초심자 (실수 빈발, 입문 추천 🧸)</option>
+                    <option value="2">레벨 2 - 캐주얼 (가벼운 실수 포함)</option>
+                    <option value="3">레벨 3 - 중급자 (미니맥스 3수 앞)</option>
+                    <option value="4">레벨 4 - 상급자 (미니맥스 4수 앞)</option>
+                    <option value="5">레벨 5 - 마스터 (미니맥스 5수 앞)</option>
                   </select>
                 </div>
 
@@ -122,9 +130,12 @@
                 <div class="option-row">
                   <label>💡 최선수 힌트:</label>
                   <select id="ai-hint-picker" class="custom-select">
-                    <option value="0" selected>0회 (힌트 버튼 숨김 - 기본)</option>
-                    <option value="1">최대 1회 사용</option>
-                    <option value="2">최대 2회 사용</option>
+                    <option value="-1" selected>♾️ 무제한 (제한 없음 - 기본 추천)</option>
+                    <option value="5">최대 5회 허용</option>
+                    <option value="3">최대 3회 허용</option>
+                    <option value="2">최대 2회 허용</option>
+                    <option value="1">최대 1회 허용</option>
+                    <option value="0">0회 (비활성화 / 숨김)</option>
                   </select>
                 </div>
               </div>
@@ -328,6 +339,10 @@
                 <!-- SVG Visualization Lines Overlay -->
                 <svg class="board-lines-overlay" id="board-lines-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
                   <defs>
+                    <!-- Marker for Stockfish Best Move Hint Lines (Gold / Amber) -->
+                    <marker id="arrow-hint" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f59e0b"/>
+                    </marker>
                     <!-- Marker for Attack Lines (Cyan/Green) -->
                     <marker id="arrow-attack" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="rgba(16, 185, 129, 0.85)"/>
@@ -348,6 +363,7 @@
                   <g id="svg-attack-group"></g>
                   <g id="svg-threat-group"></g>
                   <g id="svg-preview-group"></g>
+                  <g id="svg-hint-group"></g>
                 </svg>
               </div>
             </div>
@@ -393,6 +409,27 @@
             <div class="side-tab-content active" id="tab-controls">
               <div class="tools-card">
                 <h3 class="tools-title">AI 트레이닝 & 시간 조절 도구</h3>
+
+                <!-- Real-time Dynamic AI Model & Level Switcher -->
+                <div class="ai-side-model-box" id="ai-side-model-box" style="margin-bottom: 0.85rem; padding: 0.75rem 0.85rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
+                    <span style="font-size:0.82rem; font-weight:700; color:var(--text-muted);">🤖 상대 AI 모델 / 난이도</span>
+                    <span id="side-ai-model-tag" style="font-size:0.75rem; padding:2px 8px; border-radius:4px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:700;">🧸 캐주얼 AI</span>
+                  </div>
+                  <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap: 0.45rem;">
+                    <select id="side-ai-model-picker" class="custom-select" style="padding: 0.45rem 0.6rem; font-size: 0.8rem;">
+                      <option value="minimax" selected>🧸 캐주얼 AI (초보/입문)</option>
+                      <option value="stockfish">🚀 Stockfish 16 (최강)</option>
+                    </select>
+                    <select id="side-ai-level-picker" class="custom-select" style="padding: 0.45rem 0.6rem; font-size: 0.8rem;">
+                      <option value="1" selected>Lv.1 초심자 🧸</option>
+                      <option value="2">Lv.2 캐주얼</option>
+                      <option value="3">Lv.3 중급자</option>
+                      <option value="4">Lv.4 상급자</option>
+                      <option value="5">Lv.5 마스터</option>
+                    </select>
+                  </div>
+                </div>
 
                 <!-- Real-time Dynamic AI Response Time Slider -->
                 <div class="ai-speed-control-box" id="ai-speed-control-box">
@@ -659,12 +696,26 @@
           <div class="setting-item-box">
             <div class="setting-item-info">
               <label class="setting-label">💡 대국당 최선수 힌트 횟수</label>
-              <p class="setting-subtext">0회 설정 시 대국 중 최선수 힌트 버튼이 보이지 않습니다. (최대 2회)</p>
+              <p class="setting-subtext">무제한 설정 시 대국 중 세계 1위 Stockfish의 최선수 힌트를 제한 없이 사용합니다.</p>
             </div>
             <select id="setting-hint-limit" class="custom-select setting-control-select">
-              <option value="0" selected>0회 (비활성화 - 기본)</option>
+              <option value="-1" selected>♾️ 무제한 (제한 없음 - 기본 추천)</option>
+              <option value="5">5회 허용</option>
+              <option value="3">3회 허용</option>
+              <option value="2">2회 허용</option>
               <option value="1">1회 허용</option>
-              <option value="2">2회 허용 (최대)</option>
+              <option value="0">0회 (비활성화 / 숨김)</option>
+            </select>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🤖 대국 상대 AI 기본 모델</label>
+              <p class="setting-subtext">초보자는 이기기 쉬운 캐주얼 AI를, 고수는 강력한 Stockfish를 선택하세요.</p>
+            </div>
+            <select id="setting-ai-model" class="custom-select setting-control-select">
+              <option value="minimax" selected>🧸 캐주얼 체스 AI (초보/입문 추천)</option>
+              <option value="stockfish">🚀 Stockfish 16 (세계 1위 최강)</option>
             </select>
           </div>
 

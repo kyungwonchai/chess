@@ -269,18 +269,18 @@ export class ChessEngine {
     this.nodeCount = 0;
     this.timeUp = false;
 
-    // Level 1: Beginner (Depth 1 + 35% random blunder)
+    // Level 1: Beginner (Depth 1 + 40% random blunder - Beginner friendly)
     if (level === 1) {
-      if (Math.random() < 0.35) {
+      if (Math.random() < 0.40) {
         return moves[Math.floor(Math.random() * moves.length)];
       }
       const result = this.minimax(game, 1, -Infinity, Infinity, isMaximizing);
       return result.bestMove || moves[0];
     }
 
-    // Level 2: Casual (Depth 2 + 15% slight randomness)
+    // Level 2: Casual (Depth 2 + 18% slight randomness)
     if (level === 2) {
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.18) {
         const sorted = this.orderMoves(game, [...moves]);
         return sorted[Math.floor(Math.random() * Math.min(3, sorted.length))];
       }

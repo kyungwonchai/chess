@@ -18,7 +18,8 @@ const state = {
   isRaytrace: localStorage.getItem('chess_is_raytrace') !== 'false', // Default ON for hyper-realism
   isBoardOnly: localStorage.getItem('chess_is_board_only') === 'true', // Phone/Fold Focus Fit Mode
   aiMoveDelay: parseInt(localStorage.getItem('chess_ai_move_delay') || '1000', 10), // ms (Default 1.0s)
-  aiLevel: 3,
+  aiModel: localStorage.getItem('chess_ai_model') || 'minimax', // 'minimax' (Casual AI) or 'stockfish' (Stockfish 16)
+  aiLevel: parseInt(localStorage.getItem('chess_ai_level') || '1', 10), // Default 1 for beginner-friendly start
   evalEnabled: true,
   selectedSquare: null,
   legalMovesForSelected: [],
@@ -28,8 +29,14 @@ const state = {
   gameStatus: 'idle', // 'idle', 'playing', 'ended'
   aiThinking: false,
 
-  // Hint control (0: hidden, 1: max 1, 2: max 2)
-  maxHints: parseInt(localStorage.getItem('chess_max_hints') ?? '0', 10),
+  // Hint control (-1: unlimited, 0: hidden, 1+: max N)
+  maxHints: (() => {
+    const v2 = localStorage.getItem('chess_max_hints_v2');
+    if (v2 !== null) return parseInt(v2, 10);
+    const old = localStorage.getItem('chess_max_hints');
+    if (old !== null && old !== '0') return parseInt(old, 10);
+    return -1; // Default to Unlimited (-1)
+  })(),
   hintsUsed: 0,
 
   // Visual Assist Line Guides
@@ -103,11 +110,18 @@ const el = {
   speedChips: document.querySelectorAll('.speed-chip'),
 
   // Lobby
+  aiModelPicker: document.getElementById('ai-model-picker'),
   aiColorPicker: document.getElementById('ai-color-picker'),
   aiLevelPicker: document.getElementById('ai-level-picker'),
   aiTimePicker: document.getElementById('ai-time-picker'),
   aiHintPicker: document.getElementById('ai-hint-picker'),
   btnStartAi: document.getElementById('btn-start-ai'),
+
+  // Dynamic In-Game AI Model & Level Switcher
+  sideAiModelBox: document.getElementById('ai-side-model-box'),
+  sideAiModelPicker: document.getElementById('side-ai-model-picker'),
+  sideAiLevelPicker: document.getElementById('side-ai-level-picker'),
+  sideAiModelTag: document.getElementById('side-ai-model-tag'),
 
   tabCreateRoom: document.getElementById('tab-create-room'),
   tabJoinRoom: document.getElementById('tab-join-room'),
@@ -134,6 +148,7 @@ const el = {
   svgAttackGroup: document.getElementById('svg-attack-group'),
   svgThreatGroup: document.getElementById('svg-threat-group'),
   svgPreviewGroup: document.getElementById('svg-preview-group'),
+  svgHintGroup: document.getElementById('svg-hint-group'),
   evalBarWrapper: document.getElementById('eval-bar-wrapper'),
   evalBarFill: document.getElementById('eval-bar-fill'),
   evalScore: document.getElementById('eval-score'),
@@ -249,6 +264,7 @@ const el = {
   modalSettings: document.getElementById('modal-settings'),
   btnCloseSettingsModal: document.getElementById('btn-close-settings-modal'),
   settingHintLimit: document.getElementById('setting-hint-limit'),
+  settingAiModel: document.getElementById('setting-ai-model'),
   settingShowAttack: document.getElementById('setting-show-attack'),
   settingShowThreat: document.getElementById('setting-show-threat'),
   settingShowPreview: document.getElementById('setting-show-preview'),
@@ -705,6 +721,7 @@ function getSquareCenterPercent(sq, isFlipped) {
 
 // Render dynamic attack lines (my captures) and threat lines (opponent captures)
 function renderBoardLines() {
+  if (el.svgHintGroup) el.svgHintGroup.innerHTML = '';
   if (!el.svgAttackGroup || !el.svgThreatGroup) return;
 
   el.svgAttackGroup.innerHTML = '';
@@ -715,6 +732,21 @@ function renderBoardLines() {
   const isFlipped = state.boardFlipped;
   const currentTurn = state.game.turn();
   const playerColor = state.mode === 'ai' || state.mode === 'wifi' ? state.playerColor : currentTurn;
+
+  // 0. Best Move Hint Line (Stockfish Gold / Amber Arrow)
+  if (el.svgHintGroup && state.hintMove) {
+    const pFrom = getSquareCenterPercent(state.hintMove.from, isFlipped);
+    const pTo = getSquareCenterPercent(state.hintMove.to, isFlipped);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', pFrom.x);
+    line.setAttribute('y1', pFrom.y);
+    line.setAttribute('x2', pTo.x);
+    line.setAttribute('y2', pTo.y);
+    line.setAttribute('class', 'hint-line');
+    line.setAttribute('marker-end', 'url(#arrow-hint)');
+    el.svgHintGroup.appendChild(line);
+  }
 
   // 1. Attack Lines: When it is MY turn, show moves where I can capture opponent pieces
   if (state.showAttackLines && currentTurn === playerColor) {
@@ -869,25 +901,51 @@ function handleSquareLeave(squareName) {
 function updateHintUi() {
   if (!el.btnAiHint) return;
 
-  if (state.maxHints <= 0) {
+  if (state.maxHints === 0) {
     el.btnAiHint.style.display = 'none';
+    if (el.btnBotHint) el.btnBotHint.style.display = 'none';
     return;
   }
 
   el.btnAiHint.style.display = 'flex';
-  const remaining = Math.max(0, state.maxHints - state.hintsUsed);
-  if (el.lblAiHint) {
-    el.lblAiHint.innerText = `최선수 힌트 (${remaining}/${state.maxHints})`;
-  }
+  if (el.btnBotHint) el.btnBotHint.style.display = 'inline-flex';
 
-  if (remaining <= 0) {
-    el.btnAiHint.style.opacity = '0.5';
-    el.btnAiHint.style.pointerEvents = 'none';
-    el.btnAiHint.title = `최선수 힌트 횟수를 모두 사용했습니다. (최대 ${state.maxHints}회)`;
-  } else {
+  const isUnlimited = state.maxHints < 0;
+  if (isUnlimited) {
+    if (el.lblAiHint) {
+      el.lblAiHint.innerText = '최선수 힌트 (무제한 ♾️)';
+    }
     el.btnAiHint.style.opacity = '1';
     el.btnAiHint.style.pointerEvents = 'auto';
-    el.btnAiHint.title = `현재 국면에서 가장 좋은 최선수를 추천받습니다. (남은 횟수: ${remaining}회)`;
+    el.btnAiHint.title = '세계 최강 Stockfish 16의 최선수 힌트를 무제한으로 사용합니다.';
+    if (el.btnBotHint) {
+      el.btnBotHint.style.opacity = '1';
+      el.btnBotHint.style.pointerEvents = 'auto';
+      el.btnBotHint.title = '최선수 힌트 (무제한 ♾️)';
+    }
+  } else {
+    const remaining = Math.max(0, state.maxHints - state.hintsUsed);
+    if (el.lblAiHint) {
+      el.lblAiHint.innerText = `최선수 힌트 (${remaining}/${state.maxHints})`;
+    }
+
+    if (remaining <= 0) {
+      el.btnAiHint.style.opacity = '0.5';
+      el.btnAiHint.style.pointerEvents = 'none';
+      el.btnAiHint.title = `최선수 힌트 횟수를 모두 사용했습니다. (최대 ${state.maxHints}회)`;
+      if (el.btnBotHint) {
+        el.btnBotHint.style.opacity = '0.5';
+        el.btnBotHint.style.pointerEvents = 'none';
+      }
+    } else {
+      el.btnAiHint.style.opacity = '1';
+      el.btnAiHint.style.pointerEvents = 'auto';
+      el.btnAiHint.title = `현재 국면에서 가장 좋은 최선수를 추천받습니다. (남은 횟수: ${remaining}회)`;
+      if (el.btnBotHint) {
+        el.btnBotHint.style.opacity = '1';
+        el.btnBotHint.style.pointerEvents = 'auto';
+      }
+    }
   }
 }
 
@@ -1018,12 +1076,14 @@ async function triggerAIMove() {
   const maxTimeMs = state.aiMoveDelay || 1000;
   const secDisplay = (maxTimeMs / 1000).toFixed(1);
 
-  el.gameStatusText.innerText = isStockfishReady
-    ? `🤖 Stockfish가 수를 계산 중입니다... (최대 ${secDisplay}초)`
-    : `🤖 AI가 수를 계산 중입니다... (최대 ${secDisplay}초)`;
+  const useStockfish = (state.aiModel === 'stockfish') && isStockfishReady;
 
-  // 1. Try World-Class Stockfish Engine with strict zero-overrun time cap
-  if (isStockfishReady) {
+  el.gameStatusText.innerText = useStockfish
+    ? `🚀 Stockfish 16이 수를 계산 중입니다... (최대 ${secDisplay}초)`
+    : `🧸 캐주얼 AI가 수를 계산 중입니다... (레벨 ${state.aiLevel})`;
+
+  // 1. Stockfish Model if explicitly chosen
+  if (useStockfish) {
     try {
       const uciMove = await state.stockfish.getAIMove(state.game.fen(), state.aiLevel, maxTimeMs);
       if (uciMove && state.gameStatus === 'playing') {
@@ -1037,11 +1097,11 @@ async function triggerAIMove() {
         return;
       }
     } catch (e) {
-      console.warn('Stockfish move failed, falling back to built-in engine:', e);
+      console.warn('Stockfish move failed, falling back to casual engine:', e);
     }
   }
 
-  // 2. Fallback to built-in engine (capped at maxTimeMs)
+  // 2. Casual / Built-in Minimax engine (Player-friendly easy model)
   if (state.worker) {
     state.worker.postMessage({
       type: 'get_ai_move',
@@ -1061,6 +1121,7 @@ async function triggerAIMove() {
 function handleAIMoveResult(aiMove) {
   if (!aiMove || state.gameStatus !== 'playing') return;
 
+  state.hintMove = null;
   const move = state.game.move(aiMove);
   state.lastMove = move;
 
@@ -1796,6 +1857,26 @@ async function loadLobbyRecentGames() {
   }
 }
 
+function updateAiOpponentBadge() {
+  const isStockfish = state.aiModel === 'stockfish';
+  if (el.sideAiModelTag) {
+    el.sideAiModelTag.innerText = isStockfish ? '🚀 Stockfish 16' : '🧸 캐주얼 AI';
+    el.sideAiModelTag.style.background = isStockfish ? 'rgba(59,130,246,0.15)' : 'rgba(16,185,129,0.15)';
+    el.sideAiModelTag.style.color = isStockfish ? '#3b82f6' : '#10b981';
+  }
+  if (state.mode === 'ai') {
+    if (el.opponentName) {
+      el.opponentName.innerText = isStockfish ? 'Stockfish 16' : '캐주얼 체스 AI';
+    }
+    if (el.opponentTag) {
+      el.opponentTag.innerText = `레벨 ${state.aiLevel}`;
+    }
+    if (el.opponentAvatar) {
+      el.opponentAvatar.innerText = isStockfish ? '🚀' : '🧸';
+    }
+  }
+}
+
 // ================= START MODES =================
 function startAiGame() {
   state.mode = 'ai';
@@ -1815,6 +1896,9 @@ function startAiGame() {
   state.playerColor = chosenColor;
   state.boardFlipped = (chosenColor === 'b');
   state.aiLevel = parseInt(el.aiLevelPicker.value, 10);
+  if (el.aiModelPicker) {
+    state.aiModel = el.aiModelPicker.value;
+  }
 
   const timeMinutes = parseInt(el.aiTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
@@ -1825,11 +1909,13 @@ function startAiGame() {
   }
   state.hintsUsed = 0;
 
+  if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'block';
+  if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
+  if (el.sideAiLevelPicker) el.sideAiLevelPicker.value = String(state.aiLevel);
+  updateAiOpponentBadge();
+
   el.userName.innerText = '나 (Player)';
   el.userTag.innerText = chosenColor === 'w' ? '백' : '흑';
-  el.opponentName.innerText = `스마트 AI`;
-  el.opponentTag.innerText = `레벨 ${state.aiLevel}`;
-  el.opponentAvatar.innerText = '🤖';
   el.userAvatar.innerText = '👤';
   el.btnOfferDraw.style.display = 'none';
 
@@ -2320,13 +2406,19 @@ function setupEventListeners() {
     joinOnlineRoom();
   });
 
-  // AI Hint with limit checking (max 2, default 0)
+  // AI Hint with limit checking (unlimited when maxHints < 0, or maxHints > 0)
   el.btnAiHint.addEventListener('click', async () => {
-    if (state.maxHints <= 0) {
+    if (state.gameStatus !== 'playing') return;
+    if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
+      showToast('상대 AI가 생각 중일 때는 힌트를 사용할 수 없습니다.');
+      return;
+    }
+    if (state.maxHints === 0) {
       showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
       return;
     }
-    if (state.hintsUsed >= state.maxHints) {
+    const isUnlimited = state.maxHints < 0;
+    if (!isUnlimited && state.hintsUsed >= state.maxHints) {
       showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
       return;
     }
@@ -2335,8 +2427,8 @@ function setupEventListeners() {
     updateHintUi();
 
     if (state.stockfish && state.stockfish.isReady) {
-      el.engineHintText.innerText = '💡 최강 Stockfish가 최선수를 찾는 중...';
-      const uciMove = await state.stockfish.getAIMove(state.game.fen(), 5, 1000);
+      el.engineHintText.innerText = '💡 세계 최강 Stockfish 16이 최선수를 찾는 중...';
+      const uciMove = await state.stockfish.getAIMove(state.game.fen(), 5, 1200);
       if (uciMove) {
         const from = uciMove.slice(0, 2);
         const to = uciMove.slice(2, 4);
@@ -2346,7 +2438,9 @@ function setupEventListeners() {
         );
         if (moveObj) {
           state.hintMove = moveObj;
-          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to}) [남은 횟수: ${state.maxHints - state.hintsUsed}회]`;
+          const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
+          el.engineHintText.innerText = `💡 추천 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to}) [${remainText}]`;
+          showToast(`💡 최선수(Stockfish): ${moveObj.san} (${moveObj.from} ➔ ${moveObj.to})`);
           renderBoard();
           audio.playNotify();
           return;
@@ -2357,7 +2451,9 @@ function setupEventListeners() {
     const analysis = state.engine.analyzePosition(state.game);
     if (analysis.bestMove) {
       state.hintMove = analysis.bestMove;
-      el.engineHintText.innerText = `💡 추천 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to}) [남은 횟수: ${state.maxHints - state.hintsUsed}회]`;
+      const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
+      el.engineHintText.innerText = `💡 추천 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to}) [${remainText}]`;
+      showToast(`💡 최선수: ${analysis.bestMove.san} (${analysis.bestMove.from} ➔ ${analysis.bestMove.to})`);
       renderBoard();
       audio.playNotify();
     }
@@ -2415,11 +2511,64 @@ function setupEventListeners() {
     });
   }
 
+  // AI Model & Difficulty Event Listeners
+  if (el.aiModelPicker) {
+    el.aiModelPicker.addEventListener('change', (e) => {
+      state.aiModel = e.target.value;
+      localStorage.setItem('chess_ai_model', state.aiModel);
+      if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
+      if (el.settingAiModel) el.settingAiModel.value = state.aiModel;
+      updateAiOpponentBadge();
+    });
+  }
+
+  if (el.aiLevelPicker) {
+    el.aiLevelPicker.addEventListener('change', (e) => {
+      state.aiLevel = parseInt(e.target.value, 10);
+      localStorage.setItem('chess_ai_level', String(state.aiLevel));
+      if (el.sideAiLevelPicker) el.sideAiLevelPicker.value = String(state.aiLevel);
+      updateAiOpponentBadge();
+    });
+  }
+
+  if (el.sideAiModelPicker) {
+    el.sideAiModelPicker.addEventListener('change', (e) => {
+      state.aiModel = e.target.value;
+      localStorage.setItem('chess_ai_model', state.aiModel);
+      if (el.aiModelPicker) el.aiModelPicker.value = state.aiModel;
+      if (el.settingAiModel) el.settingAiModel.value = state.aiModel;
+      updateAiOpponentBadge();
+      showToast(`상대 AI가 [${state.aiModel === 'stockfish' ? 'Stockfish 16' : '캐주얼 체스 AI'}]로 변경되었습니다.`);
+    });
+  }
+
+  if (el.sideAiLevelPicker) {
+    el.sideAiLevelPicker.addEventListener('change', (e) => {
+      state.aiLevel = parseInt(e.target.value, 10);
+      localStorage.setItem('chess_ai_level', String(state.aiLevel));
+      if (el.aiLevelPicker) el.aiLevelPicker.value = String(state.aiLevel);
+      updateAiOpponentBadge();
+      showToast(`상대 AI 난이도가 [레벨 ${state.aiLevel}]로 변경되었습니다.`);
+    });
+  }
+
+  if (el.aiHintPicker) {
+    el.aiHintPicker.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value, 10);
+      state.maxHints = val;
+      localStorage.setItem('chess_max_hints', String(val));
+      localStorage.setItem('chess_max_hints_v2', String(val));
+      if (el.settingHintLimit) el.settingHintLimit.value = String(val);
+      updateHintUi();
+    });
+  }
+
   // Settings Modal Controls
   if (el.btnOpenSettings) {
     el.btnOpenSettings.addEventListener('click', () => {
       if (el.modalSettings) {
         if (el.settingHintLimit) el.settingHintLimit.value = String(state.maxHints);
+        if (el.settingAiModel) el.settingAiModel.value = state.aiModel;
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
         if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
@@ -2443,7 +2592,15 @@ function setupEventListeners() {
         const val = parseInt(el.settingHintLimit.value, 10);
         state.maxHints = val;
         localStorage.setItem('chess_max_hints', String(val));
+        localStorage.setItem('chess_max_hints_v2', String(val));
         if (el.aiHintPicker) el.aiHintPicker.value = String(val);
+      }
+      if (el.settingAiModel) {
+        state.aiModel = el.settingAiModel.value;
+        localStorage.setItem('chess_ai_model', state.aiModel);
+        if (el.aiModelPicker) el.aiModelPicker.value = state.aiModel;
+        if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
+        updateAiOpponentBadge();
       }
       if (el.settingShowAttack) {
         state.showAttackLines = el.settingShowAttack.checked;
@@ -2733,6 +2890,22 @@ async function init() {
   if (el.settingHintLimit) {
     el.settingHintLimit.value = String(state.maxHints);
   }
+  if (el.aiModelPicker) {
+    el.aiModelPicker.value = state.aiModel;
+  }
+  if (el.aiLevelPicker) {
+    el.aiLevelPicker.value = String(state.aiLevel);
+  }
+  if (el.sideAiModelPicker) {
+    el.sideAiModelPicker.value = state.aiModel;
+  }
+  if (el.sideAiLevelPicker) {
+    el.sideAiLevelPicker.value = String(state.aiLevel);
+  }
+  if (el.settingAiModel) {
+    el.settingAiModel.value = state.aiModel;
+  }
+  updateAiOpponentBadge();
   if (el.chkShowAttackLines) {
     el.chkShowAttackLines.checked = state.showAttackLines;
   }
