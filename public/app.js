@@ -2160,11 +2160,6 @@ function promptResumeSession(session, clientIp) {
   if (el.lobbyResumeBanner) {
     el.lobbyResumeBanner.style.display = 'flex';
   }
-
-  // Show resume modal on initial entry
-  if (el.modalResume) {
-    el.modalResume.classList.add('active');
-  }
 }
 
 function resumeActiveSession(session) {
@@ -2966,6 +2961,14 @@ function setupEventListeners() {
   }
 
   window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+        if (modal.id !== 'modal-promotion') {
+          modal.classList.remove('active');
+        }
+      });
+      return;
+    }
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'f' || e.key === 'F') {
       toggleFullscreen();
@@ -3526,7 +3529,8 @@ function setupEventListeners() {
   if (el.btnDiscardResume) {
     el.btnDiscardResume.addEventListener('click', () => {
       clearActiveSessionState();
-      showToast('이전 대국 기록을 정리했습니다.');
+      showToast('이전 대국 기록을 정리하고 새 AI 대국을 시작합니다!');
+      startAiGame();
     });
   }
   if (el.btnCloseResumeModal) {
@@ -3534,6 +3538,16 @@ function setupEventListeners() {
       if (el.modalResume) el.modalResume.classList.remove('active');
     });
   }
+
+  // Backdrop click on modal overlay closes the modal (except promotion which requires piece selection)
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        if (modal.id === 'modal-promotion') return;
+        modal.classList.remove('active');
+      }
+    });
+  });
   if (el.btnLobbyResume) {
     el.btnLobbyResume.addEventListener('click', () => {
       if (state.cachedSessionToResume) {
