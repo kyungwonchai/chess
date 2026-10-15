@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
 import { Chess } from 'chess.js';
-import { saveGame, getGames, getGameById, getLeaderboard } from './storage.mjs';
+import { saveGame, getGames, getGameById, getLeaderboard, getChessSettings, saveChessSettings, saveActiveSession, getActiveSession, deleteActiveSession } from './storage.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -145,6 +145,38 @@ app.get(['/api/settings', '/chess/api/settings'], (req, res) => {
 app.post(['/api/settings', '/chess/api/settings'], (req, res) => {
   const updated = saveChessSettings(req.body || {});
   res.json({ ok: true, settings: updated });
+});
+
+// Helper to reliably extract client IP address (supporting reverse proxy / direct Wi-Fi)
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const first = forwarded.split(',')[0].trim();
+    if (first) return first.replace(/^.*:/, '');
+  }
+  const realIp = req.headers['x-real-ip'];
+  if (realIp) return realIp.replace(/^.*:/, '');
+  const remote = req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
+  return String(remote).replace(/^.*:/, '');
+}
+
+// Per-IP Active Game Session Endpoints (Resume games across AI, Local, WiFi)
+app.get(['/api/session', '/chess/api/session'], (req, res) => {
+  const ip = getClientIp(req);
+  const session = getActiveSession(ip);
+  res.json({ ok: true, ip, session });
+});
+
+app.post(['/api/session', '/chess/api/session'], (req, res) => {
+  const ip = getClientIp(req);
+  const saved = saveActiveSession(ip, req.body || {});
+  res.json({ ok: true, ip, session: saved });
+});
+
+app.delete(['/api/session', '/chess/api/session'], (req, res) => {
+  const ip = getClientIp(req);
+  deleteActiveSession(ip);
+  res.json({ ok: true, ip, cleared: true });
 });
 
 /*

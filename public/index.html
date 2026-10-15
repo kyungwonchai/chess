@@ -78,6 +78,21 @@
             <p class="hero-subtitle">같은 와이파이(LAN)에서 둘이서 온라인 대국을 하거나, 스마트 AI와 실전 훈련을 즐기세요.</p>
           </div>
 
+          <!-- Active Session Resume Banner (Per-IP Database) -->
+          <div id="lobby-resume-banner" class="resume-banner" style="display: none;">
+            <div class="resume-banner-content">
+              <span class="resume-banner-icon">🔄</span>
+              <div class="resume-banner-text">
+                <strong id="lobby-resume-title">이전 대국이 안전하게 보관되어 있습니다</strong>
+                <span id="lobby-resume-desc" class="resume-banner-sub">AI 대국 · 12수 진행 중 (접속 IP 전용 저장)</span>
+              </div>
+            </div>
+            <div class="resume-banner-actions">
+              <button id="btn-lobby-resume" class="btn-resume-action">⚡ 이어서 두기</button>
+              <button id="btn-lobby-discard" class="btn-discard-action" title="저장된 대국 삭제">✕</button>
+            </div>
+          </div>
+
           <div class="modes-grid">
             <!-- Card 1: AI Training -->
             <div class="mode-card card-ai" id="card-mode-ai">
@@ -355,11 +370,12 @@
                     <marker id="arrow-preview-attack" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                       <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399"/>
                     </marker>
-                    <!-- Marker for Preview Threat Lines (Red/Coral dotted) -->
-                    <marker id="arrow-preview-threat" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f87171"/>
+                    <!-- Marker for Last Move Trail Arrow (Vibrant Sky Blue / Cyan) -->
+                    <marker id="arrow-last-move" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8"/>
                     </marker>
                   </defs>
+                  <g id="svg-lastmove-group"></g>
                   <g id="svg-attack-group"></g>
                   <g id="svg-threat-group"></g>
                   <g id="svg-preview-group"></g>
@@ -721,6 +737,28 @@
 
           <div class="setting-item-box">
             <div class="setting-item-info">
+              <label class="setting-label">🎬 AI 착수 슬로우 애니메이션 (천천히 이동)</label>
+              <p class="setting-subtext">AI가 둔 기물이 부드럽게 미끄러지듯 이동하여 어떤 수가 두어졌는지 한눈에 파악합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-ai-move-anim" class="toggle-checkbox" checked>
+              <label for="setting-ai-move-anim" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">📍 마지막 수 이동 경로선 & 이전/현재 위치 표식</label>
+              <p class="setting-subtext">직전에 두어진 수의 출발 칸과 도착 칸, 그리고 이동 방향 유도선(화살표)을 표시합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-last-move-trail" class="toggle-checkbox" checked>
+              <label for="setting-last-move-trail" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
               <label class="setting-label">⚔️ 내 차례 공격선 (잡을 수 있는 수 시각화)</label>
               <p class="setting-subtext">내 차례가 되었을 때 상대 기물을 잡을 수 있는 경로를 연한 청록선으로 표시합니다.</p>
             </div>
@@ -823,6 +861,27 @@
         <div class="draw-offer-actions">
           <button class="btn-action-primary" id="btn-draw-accept">🤝 수락 (무승부)</button>
           <button class="btn-action-secondary" id="btn-draw-decline">❌ 거절 (대국 계속)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 8: Resume Active Game Modal (Per-IP Persistence) -->
+    <div class="modal-overlay" id="modal-resume">
+      <div class="modal-card resume-card" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 10px rgba(16,185,129,0.5));">🔄</div>
+        <h3 class="modal-title" style="margin-bottom: 0.5rem; font-size: 1.35rem;">진행 중이던 대국 발견!</h3>
+        <p class="modal-desc" id="resume-modal-desc" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem;">
+          이전 접속에서 진행 중이던 대국이 보관되어 있습니다.<br>
+          <strong id="resume-game-info" style="color: #fbbf24; display: block; margin-top: 0.4rem; font-size: 1.05rem;">[AI 대국 · 12수 진행]</strong>
+          <span id="resume-ip-tag" style="display:inline-block; margin-top:0.35rem; font-size:0.75rem; color:#94a3b8; background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:4px;">접속 IP: 127.0.0.1</span>
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button class="btn-action-primary" id="btn-resume-game" style="flex: 1.2; padding: 0.85rem 1rem; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669);">
+            ⚡ 대국 이어하기
+          </button>
+          <button class="btn-action-secondary" id="btn-discard-resume" style="flex: 1; padding: 0.85rem 1rem; font-size: 0.9rem;">
+            새 대국 시작
+          </button>
         </div>
       </div>
     </div>

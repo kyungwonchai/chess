@@ -39,10 +39,15 @@ const state = {
   })(),
   hintsUsed: 0,
 
-  // Visual Assist Line Guides
+  // Visual Assist Line Guides & AI Animation
   showAttackLines: localStorage.getItem('chess_show_attack_lines') === 'true',
   showThreatLines: localStorage.getItem('chess_show_threat_lines') === 'true',
   showPreviewLines: localStorage.getItem('chess_show_preview_lines') !== 'false', // Default ON
+  showLastMoveTrail: localStorage.getItem('chess_show_last_move_trail') !== 'false', // Default ON: Visible trail arrow
+  aiMoveAnim: localStorage.getItem('chess_ai_move_anim') !== 'false', // Default ON: Slow smooth sliding animation
+  isAnimating: false,
+  clientIp: null,
+  cachedSessionToResume: null,
   hoveredSquare: null,
   
   // Clocks
@@ -145,6 +150,7 @@ const el = {
   chessboardWrapper: document.getElementById('chessboard-wrapper'),
   chessboard: document.getElementById('chessboard'),
   boardLinesOverlay: document.getElementById('board-lines-overlay'),
+  svgLastMoveGroup: document.getElementById('svg-lastmove-group'),
   svgAttackGroup: document.getElementById('svg-attack-group'),
   svgThreatGroup: document.getElementById('svg-threat-group'),
   svgPreviewGroup: document.getElementById('svg-preview-group'),
@@ -265,6 +271,8 @@ const el = {
   btnCloseSettingsModal: document.getElementById('btn-close-settings-modal'),
   settingHintLimit: document.getElementById('setting-hint-limit'),
   settingAiModel: document.getElementById('setting-ai-model'),
+  settingAiMoveAnim: document.getElementById('setting-ai-move-anim'),
+  settingLastMoveTrail: document.getElementById('setting-last-move-trail'),
   settingShowAttack: document.getElementById('setting-show-attack'),
   settingShowThreat: document.getElementById('setting-show-threat'),
   settingShowPreview: document.getElementById('setting-show-preview'),
@@ -277,6 +285,18 @@ const el = {
   drawOfferDesc: document.getElementById('draw-offer-desc'),
   btnDrawAccept: document.getElementById('btn-draw-accept'),
   btnDrawDecline: document.getElementById('btn-draw-decline'),
+
+  // Resume Modal & Lobby Banner (Per-IP Session Persistence)
+  modalResume: document.getElementById('modal-resume'),
+  btnResumeGame: document.getElementById('btn-resume-game'),
+  btnDiscardResume: document.getElementById('btn-discard-resume'),
+  resumeGameInfo: document.getElementById('resume-game-info'),
+  resumeIpTag: document.getElementById('resume-ip-tag'),
+  lobbyResumeBanner: document.getElementById('lobby-resume-banner'),
+  lobbyResumeTitle: document.getElementById('lobby-resume-title'),
+  lobbyResumeDesc: document.getElementById('lobby-resume-desc'),
+  btnLobbyResume: document.getElementById('btn-lobby-resume'),
+  btnLobbyDiscard: document.getElementById('btn-lobby-discard'),
 
   toastContainer: document.getElementById('toast-container')
 };
@@ -648,9 +668,14 @@ function renderBoard(fullRebuild = false) {
         sq.classList.add('in-check');
       }
 
-      // Last move highlight
-      if (state.lastMove && (state.lastMove.from === squareName || state.lastMove.to === squareName)) {
-        sq.classList.add('last-move');
+      // Last move highlight (distinctive previous vs current position)
+      if (state.lastMove) {
+        if (state.lastMove.from === squareName) {
+          sq.classList.add('last-move', 'last-move-from');
+        }
+        if (state.lastMove.to === squareName) {
+          sq.classList.add('last-move', 'last-move-to');
+        }
       }
 
       // Selected square highlight
@@ -722,6 +747,7 @@ function getSquareCenterPercent(sq, isFlipped) {
 // Render dynamic attack lines (my captures) and threat lines (opponent captures)
 function renderBoardLines() {
   if (el.svgHintGroup) el.svgHintGroup.innerHTML = '';
+  if (el.svgLastMoveGroup) el.svgLastMoveGroup.innerHTML = '';
   if (!el.svgAttackGroup || !el.svgThreatGroup) return;
 
   el.svgAttackGroup.innerHTML = '';
@@ -733,7 +759,22 @@ function renderBoardLines() {
   const currentTurn = state.game.turn();
   const playerColor = state.mode === 'ai' || state.mode === 'wifi' ? state.playerColor : currentTurn;
 
-  // 0. Best Move Hint Line (Stockfish Gold / Amber Arrow)
+  // 0-A. Last Move Trail Arrow (Vibrant Cyan Directional Path Arrow)
+  if (el.svgLastMoveGroup && state.showLastMoveTrail && state.lastMove) {
+    const pFrom = getSquareCenterPercent(state.lastMove.from, isFlipped);
+    const pTo = getSquareCenterPercent(state.lastMove.to, isFlipped);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', pFrom.x);
+    line.setAttribute('y1', pFrom.y);
+    line.setAttribute('x2', pTo.x);
+    line.setAttribute('y2', pTo.y);
+    line.setAttribute('class', 'last-move-trail-line');
+    line.setAttribute('marker-end', 'url(#arrow-last-move)');
+    el.svgLastMoveGroup.appendChild(line);
+  }
+
+  // 0-B. Best Move Hint Line (Stockfish Gold / Amber Arrow)
   if (el.svgHintGroup && state.hintMove) {
     const pFrom = getSquareCenterPercent(state.hintMove.from, isFlipped);
     const pTo = getSquareCenterPercent(state.hintMove.to, isFlipped);
@@ -951,7 +992,7 @@ function updateHintUi() {
 
 // Instant square selection & move handler
 function handleSquareClick(e, square) {
-  if (state.gameStatus !== 'playing' || state.aiThinking) return;
+  if (state.gameStatus !== 'playing' || state.aiThinking || state.isAnimating) return;
 
   const currentTurn = state.game.turn();
   if (state.mode === 'ai' && currentTurn !== state.playerColor) return;
@@ -1053,6 +1094,7 @@ function executeMove(moveObj) {
 
     renderBoard();
     triggerAsyncEvaluation();
+    saveActiveSessionState();
 
     if (state.game.isGameOver()) {
       handleGameOver();
@@ -1118,29 +1160,97 @@ async function triggerAIMove() {
   }
 }
 
+// Smooth piece sliding animation for AI moves (gives player clear visual feedback)
+function animatePieceMove(fromSquare, toSquare, pieceKey, onComplete) {
+  if (!state.aiMoveAnim || !el.chessboard || !el.chessboardWrapper) {
+    onComplete();
+    return;
+  }
+
+  const fromEl = el.chessboard.querySelector(`[data-square="${fromSquare}"]`);
+  const toEl = el.chessboard.querySelector(`[data-square="${toSquare}"]`);
+  if (!fromEl || !toEl) {
+    onComplete();
+    return;
+  }
+
+  const fromRect = fromEl.getBoundingClientRect();
+  const toRect = toEl.getBoundingClientRect();
+  const boardRect = el.chessboardWrapper.getBoundingClientRect();
+
+  // Create floating gliding piece container
+  const floater = document.createElement('div');
+  floater.className = 'animated-gliding-piece';
+  floater.style.width = `${fromRect.width}px`;
+  floater.style.height = `${fromRect.height}px`;
+  floater.style.left = `${fromRect.left - boardRect.left}px`;
+  floater.style.top = `${fromRect.top - boardRect.top}px`;
+  floater.innerHTML = getPieceSvg(pieceKey);
+
+  el.chessboardWrapper.appendChild(floater);
+
+  // Temporarily hide original piece during slide
+  const originalPiece = fromEl.querySelector('.chess-piece-container');
+  if (originalPiece) originalPiece.style.opacity = '0';
+
+  // Force reflow
+  void floater.offsetWidth;
+
+  const dx = toRect.left - fromRect.left;
+  const dy = toRect.top - fromRect.top;
+
+  floater.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+  floater.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+
+  state.isAnimating = true;
+
+  setTimeout(() => {
+    if (floater.parentNode) floater.parentNode.removeChild(floater);
+    state.isAnimating = false;
+    onComplete();
+  }, 470);
+}
+
 function handleAIMoveResult(aiMove) {
   if (!aiMove || state.gameStatus !== 'playing') return;
 
   state.hintMove = null;
-  const move = state.game.move(aiMove);
-  state.lastMove = move;
 
-  if (state.game.inCheck()) {
-    audio.playCheck();
-  } else if (move.captured) {
-    audio.playCapture();
-  } else if (move.flags.includes('k') || move.flags.includes('q')) {
-    audio.playCastle();
+  const fromSq = aiMove.from;
+  const toSq = aiMove.to;
+  const pieceObj = state.game.get(fromSq);
+  const pieceKey = pieceObj ? `${pieceObj.color}${pieceObj.type.toUpperCase()}` : null;
+
+  const finishAIMove = () => {
+    const move = state.game.move(aiMove);
+    if (!move) return;
+
+    state.lastMove = move;
+
+    if (state.game.inCheck()) {
+      audio.playCheck();
+    } else if (move.captured) {
+      audio.playCapture();
+    } else if (move.flags.includes('k') || move.flags.includes('q')) {
+      audio.playCastle();
+    } else {
+      audio.playMove();
+    }
+
+    state.activeTurn = state.game.turn();
+    renderBoard();
+    triggerAsyncEvaluation();
+    saveActiveSessionState();
+
+    if (state.game.isGameOver()) {
+      handleGameOver();
+    }
+  };
+
+  if (state.aiMoveAnim && pieceKey) {
+    animatePieceMove(fromSq, toSq, pieceKey, finishAIMove);
   } else {
-    audio.playMove();
-  }
-
-  state.activeTurn = state.game.turn();
-  renderBoard();
-  triggerAsyncEvaluation();
-
-  if (state.game.isGameOver()) {
-    handleGameOver();
+    finishAIMove();
   }
 }
 
@@ -1423,6 +1533,8 @@ function handleGameOver(reasonType = null, forcedWinner = null) {
   if (state.mode === 'ai' || state.mode === 'local') {
     saveLocalGameToServer(winnerColor, reason, totalMoves);
   }
+
+  clearActiveSessionState();
 }
 
 async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
@@ -1662,6 +1774,10 @@ function handleServerMessage(msg) {
       state.lastMove = null;
     }
 
+    if (msg.status === 'playing') {
+      saveActiveSessionState();
+    }
+
     // Handle Draw Offer: only show modal to opponent (not spectator or offerer)
     if (msg.drawOffer) {
       if (state.playerColor === msg.drawOffer) {
@@ -1699,6 +1815,7 @@ function handleServerMessage(msg) {
     }
 
     if (msg.status === 'ended') {
+      clearActiveSessionState();
       if (el.modalDrawOffer) el.modalDrawOffer.classList.remove('active');
       if (prevStatus !== 'ended') {
         const isWin = (msg.winner === state.playerColor);
@@ -1877,6 +1994,226 @@ function updateAiOpponentBadge() {
   }
 }
 
+// ================= PER-IP ACTIVE SESSION PERSISTENCE (ALL 3 MODES) =================
+let sessionSaveTimeout = null;
+
+async function saveActiveSessionState() {
+  if (state.gameStatus !== 'playing') return;
+
+  const sessionData = {
+    mode: state.mode,
+    fen: state.game.fen(),
+    history: state.game.history({ verbose: true }),
+    lastMove: state.lastMove ? {
+      from: state.lastMove.from,
+      to: state.lastMove.to,
+      piece: state.lastMove.piece,
+      color: state.lastMove.color,
+      san: state.lastMove.san
+    } : null,
+    playerColor: state.playerColor,
+    boardFlipped: state.boardFlipped,
+    aiLevel: state.aiLevel,
+    aiModel: state.aiModel,
+    timeControl: state.timeControl,
+    timers: state.timers,
+    activeTurn: state.activeTurn,
+    gameStatus: state.gameStatus,
+    maxHints: state.maxHints,
+    hintsUsed: state.hintsUsed,
+    roomId: state.roomId,
+    playerId: state.playerId
+  };
+
+  // 1. Instant LocalStorage backup (Offline insurance if LAN disconnects)
+  try {
+    localStorage.setItem('chess_active_session_backup', JSON.stringify(sessionData));
+  } catch (e) {}
+
+  // 2. Debounced Server Save to Per-IP Database
+  if (sessionSaveTimeout) clearTimeout(sessionSaveTimeout);
+  sessionSaveTimeout = setTimeout(async () => {
+    try {
+      const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+      await fetch(`${apiPrefix}/api/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+      });
+    } catch (err) {
+      console.warn('Network sync paused, session safely preserved in offline cache:', err);
+    }
+  }, 250);
+}
+
+async function clearActiveSessionState() {
+  try {
+    localStorage.removeItem('chess_active_session_backup');
+  } catch (e) {}
+
+  if (sessionSaveTimeout) clearTimeout(sessionSaveTimeout);
+  state.cachedSessionToResume = null;
+
+  if (el.lobbyResumeBanner) {
+    el.lobbyResumeBanner.style.display = 'none';
+  }
+  if (el.modalResume) {
+    el.modalResume.classList.remove('active');
+  }
+
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    await fetch(`${apiPrefix}/api/session`, { method: 'DELETE' });
+  } catch (err) {}
+}
+
+async function checkActiveSession() {
+  let session = null;
+  let clientIp = state.clientIp || '127.0.0.1';
+
+  // 1. Try fetching from server by client IP
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/session`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        state.clientIp = data.ip;
+        clientIp = data.ip;
+      }
+      if (data && data.session && data.session.gameStatus === 'playing') {
+        session = data.session;
+      }
+    }
+  } catch (err) {
+    console.warn('Server offline/LAN disconnected, checking offline cache:', err);
+  }
+
+  // 2. Fallback to offline localStorage if server session is not returned
+  if (!session) {
+    try {
+      const raw = localStorage.getItem('chess_active_session_backup');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.gameStatus === 'playing') {
+          session = parsed;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (session && session.gameStatus === 'playing') {
+    promptResumeSession(session, clientIp);
+  }
+}
+
+function promptResumeSession(session, clientIp) {
+  state.cachedSessionToResume = session;
+
+  const modeLabel = session.mode === 'ai' ? '🤖 AI 트레이닝' :
+                    session.mode === 'local' ? '👥 로컬 2인' : '🌐 온라인 Wi-Fi';
+  const movesCount = (session.history && session.history.length) || 0;
+  const colorText = session.playerColor === 'w' ? '백' : session.playerColor === 'b' ? '흑' : '관전';
+  const infoText = `[${modeLabel} · ${movesCount}수 진행 중 · ${colorText} 진영]`;
+
+  if (el.resumeGameInfo) {
+    el.resumeGameInfo.innerText = infoText;
+  }
+  if (el.resumeIpTag) {
+    el.resumeIpTag.innerText = `접속 IP: ${clientIp || '127.0.0.1'}`;
+  }
+  if (el.lobbyResumeTitle) {
+    el.lobbyResumeTitle.innerText = `진행 중이던 ${modeLabel} 대국이 있습니다!`;
+  }
+  if (el.lobbyResumeDesc) {
+    el.lobbyResumeDesc.innerText = `${movesCount}수 진행 중 · 접속 IP(${clientIp || '127.0.0.1'}) 전용 보관`;
+  }
+
+  if (el.lobbyResumeBanner) {
+    el.lobbyResumeBanner.style.display = 'flex';
+  }
+
+  // Show resume modal on initial entry
+  if (el.modalResume) {
+    el.modalResume.classList.add('active');
+  }
+}
+
+function resumeActiveSession(session) {
+  if (!session || !session.fen) return;
+
+  if (el.modalResume) el.modalResume.classList.remove('active');
+  if (el.lobbyResumeBanner) el.lobbyResumeBanner.style.display = 'none';
+
+  state.mode = session.mode || 'ai';
+  state.game = new Chess();
+  try {
+    state.game.load(session.fen);
+  } catch (e) {
+    console.error('Failed to load session FEN:', e);
+    showToast('대국 데이터 복원 실패');
+    return;
+  }
+
+  state.moveHistory = session.history || [];
+  state.lastMove = session.lastMove || null;
+  state.playerColor = session.playerColor || 'w';
+  state.boardFlipped = !!session.boardFlipped;
+  state.aiLevel = session.aiLevel || 1;
+  state.aiModel = session.aiModel || 'minimax';
+  state.timeControl = session.timeControl || { initial: 600, increment: 0 };
+  state.timers = session.timers || { w: 600, b: 600 };
+  state.activeTurn = state.game.turn();
+  state.gameStatus = 'playing';
+  state.aiThinking = false;
+  state.maxHints = session.maxHints !== undefined ? session.maxHints : -1;
+  state.hintsUsed = session.hintsUsed || 0;
+
+  if (session.mode === 'ai') {
+    if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'block';
+    if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
+    if (el.sideAiLevelPicker) el.sideAiLevelPicker.value = String(state.aiLevel);
+    updateAiOpponentBadge();
+    el.userName.innerText = '나 (Player)';
+    el.userTag.innerText = state.playerColor === 'w' ? '백' : '흑';
+    el.userAvatar.innerText = '👤';
+  } else if (session.mode === 'local') {
+    if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'none';
+    el.userName.innerText = '플레이어 1 (백)';
+    el.opponentName.innerText = '플레이어 2 (흑)';
+    el.userAvatar.innerText = '👥';
+    el.opponentAvatar.innerText = '👥';
+  } else if (session.mode === 'wifi') {
+    if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'none';
+    state.roomId = session.roomId;
+    if (session.roomId) {
+      connectWebSocket(() => {
+        state.ws.send(JSON.stringify({
+          type: 'join_room',
+          roomId: session.roomId,
+          playerId: state.playerId,
+          playerName: state.playerName
+        }));
+      });
+    }
+  }
+
+  switchView('game');
+  updateHintUi();
+  renderBoard();
+  triggerAsyncEvaluation();
+
+  if (state.mode === 'ai' || state.mode === 'local') {
+    startLocalClocks();
+    // If it's AI turn, trigger AI move
+    if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
+      setTimeout(triggerAIMove, 600);
+    }
+  }
+
+  showToast('🎉 진행 중이던 대국을 성공적으로 복원했습니다!');
+}
+
 // ================= START MODES =================
 function startAiGame() {
   state.mode = 'ai';
@@ -1923,6 +2260,7 @@ function startAiGame() {
   updateHintUi();
   startLocalClocks();
   triggerAsyncEvaluation();
+  saveActiveSessionState();
 
   if (chosenColor === 'b') {
     setTimeout(triggerAIMove, 400);
@@ -1947,6 +2285,7 @@ function startLocalGame() {
   const timeMinutes = parseInt(el.localTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
 
+  if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'none';
   el.userName.innerText = '플레이어 1 (백)';
   el.userTag.innerText = '백';
   el.opponentName.innerText = '플레이어 2 (흑)';
@@ -1959,6 +2298,7 @@ function startLocalGame() {
   updateHintUi();
   startLocalClocks();
   triggerAsyncEvaluation();
+  saveActiveSessionState();
 }
 
 async function showQrModal(customUrl = null, roomCode = null) {
@@ -2572,6 +2912,8 @@ function setupEventListeners() {
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
         if (el.settingShowPreview) el.settingShowPreview.checked = state.showPreviewLines;
+        if (el.settingAiMoveAnim) el.settingAiMoveAnim.checked = state.aiMoveAnim;
+        if (el.settingLastMoveTrail) el.settingLastMoveTrail.checked = state.showLastMoveTrail;
         if (el.selectTheme) el.selectTheme.value = localStorage.getItem('chess_theme') || 'theme-emerald';
         if (el.selectPieceStyle) el.selectPieceStyle.value = currentPieceStyle;
         if (el.settingAiDelay) el.settingAiDelay.value = String(state.aiMoveDelay);
@@ -2616,6 +2958,14 @@ function setupEventListeners() {
         state.showPreviewLines = el.settingShowPreview.checked;
         localStorage.setItem('chess_show_preview_lines', String(state.showPreviewLines));
         if (el.chkShowPreviewLines) el.chkShowPreviewLines.checked = state.showPreviewLines;
+      }
+      if (el.settingAiMoveAnim) {
+        state.aiMoveAnim = el.settingAiMoveAnim.checked;
+        localStorage.setItem('chess_ai_move_anim', String(state.aiMoveAnim));
+      }
+      if (el.settingLastMoveTrail) {
+        state.showLastMoveTrail = el.settingLastMoveTrail.checked;
+        localStorage.setItem('chess_last_move_trail', String(state.showLastMoveTrail));
       }
       if (el.selectTheme) {
         applyTheme(el.selectTheme.value);
@@ -2720,6 +3070,7 @@ function setupEventListeners() {
   el.btnLeaveGame.addEventListener('click', () => {
     if (confirm('현재 대국을 나가고 로비로 이동하시겠습니까?')) {
       if (state.ws) state.ws.close();
+      clearActiveSessionState();
       switchView('lobby');
     }
   });
@@ -2858,6 +3209,39 @@ function setupEventListeners() {
     switchView('lobby');
   });
 
+  // Resume Session Modals & Banner Listeners
+  if (el.btnResumeGame) {
+    el.btnResumeGame.addEventListener('click', () => {
+      if (state.cachedSessionToResume) {
+        resumeActiveSession(state.cachedSessionToResume);
+      }
+    });
+  }
+  if (el.btnDiscardResume) {
+    el.btnDiscardResume.addEventListener('click', () => {
+      clearActiveSessionState();
+      showToast('이전 대국 기록을 정리했습니다.');
+    });
+  }
+  if (el.btnCloseResumeModal) {
+    el.btnCloseResumeModal.addEventListener('click', () => {
+      if (el.modalResume) el.modalResume.classList.remove('active');
+    });
+  }
+  if (el.btnLobbyResume) {
+    el.btnLobbyResume.addEventListener('click', () => {
+      if (state.cachedSessionToResume) {
+        resumeActiveSession(state.cachedSessionToResume);
+      }
+    });
+  }
+  if (el.btnLobbyDiscard) {
+    el.btnLobbyDiscard.addEventListener('click', () => {
+      clearActiveSessionState();
+      showToast('이전 대국 기록을 정리했습니다.');
+    });
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const queryRoom = urlParams.get('room');
   if (queryRoom) {
@@ -2925,6 +3309,21 @@ async function init() {
     el.settingAiDelay.value = String(state.aiMoveDelay);
   }
 
+  const savedAnim = localStorage.getItem('chess_ai_move_anim');
+  if (savedAnim !== null) {
+    state.aiMoveAnim = savedAnim === 'true';
+  }
+  if (el.settingAiMoveAnim) {
+    el.settingAiMoveAnim.checked = state.aiMoveAnim;
+  }
+  const savedTrail = localStorage.getItem('chess_last_move_trail');
+  if (savedTrail !== null) {
+    state.showLastMoveTrail = savedTrail === 'true';
+  }
+  if (el.settingLastMoveTrail) {
+    el.settingLastMoveTrail.checked = state.showLastMoveTrail;
+  }
+
   apply3DViewState();
   applyRaytraceState();
   if (state.isBoardOnly) {
@@ -2969,6 +3368,9 @@ async function init() {
       state.ws.send(JSON.stringify({ type: 'list_rooms' }));
     }
   });
+
+  // Check active session for this client's IP address (LAN reconnection / browser refresh)
+  checkActiveSession();
 }
 
 window.addEventListener('DOMContentLoaded', init);

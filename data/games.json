@@ -1,5 +1,1232 @@
 [
   {
+    "id": "game_1792070824209_ai",
+    "roomId": "AI Lv.1",
+    "playedAt": "2026-10-15T13:27:04.209Z",
+    "white": "원",
+    "black": "AI Lv.1",
+    "winner": "w",
+    "winnerName": "원",
+    "endReason": "백 승리입니다.",
+    "totalMoves": 49,
+    "fen": "rq3k1r/1ppN1P1p/p6P/8/2B1Q3/1PB1P3/P3K1P1/3R3R b - - 4 25",
+    "pgn": "[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"?\"]\n[White \"?\"]\n[Black \"?\"]\n[Result \"*\"]\n\n1. b3 Nc6 2. d4 g5 3. Nc3 e5 4. e3 Nf6 5. Nf3 Bd6 6. Nxg5 Ke7 7. f4 Bb4 8. Bd2 Bxc3 9. Bxc3 d6 10. h4 Be6 11. h5 Ng8 12. fxe5 Nf6 13. h6 Ne4 14. Nxe4 dxe5 15. dxe5 Bg4 16. Qxg4 Qe8 17. Nf6 Qd8 18. Bc4 Nb4 19. Rd1 Nxc2+ 20. Ke2 Qf8 21. e6 a6 22. exf7 Nd4+ 23. Qxd4 Qb8 24. Qe4+ Kf8 25. Nd7# *",
+    "timeControl": "10분",
+    "history": [
+      {
+        "from": "b2",
+        "to": "b3",
+        "piece": "p",
+        "color": "w",
+        "san": "b3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b8",
+        "to": "c6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nc6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "d4",
+        "piece": "p",
+        "color": "w",
+        "san": "d4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g7",
+        "to": "g5",
+        "piece": "p",
+        "color": "b",
+        "san": "g5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b1",
+        "to": "c3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nc3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e7",
+        "to": "e5",
+        "piece": "p",
+        "color": "b",
+        "san": "e5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e2",
+        "to": "e3",
+        "piece": "p",
+        "color": "w",
+        "san": "e3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g8",
+        "to": "f6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nf6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g1",
+        "to": "f3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nf3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f8",
+        "to": "d6",
+        "piece": "b",
+        "color": "b",
+        "san": "Bd6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f3",
+        "to": "g5",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxg5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "e8",
+        "to": "e7",
+        "piece": "k",
+        "color": "b",
+        "san": "Ke7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f2",
+        "to": "f4",
+        "piece": "p",
+        "color": "w",
+        "san": "f4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d6",
+        "to": "b4",
+        "piece": "b",
+        "color": "b",
+        "san": "Bb4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c1",
+        "to": "d2",
+        "piece": "b",
+        "color": "w",
+        "san": "Bd2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b4",
+        "to": "c3",
+        "piece": "b",
+        "color": "b",
+        "san": "Bxc3",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "c3",
+        "piece": "b",
+        "color": "w",
+        "san": "Bxc3",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "d7",
+        "to": "d6",
+        "piece": "p",
+        "color": "b",
+        "san": "d6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "h2",
+        "to": "h4",
+        "piece": "p",
+        "color": "w",
+        "san": "h4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c8",
+        "to": "e6",
+        "piece": "b",
+        "color": "b",
+        "san": "Be6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "h4",
+        "to": "h5",
+        "piece": "p",
+        "color": "w",
+        "san": "h5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "g8",
+        "piece": "n",
+        "color": "b",
+        "san": "Ng8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f4",
+        "to": "e5",
+        "piece": "p",
+        "color": "w",
+        "san": "fxe5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "g8",
+        "to": "f6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nf6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "h5",
+        "to": "h6",
+        "piece": "p",
+        "color": "w",
+        "san": "h6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "e4",
+        "piece": "n",
+        "color": "b",
+        "san": "Ne4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g5",
+        "to": "e4",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxe4",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "d6",
+        "to": "e5",
+        "piece": "p",
+        "color": "b",
+        "san": "dxe5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "d4",
+        "to": "e5",
+        "piece": "p",
+        "color": "w",
+        "san": "dxe5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "e6",
+        "to": "g4",
+        "piece": "b",
+        "color": "b",
+        "san": "Bg4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d1",
+        "to": "g4",
+        "piece": "q",
+        "color": "w",
+        "san": "Qxg4",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "d8",
+        "to": "e8",
+        "piece": "q",
+        "color": "b",
+        "san": "Qe8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e4",
+        "to": "f6",
+        "piece": "n",
+        "color": "w",
+        "san": "Nf6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e8",
+        "to": "d8",
+        "piece": "q",
+        "color": "b",
+        "san": "Qd8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f1",
+        "to": "c4",
+        "piece": "b",
+        "color": "w",
+        "san": "Bc4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c6",
+        "to": "b4",
+        "piece": "n",
+        "color": "b",
+        "san": "Nb4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a1",
+        "to": "d1",
+        "piece": "r",
+        "color": "w",
+        "san": "Rd1",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b4",
+        "to": "c2",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxc2+",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "e1",
+        "to": "e2",
+        "piece": "k",
+        "color": "w",
+        "san": "Ke2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d8",
+        "to": "f8",
+        "piece": "q",
+        "color": "b",
+        "san": "Qf8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e5",
+        "to": "e6",
+        "piece": "p",
+        "color": "w",
+        "san": "e6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a7",
+        "to": "a6",
+        "piece": "p",
+        "color": "b",
+        "san": "a6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e6",
+        "to": "f7",
+        "piece": "p",
+        "color": "w",
+        "san": "exf7",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "c2",
+        "to": "d4",
+        "piece": "n",
+        "color": "b",
+        "san": "Nd4+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g4",
+        "to": "d4",
+        "piece": "q",
+        "color": "w",
+        "san": "Qxd4",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "f8",
+        "to": "b8",
+        "piece": "q",
+        "color": "b",
+        "san": "Qb8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d4",
+        "to": "e4",
+        "piece": "q",
+        "color": "w",
+        "san": "Qe4+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e7",
+        "to": "f8",
+        "piece": "k",
+        "color": "b",
+        "san": "Kf8",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "d7",
+        "piece": "n",
+        "color": "w",
+        "san": "Nd7#",
+        "captured": null,
+        "promotion": null
+      }
+    ]
+  },
+  {
+    "id": "game_1792068856872_ai",
+    "roomId": "AI Lv.1",
+    "playedAt": "2026-10-15T12:54:16.872Z",
+    "white": "플레이어 1",
+    "black": "AI Lv.1",
+    "winner": "b",
+    "winnerName": "AI Lv.1",
+    "endReason": "흑 승리입니다.",
+    "totalMoves": 42,
+    "fen": "3r1b1r/1p3kpp/p7/2p2n2/2P2P2/7N/PP2KP1P/R1Bq4 w - - 4 22",
+    "pgn": "[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"?\"]\n[White \"?\"]\n[Black \"?\"]\n[Result \"*\"]\n\n1. e3 c5 2. Qf3 e5 3. Bc4 Nh6 4. d4 Qf6 5. Qe4 Nc6 6. dxe5 Nxe5 7. Bb5 Qe6 8. Nc3 a6 9. Nd5 f5 10. Qf4 Qd6 11. Nf6+ Qxf6 12. c4 Nd3+ 13. Kd2 Nxf4 14. exf4 Qd4+ 15. Ke2 Kf7 16. Bxd7 Qe4+ 17. Kd2 Qxg2 18. Bxc8 Qxh1 19. Bxf5 Nxf5 20. Nh3 Rd8+ 21. Ke2 Qd1# *",
+    "timeControl": "10분",
+    "history": [
+      {
+        "from": "e2",
+        "to": "e3",
+        "piece": "p",
+        "color": "w",
+        "san": "e3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c7",
+        "to": "c5",
+        "piece": "p",
+        "color": "b",
+        "san": "c5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d1",
+        "to": "f3",
+        "piece": "q",
+        "color": "w",
+        "san": "Qf3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e7",
+        "to": "e5",
+        "piece": "p",
+        "color": "b",
+        "san": "e5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f1",
+        "to": "c4",
+        "piece": "b",
+        "color": "w",
+        "san": "Bc4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g8",
+        "to": "h6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nh6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "d4",
+        "piece": "p",
+        "color": "w",
+        "san": "d4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d8",
+        "to": "f6",
+        "piece": "q",
+        "color": "b",
+        "san": "Qf6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f3",
+        "to": "e4",
+        "piece": "q",
+        "color": "w",
+        "san": "Qe4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b8",
+        "to": "c6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nc6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d4",
+        "to": "e5",
+        "piece": "p",
+        "color": "w",
+        "san": "dxe5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "c6",
+        "to": "e5",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxe5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "c4",
+        "to": "b5",
+        "piece": "b",
+        "color": "w",
+        "san": "Bb5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "e6",
+        "piece": "q",
+        "color": "b",
+        "san": "Qe6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b1",
+        "to": "c3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nc3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a7",
+        "to": "a6",
+        "piece": "p",
+        "color": "b",
+        "san": "a6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c3",
+        "to": "d5",
+        "piece": "n",
+        "color": "w",
+        "san": "Nd5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f7",
+        "to": "f5",
+        "piece": "p",
+        "color": "b",
+        "san": "f5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e4",
+        "to": "f4",
+        "piece": "q",
+        "color": "w",
+        "san": "Qf4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e6",
+        "to": "d6",
+        "piece": "q",
+        "color": "b",
+        "san": "Qd6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d5",
+        "to": "f6",
+        "piece": "n",
+        "color": "w",
+        "san": "Nf6+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d6",
+        "to": "f6",
+        "piece": "q",
+        "color": "b",
+        "san": "Qxf6",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "c2",
+        "to": "c4",
+        "piece": "p",
+        "color": "w",
+        "san": "c4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e5",
+        "to": "d3",
+        "piece": "n",
+        "color": "b",
+        "san": "Nd3+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e1",
+        "to": "d2",
+        "piece": "k",
+        "color": "w",
+        "san": "Kd2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d3",
+        "to": "f4",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxf4",
+        "captured": "q",
+        "promotion": null
+      },
+      {
+        "from": "e3",
+        "to": "f4",
+        "piece": "p",
+        "color": "w",
+        "san": "exf4",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "d4",
+        "piece": "q",
+        "color": "b",
+        "san": "Qd4+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "e2",
+        "piece": "k",
+        "color": "w",
+        "san": "Ke2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e8",
+        "to": "f7",
+        "piece": "k",
+        "color": "b",
+        "san": "Kf7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b5",
+        "to": "d7",
+        "piece": "b",
+        "color": "w",
+        "san": "Bxd7",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "d4",
+        "to": "e4",
+        "piece": "q",
+        "color": "b",
+        "san": "Qe4+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e2",
+        "to": "d2",
+        "piece": "k",
+        "color": "w",
+        "san": "Kd2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e4",
+        "to": "g2",
+        "piece": "q",
+        "color": "b",
+        "san": "Qxg2",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "d7",
+        "to": "c8",
+        "piece": "b",
+        "color": "w",
+        "san": "Bxc8",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "g2",
+        "to": "h1",
+        "piece": "q",
+        "color": "b",
+        "san": "Qxh1",
+        "captured": "r",
+        "promotion": null
+      },
+      {
+        "from": "c8",
+        "to": "f5",
+        "piece": "b",
+        "color": "w",
+        "san": "Bxf5",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "h6",
+        "to": "f5",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxf5",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "g1",
+        "to": "h3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nh3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a8",
+        "to": "d8",
+        "piece": "r",
+        "color": "b",
+        "san": "Rd8+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "e2",
+        "piece": "k",
+        "color": "w",
+        "san": "Ke2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "h1",
+        "to": "d1",
+        "piece": "q",
+        "color": "b",
+        "san": "Qd1#",
+        "captured": null,
+        "promotion": null
+      }
+    ]
+  },
+  {
+    "id": "game_1792068679968_ai",
+    "roomId": "AI Lv.1",
+    "playedAt": "2026-10-15T12:51:19.968Z",
+    "white": "플레이어 1",
+    "black": "AI Lv.1",
+    "winner": "b",
+    "winnerName": "AI Lv.1",
+    "endReason": "흑 승리입니다.",
+    "totalMoves": 40,
+    "fen": "r3k3/p2N2pp/3p4/2p1p3/4q3/3n4/PPbPK1PP/R1B2R2 w q - 6 21",
+    "pgn": "[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"?\"]\n[White \"?\"]\n[Black \"?\"]\n[Result \"*\"]\n\n1. e4 e5 2. Nf3 d6 3. Nc3 Nc6 4. Bc4 Na5 5. Bb5+ Nc6 6. Nd5 Be6 7. Bxc6+ bxc6 8. Nb4 Nf6 9. Nxc6 Qd7 10. Nb4 c5 11. Na6 Qb7 12. Nc7+ Qxc7 13. Ng5 Bg4 14. Nxf7 Bxd1 15. Nxh8 Bxc2 16. Ng6 Nxe4 17. Nxf8 Nxf2 18. Rf1 Nd3+ 19. Ke2 Qb7 20. Nd7 Qe4# *",
+    "timeControl": "10분",
+    "history": [
+      {
+        "from": "e2",
+        "to": "e4",
+        "piece": "p",
+        "color": "w",
+        "san": "e4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e7",
+        "to": "e5",
+        "piece": "p",
+        "color": "b",
+        "san": "e5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g1",
+        "to": "f3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nf3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d7",
+        "to": "d6",
+        "piece": "p",
+        "color": "b",
+        "san": "d6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b1",
+        "to": "c3",
+        "piece": "n",
+        "color": "w",
+        "san": "Nc3",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b8",
+        "to": "c6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nc6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f1",
+        "to": "c4",
+        "piece": "b",
+        "color": "w",
+        "san": "Bc4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c6",
+        "to": "a5",
+        "piece": "n",
+        "color": "b",
+        "san": "Na5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c4",
+        "to": "b5",
+        "piece": "b",
+        "color": "w",
+        "san": "Bb5+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a5",
+        "to": "c6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nc6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c3",
+        "to": "d5",
+        "piece": "n",
+        "color": "w",
+        "san": "Nd5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c8",
+        "to": "e6",
+        "piece": "b",
+        "color": "b",
+        "san": "Be6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b5",
+        "to": "c6",
+        "piece": "b",
+        "color": "w",
+        "san": "Bxc6+",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "b7",
+        "to": "c6",
+        "piece": "p",
+        "color": "b",
+        "san": "bxc6",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "d5",
+        "to": "b4",
+        "piece": "n",
+        "color": "w",
+        "san": "Nb4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g8",
+        "to": "f6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nf6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b4",
+        "to": "c6",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxc6",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "d8",
+        "to": "d7",
+        "piece": "q",
+        "color": "b",
+        "san": "Qd7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c6",
+        "to": "b4",
+        "piece": "n",
+        "color": "w",
+        "san": "Nb4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c7",
+        "to": "c5",
+        "piece": "p",
+        "color": "b",
+        "san": "c5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b4",
+        "to": "a6",
+        "piece": "n",
+        "color": "w",
+        "san": "Na6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d7",
+        "to": "b7",
+        "piece": "q",
+        "color": "b",
+        "san": "Qb7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a6",
+        "to": "c7",
+        "piece": "n",
+        "color": "w",
+        "san": "Nc7+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b7",
+        "to": "c7",
+        "piece": "q",
+        "color": "b",
+        "san": "Qxc7",
+        "captured": "n",
+        "promotion": null
+      },
+      {
+        "from": "f3",
+        "to": "g5",
+        "piece": "n",
+        "color": "w",
+        "san": "Ng5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e6",
+        "to": "g4",
+        "piece": "b",
+        "color": "b",
+        "san": "Bg4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "g5",
+        "to": "f7",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxf7",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "g4",
+        "to": "d1",
+        "piece": "b",
+        "color": "b",
+        "san": "Bxd1",
+        "captured": "q",
+        "promotion": null
+      },
+      {
+        "from": "f7",
+        "to": "h8",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxh8",
+        "captured": "r",
+        "promotion": null
+      },
+      {
+        "from": "d1",
+        "to": "c2",
+        "piece": "b",
+        "color": "b",
+        "san": "Bxc2",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "h8",
+        "to": "g6",
+        "piece": "n",
+        "color": "w",
+        "san": "Ng6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f6",
+        "to": "e4",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxe4",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "g6",
+        "to": "f8",
+        "piece": "n",
+        "color": "w",
+        "san": "Nxf8",
+        "captured": "b",
+        "promotion": null
+      },
+      {
+        "from": "e4",
+        "to": "f2",
+        "piece": "n",
+        "color": "b",
+        "san": "Nxf2",
+        "captured": "p",
+        "promotion": null
+      },
+      {
+        "from": "h1",
+        "to": "f1",
+        "piece": "r",
+        "color": "w",
+        "san": "Rf1",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f2",
+        "to": "d3",
+        "piece": "n",
+        "color": "b",
+        "san": "Nd3+",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "e1",
+        "to": "e2",
+        "piece": "k",
+        "color": "w",
+        "san": "Ke2",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c7",
+        "to": "b7",
+        "piece": "q",
+        "color": "b",
+        "san": "Qb7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "f8",
+        "to": "d7",
+        "piece": "n",
+        "color": "w",
+        "san": "Nd7",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b7",
+        "to": "e4",
+        "piece": "q",
+        "color": "b",
+        "san": "Qe4#",
+        "captured": null,
+        "promotion": null
+      }
+    ]
+  },
+  {
     "id": "game_1791982023220_local",
     "roomId": "로컬 2인",
     "playedAt": "2026-10-14T12:47:03.220Z",

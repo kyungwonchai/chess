@@ -7,11 +7,15 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.join(__dirname, 'data');
 const GAMES_FILE = path.join(DATA_DIR, 'games.json');
+const SESSIONS_DIR = path.join(DATA_DIR, 'sessions');
 
-// Ensure data directory and file exist
+// Ensure data directory, sessions directory, and files exist
 function initStorage() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(SESSIONS_DIR)) {
+    fs.mkdirSync(SESSIONS_DIR, { recursive: true });
   }
   if (!fs.existsSync(GAMES_FILE)) {
     fs.writeFileSync(GAMES_FILE, JSON.stringify([], null, 2), 'utf-8');
@@ -161,5 +165,59 @@ export function saveChessSettings(settings) {
     return updated;
   } catch (err) {
     return {};
+  }
+}
+
+// ================= PER-IP ACTIVE SESSION STORAGE =================
+function sanitizeIp(ip) {
+  if (!ip) return '127.0.0.1';
+  const cleaned = String(ip).replace(/^.*:/, '').trim();
+  const safe = cleaned.replace(/[^a-zA-Z0-9_.-]/g, '_');
+  return safe || '127.0.0.1';
+}
+
+export function saveActiveSession(ip, sessionData) {
+  try {
+    initStorage();
+    const safeIp = sanitizeIp(ip);
+    const filePath = path.join(SESSIONS_DIR, `${safeIp}.json`);
+    const record = {
+      ...sessionData,
+      ip: String(ip).replace(/^.*:/, '').trim(),
+      updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(filePath, JSON.stringify(record, null, 2), 'utf-8');
+    return record;
+  } catch (err) {
+    console.error('Error saving active session:', err);
+    return null;
+  }
+}
+
+export function getActiveSession(ip) {
+  try {
+    const safeIp = sanitizeIp(ip);
+    const filePath = path.join(SESSIONS_DIR, `${safeIp}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(content || 'null');
+  } catch (err) {
+    console.error('Error reading active session:', err);
+    return null;
+  }
+}
+
+export function deleteActiveSession(ip) {
+  try {
+    const safeIp = sanitizeIp(ip);
+    const filePath = path.join(SESSIONS_DIR, `${safeIp}.json`);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error('Error deleting active session:', err);
+    return false;
   }
 }

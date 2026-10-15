@@ -1147,6 +1147,54 @@ body.fullscreen-mode .board-stage {
   background-color: var(--sq-last-move) !important;
 }
 
+.square.last-move-from {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  box-shadow: inset 0 0 0 2.5px rgba(244, 63, 94, 0.8), inset 0 0 12px rgba(244, 63, 94, 0.35) !important;
+  position: relative;
+}
+
+.square.last-move-from::before {
+  content: '이전';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fca5a5;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(244, 63, 94, 0.6);
+  pointer-events: none;
+  z-index: 6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.square.last-move-to {
+  background-color: rgba(56, 189, 248, 0.28) !important;
+  box-shadow: inset 0 0 0 2.5px #38bdf8, inset 0 0 14px rgba(56, 189, 248, 0.4) !important;
+  position: relative;
+}
+
+.square.last-move-to::before {
+  content: '착수';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #7dd3fc;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  pointer-events: none;
+  z-index: 6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
 .square.hint-from, .square.hint-to {
   box-shadow: inset 0 0 0 3px #10b981 !important;
 }
@@ -2767,6 +2815,21 @@ body.in-game.board-only-mode .chessboard-wrapper {
   filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.85));
 }
 
+.last-move-trail-line {
+  stroke: #38bdf8;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-dasharray: 4 2.5;
+  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.9));
+  animation: last-move-flow 1.2s linear infinite;
+}
+
+@keyframes last-move-flow {
+  to {
+    stroke-dashoffset: -13;
+  }
+}
+
 .threat-line {
   stroke: rgba(239, 68, 68, 0.75);
   stroke-width: 0.9;
@@ -3010,5 +3073,115 @@ body.in-game.board-only-mode .chessboard-wrapper {
   font-weight: 700;
   border-radius: var(--radius-md);
   cursor: pointer;
+}
+
+/* ================= PIECE GLIDING ANIMATION ================= */
+.animated-gliding-piece {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.65));
+}
+
+.animated-gliding-piece svg {
+  width: 90%;
+  height: 90%;
+}
+
+/* ================= ACTIVE SESSION RESUME BANNER ================= */
+.resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(59, 130, 246, 0.12));
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: resume-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resume-pop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.resume-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.resume-banner-icon {
+  font-size: 1.85rem;
+  animation: rotate-slow 8s linear infinite;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.resume-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.resume-banner-text strong {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.resume-banner-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.resume-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-resume-action {
+  padding: 0.55rem 1.15rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-resume-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+}
+
+.btn-discard-action {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-discard-action:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
 }
 
