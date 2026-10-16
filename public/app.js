@@ -46,6 +46,7 @@ const state = {
   hintModel: localStorage.getItem('chess_hint_model') || 'stockfish', // Default: Stockfish 16 (젤리피쉬 최상모델)
   hintLevel: parseInt(localStorage.getItem('chess_hint_level') || '5', 10), // Default: Level 5 (최상위)
   hintAutoTts: localStorage.getItem('chess_hint_auto_tts') === 'true', // Voice read aloud toggle
+  showHintPopup: localStorage.getItem('chess_show_hint_popup') !== 'false', // Default ON: Show tactical explanation modal
   hintTacticalData: null,
   lastHintTtsText: null,
 
@@ -308,6 +309,7 @@ const el = {
   settingHintModel: document.getElementById('setting-hint-model'),
   settingHintLevel: document.getElementById('setting-hint-level'),
   settingHintTts: document.getElementById('setting-hint-tts'),
+  settingShowHintPopup: document.getElementById('setting-show-hint-popup'),
   settingAiModel: document.getElementById('setting-ai-model'),
   settingAiMoveAnim: document.getElementById('setting-ai-move-anim'),
   settingLastMoveTrail: document.getElementById('setting-last-move-trail'),
@@ -316,6 +318,7 @@ const el = {
   settingShowPreview: document.getElementById('setting-show-preview'),
   settingShowRaytrace: document.getElementById('setting-show-raytrace'),
   settingAiDelay: document.getElementById('setting-ai-delay'),
+  btnCloseSettings: document.getElementById('btn-close-settings'),
   btnSaveSettings: document.getElementById('btn-save-settings'),
 
   // Draw Offer Modal
@@ -3321,8 +3324,8 @@ async function requestBestMoveHint() {
       el.hintPopupExplanation.innerText = tactical.explanation;
     }
 
-    // Open the tactical explanation popup modal!
-    if (el.modalHintPopup) {
+    // Open the tactical explanation popup modal (if enabled in settings)
+    if (state.showHintPopup && el.modalHintPopup) {
       el.modalHintPopup.classList.add('active');
     }
 
@@ -3736,6 +3739,7 @@ function setupEventListeners() {
         if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
         if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
         if (el.settingHintTts) el.settingHintTts.checked = state.hintAutoTts;
+        if (el.settingShowHintPopup) el.settingShowHintPopup.checked = state.showHintPopup;
         if (el.settingAiMoveAnim) el.settingAiMoveAnim.checked = state.aiMoveAnim;
         if (el.settingLastMoveTrail) el.settingLastMoveTrail.checked = state.showLastMoveTrail;
         if (el.selectTheme) el.selectTheme.value = localStorage.getItem('chess_theme') || 'theme-emerald';
@@ -3748,6 +3752,12 @@ function setupEventListeners() {
 
   if (el.btnCloseSettingsModal) {
     el.btnCloseSettingsModal.addEventListener('click', () => {
+      if (el.modalSettings) el.modalSettings.classList.remove('active');
+    });
+  }
+
+  if (el.btnCloseSettings) {
+    el.btnCloseSettings.addEventListener('click', () => {
       if (el.modalSettings) el.modalSettings.classList.remove('active');
     });
   }
@@ -3774,6 +3784,10 @@ function setupEventListeners() {
       if (el.settingHintTts) {
         state.hintAutoTts = el.settingHintTts.checked;
         localStorage.setItem('chess_hint_auto_tts', String(state.hintAutoTts));
+      }
+      if (el.settingShowHintPopup) {
+        state.showHintPopup = el.settingShowHintPopup.checked;
+        localStorage.setItem('chess_show_hint_popup', String(state.showHintPopup));
       }
       if (el.settingAiModel) {
         state.aiModel = el.settingAiModel.value;

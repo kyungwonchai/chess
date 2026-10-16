@@ -964,8 +964,19 @@
 
           <div class="setting-item-box">
             <div class="setting-item-info">
-              <label class="setting-label">🔮 착수 미리보기 (놓을 지점 마우스 호버 시 미래 수 점선 표시)</label>
-              <p class="setting-subtext">기물을 선택하고 놓을 곳 근처로 마우스를 이동하면 내가 얻을 수 있는 수나 위협받을 미래의 수를 점선으로 미리 시각화합니다.</p>
+              <label class="setting-label">💬 최선수 클릭 시 전술 해설 팝업창 띄우기</label>
+              <p class="setting-subtext">최선수 힌트를 누를 때 상세 해설 팝업창을 띄웁니다. 끄면 팝업 없이 체스판 위 화살표와 우측 정보만 표시합니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-show-hint-popup" class="toggle-checkbox" checked>
+              <label for="setting-show-hint-popup" class="toggle-label"></label>
+            </div>
+          </div>
+
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🔮 착수 미리보기 (놓을 지점 호버 시 미래 수 시각화)</label>
+              <p class="setting-subtext">기물을 선택하고 이동할 칸 위에 마우스를 올리면 연결되는 경로를 미리 보여줍니다.</p>
             </div>
             <div class="toggle-switch-wrapper">
               <input type="checkbox" id="setting-show-preview" class="toggle-checkbox">
@@ -974,6 +985,7 @@
           </div>
         </div>
         <div class="settings-modal-actions">
+          <button class="btn-action-secondary" id="btn-close-settings">✖️ 닫기</button>
           <button class="btn-action-primary" id="btn-save-settings">저장 완료</button>
         </div>
       </div>
