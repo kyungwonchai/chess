@@ -38,6 +38,11 @@ const state = {
     return -1; // Default to Unlimited (-1)
   })(),
   hintsUsed: 0,
+  undosUsed: 0,
+  gameStartTime: null,
+  priorElapsedSeconds: 0,
+  analyticsCache: null,
+  selectedAnalyticsProfile: 'all',
   hintModel: localStorage.getItem('chess_hint_model') || 'stockfish', // Default: Stockfish 16 (젤리피쉬 최상모델)
   hintLevel: parseInt(localStorage.getItem('chess_hint_level') || '5', 10), // Default: Level 5 (최상위)
   hintAutoTts: localStorage.getItem('chess_hint_auto_tts') === 'true', // Voice read aloud toggle
@@ -120,6 +125,7 @@ const el = {
   speedChips: document.querySelectorAll('.speed-chip'),
 
   // Lobby
+  aiPlayerName: document.getElementById('ai-player-name'),
   aiModelPicker: document.getElementById('ai-model-picker'),
   aiColorPicker: document.getElementById('ai-color-picker'),
   aiLevelPicker: document.getElementById('ai-level-picker'),
@@ -236,6 +242,7 @@ const el = {
   gameoverIcon: document.getElementById('gameover-icon'),
   gameoverTitle: document.getElementById('gameover-title'),
   gameoverReason: document.getElementById('gameover-reason'),
+  gameoverAnalyticsBox: document.getElementById('gameover-analytics-box'),
   btnModalRematch: document.getElementById('btn-modal-rematch'),
   btnModalLobby: document.getElementById('btn-modal-lobby'),
 
@@ -254,16 +261,28 @@ const el = {
   modalRoomCodeBadge: document.getElementById('modal-room-code-badge'),
   modalBigRoomCode: document.getElementById('modal-big-room-code'),
 
-  // Records & Leaderboard Modal
+  // Records, Leaderboard & AI Analytics Modal
   btnOpenRecords: document.getElementById('btn-open-records'),
   modalRecords: document.getElementById('modal-records'),
   btnCloseRecordsModal: document.getElementById('btn-close-records-modal'),
+  tabBtnAnalytics: document.getElementById('tab-btn-analytics'),
   tabBtnLeaderboard: document.getElementById('tab-btn-leaderboard'),
   tabBtnGames: document.getElementById('tab-btn-games'),
+  rtabAnalytics: document.getElementById('rtab-analytics'),
   rtabLeaderboard: document.getElementById('rtab-leaderboard'),
   rtabGames: document.getElementById('rtab-games'),
+  modalAnalyticsTabs: document.getElementById('modal-analytics-tabs'),
+  modalAnalyticsBody: document.getElementById('modal-analytics-body'),
   leaderboardTbody: document.getElementById('leaderboard-tbody'),
   gamesListContainer: document.getElementById('games-list-container'),
+
+  // Lobby AI Analytics Dashboard
+  lobbyAnalyticsSection: document.getElementById('lobby-analytics-section'),
+  lobbyAnalyticsIpBadge: document.getElementById('lobby-analytics-ip-badge'),
+  btnRefreshAnalytics: document.getElementById('btn-refresh-analytics'),
+  btnOpenFullAnalytics: document.getElementById('btn-open-full-analytics'),
+  lobbyAnalyticsTabs: document.getElementById('lobby-analytics-tabs'),
+  lobbyAnalyticsBody: document.getElementById('lobby-analytics-body'),
 
   // Replay Modal
   modalReplay: document.getElementById('modal-replay'),
@@ -307,6 +326,7 @@ const el = {
 
   // Resume Modal & Lobby Banner (Per-IP Session Persistence)
   modalResume: document.getElementById('modal-resume'),
+  btnCloseResumeModal: document.getElementById('btn-close-resume-modal'),
   btnResumeGame: document.getElementById('btn-resume-game'),
   btnDiscardResume: document.getElementById('btn-discard-resume'),
   resumeGameInfo: document.getElementById('resume-game-info'),
@@ -1565,6 +1585,49 @@ function startLocalClocks() {
 }
 
 // ================= GAME OVER =================
+function formatDurationKo(seconds) {
+  const s = Math.max(0, Math.round(seconds || 0));
+  if (s < 60) return `${s}초`;
+  const mins = Math.floor(s / 60);
+  const rem = s % 60;
+  if (mins < 60) return rem > 0 ? `${mins}분 ${rem}초` : `${mins}분`;
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return `${hrs}시간 ${remMins}분`;
+}
+
+function renderGameoverAnalyticsBox(analytics) {
+  if (!el.gameoverAnalyticsBox) return;
+  if (!analytics) {
+    el.gameoverAnalyticsBox.style.display = 'none';
+    return;
+  }
+
+  const helperText = analytics.totalHelpersUsed === 0
+    ? '✨ 무훈수 자력 완주 (+90점)'
+    : `💡힌트 ${analytics.hintsUsed}회 · ↩️무르기 ${analytics.undosUsed}회`;
+
+  const topMistake = (analytics.keyMistakes && analytics.keyMistakes.length > 0)
+    ? analytics.keyMistakes[0].reason
+    : `블런더 없이 안정적인 수읽기(정확도 ${analytics.accuracy}%)를 보여주셨습니다!`;
+
+  el.gameoverAnalyticsBox.innerHTML = `
+    <div class="goa-header">
+      <span style="font-size:0.82rem; font-weight:800; color:#93c5fd;">📊 이번 대국 AI 분석 리포트 (${analytics.humanName})</span>
+      <span class="goa-score-badge">🎯 실력점수 ${analytics.skillScore}점</span>
+    </div>
+    <div class="goa-metrics-row">
+      <div class="goa-metric-pill">수 정확도<strong>${analytics.accuracy}%</strong></div>
+      <div class="goa-metric-pill">대국 소요시간<strong>${formatDurationKo(analytics.durationSeconds)}</strong></div>
+      <div class="goa-metric-pill">도우미 활용<strong>${helperText}</strong></div>
+    </div>
+    <div class="goa-mistake-tip">
+      <strong>🔍 복기 포인트:</strong> ${topMistake}
+    </div>
+  `;
+  el.gameoverAnalyticsBox.style.display = 'flex';
+}
+
 function handleGameOver(reasonType = null, forcedWinner = null) {
   state.gameStatus = 'ended';
   state.aiThinking = false;
@@ -1609,6 +1672,7 @@ function handleGameOver(reasonType = null, forcedWinner = null) {
   el.gameoverIcon.innerText = isWin ? '🏆' : (winnerColor === 'draw' ? '🤝' : '⚔️');
   el.gameoverTitle.innerText = title;
   el.gameoverReason.innerText = `${reason}\n총 ${totalMoves}수 만에 종료되었습니다.`;
+  if (el.gameoverAnalyticsBox) el.gameoverAnalyticsBox.style.display = 'none';
   el.modalGameOver.classList.add('active');
 
   // Auto-save AI and local games to server
@@ -1626,10 +1690,15 @@ async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
 
     const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
 
+    const elapsedNow = state.gameStartTime ? Math.round((Date.now() - state.gameStartTime) / 1000) : 0;
+    const durationSeconds = Math.max(5, (state.priorElapsedSeconds || 0) + elapsedNow);
+
     let whiteName, blackName;
+    const aiLabel = state.aiModel === 'stockfish' ? `Stockfish Lv.${state.aiLevel}` : `AI Lv.${state.aiLevel}`;
     if (state.mode === 'ai') {
-      whiteName = state.playerColor === 'w' ? (state.playerName || '플레이어') : `AI Lv.${state.aiLevel}`;
-      blackName = state.playerColor === 'b' ? (state.playerName || '플레이어') : `AI Lv.${state.aiLevel}`;
+      const myName = (state.playerName || '플레이어 1').trim();
+      whiteName = state.playerColor === 'w' ? myName : aiLabel;
+      blackName = state.playerColor === 'b' ? myName : aiLabel;
     } else {
       whiteName = el.userName.innerText.replace(' (백)', '').replace(' (White)', '') || '플레이어 1';
       blackName = el.opponentName.innerText.replace(' (흑)', '').replace(' (Black)', '') || '플레이어 2';
@@ -1640,7 +1709,7 @@ async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
     else if (winnerColor === 'b') winnerName = blackName;
 
     const timeMinutes = state.timeControl?.initial ? Math.round(state.timeControl.initial / 60) : 0;
-    const modeTag = state.mode === 'ai' ? `AI Lv.${state.aiLevel}` : '로컬 2인';
+    const modeTag = state.mode === 'ai' ? aiLabel : '로컬 2인';
 
     const gameRecord = {
       id: `game_${Date.now()}_${state.mode}`,
@@ -1652,6 +1721,12 @@ async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
       winnerName,
       endReason: endReason || '대국 종료',
       totalMoves,
+      durationSeconds,
+      hintsUsed: state.hintsUsed || 0,
+      undosUsed: state.undosUsed || 0,
+      aiModel: state.aiModel || 'minimax',
+      aiLevel: state.aiLevel || 1,
+      playerColor: state.playerColor || 'w',
       fen: state.game.fen(),
       pgn: state.game.pgn(),
       timeControl: timeMinutes > 0 ? `${timeMinutes}분` : '무제한',
@@ -1666,11 +1741,19 @@ async function saveLocalGameToServer(winnerColor, endReason, totalMoves) {
       }))
     };
 
-    await fetch(`${apiPrefix}/api/games`, {
+    const res = await fetch(`${apiPrefix}/api/games`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(gameRecord)
     });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.analytics) {
+        renderGameoverAnalyticsBox(data.analytics);
+      }
+      loadAnalyticsDashboard(state.selectedAnalyticsProfile);
+      loadLobbyRecentGames();
+    }
   } catch (err) {
     console.warn('Failed to save local game:', err);
   }
@@ -1726,6 +1809,10 @@ function handleServerMessage(msg) {
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
+    state.hintsUsed = 0;
+    state.undosUsed = 0;
+    state.priorElapsedSeconds = 0;
+    state.gameStartTime = Date.now();
     if (el.currentRoomId) el.currentRoomId.innerText = msg.roomId;
     if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
     if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
@@ -1749,6 +1836,10 @@ function handleServerMessage(msg) {
     state.roomId = msg.roomId;
     state.playerColor = msg.yourRole;
     state.boardFlipped = (msg.yourRole === 'b');
+    state.hintsUsed = 0;
+    state.undosUsed = 0;
+    state.priorElapsedSeconds = 0;
+    state.gameStartTime = Date.now();
     if (el.currentRoomId) el.currentRoomId.innerText = msg.roomId;
     if (el.topRoomId) el.topRoomId.innerText = msg.roomId;
     if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'flex';
@@ -1799,6 +1890,7 @@ function handleServerMessage(msg) {
 
     // Auto-close QR modal if opponent joined and game is playing
     if (msg.status === 'playing') {
+      if (!state.gameStartTime) state.gameStartTime = Date.now();
       if (el.gameStatusText) el.gameStatusText.innerText = '실시간 온라인 대국 진행 중';
       if (el.modalQr && el.modalQr.classList.contains('active')) {
         el.modalQr.classList.remove('active');
@@ -1815,6 +1907,10 @@ function handleServerMessage(msg) {
         state.selectedSquare = null;
         state.legalMovesForSelected = [];
         state.lastMove = null;
+        state.hintsUsed = 0;
+        state.undosUsed = 0;
+        state.priorElapsedSeconds = 0;
+        state.gameStartTime = Date.now();
         showToast(`⚔️ 재대국이 시작되었습니다! (진영: ${state.playerColor === 'w' ? '백(선공)' : '흑(후공)'})`);
         audio.playGameStart();
       }
@@ -1863,7 +1959,6 @@ function handleServerMessage(msg) {
     // Handle Draw Offer: only show modal to opponent (not spectator or offerer)
     if (msg.drawOffer) {
       if (state.playerColor === msg.drawOffer) {
-        // I am the one who offered draw
         state.drawOfferPending = true;
         if (el.btnOfferDraw) {
           el.btnOfferDraw.innerText = '⏳ 무승부 응답 대기 중...';
@@ -1872,7 +1967,6 @@ function handleServerMessage(msg) {
           el.btnOfferDraw.style.pointerEvents = 'none';
         }
       } else if (state.playerColor === 'w' || state.playerColor === 'b') {
-        // I am the opponent receiving the offer
         if (el.modalDrawOffer && !el.modalDrawOffer.classList.contains('active')) {
           if (el.drawOfferDesc) {
             const oppName = msg.drawOffer === 'w' ? (msg.white?.name || '백') : (msg.black?.name || '흑');
@@ -1883,7 +1977,6 @@ function handleServerMessage(msg) {
         }
       }
     } else {
-      // No pending draw offer: reset button and close modal if open
       state.drawOfferPending = false;
       if (el.btnOfferDraw) {
         el.btnOfferDraw.innerText = '🤝 무승부 제안';
@@ -1905,20 +1998,19 @@ function handleServerMessage(msg) {
         el.gameoverIcon.innerText = isWin ? '🏆' : (msg.winner === 'draw' ? '🤝' : '⚔️');
         el.gameoverTitle.innerText = msg.winner === 'draw' ? '무승부' : `${msg.winner === 'w' ? '백' : '흑'} 승리!`;
         el.gameoverReason.innerText = msg.endReason || '대국이 종료되었습니다.';
+        if (el.gameoverAnalyticsBox) el.gameoverAnalyticsBox.style.display = 'none';
         el.modalGameOver.classList.add('active');
 
-        // Reset rematch button text when game just ended
         if (el.btnModalRematch) {
           el.btnModalRematch.innerText = '🔄 재대국 요청';
           el.btnModalRematch.disabled = false;
         }
 
-        // Refresh records cache
+        loadAnalyticsDashboard(state.selectedAnalyticsProfile);
         loadLeaderboard();
         loadGameRecords();
       }
 
-      // Handle Rematch Offer indicators
       if (msg.rematchOffer && el.btnModalRematch) {
         const myRequested = (state.playerColor === 'w' && msg.rematchOffer.w) || (state.playerColor === 'b' && msg.rematchOffer.b);
         const oppRequested = (state.playerColor === 'w' && msg.rematchOffer.b) || (state.playerColor === 'b' && msg.rematchOffer.w);
@@ -1940,7 +2032,6 @@ function handleServerMessage(msg) {
       }
     }
 
-    // Immediately render real-time board, material, turn indicators, notation & engine eval
     renderBoard();
     triggerAsyncEvaluation();
   }
@@ -1989,7 +2080,8 @@ function switchView(viewName) {
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
       state.ws.send(JSON.stringify({ type: 'list_rooms' }));
     }
-    // Refresh lobby recent games panel
+    // Refresh lobby analytics & recent games panel
+    loadAnalyticsDashboard(state.selectedAnalyticsProfile);
     loadLobbyRecentGames();
   } else if (viewName === 'game') {
     document.body.classList.add('in-game');
@@ -2009,7 +2101,7 @@ async function loadLobbyRecentGames() {
     const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
     const res = await fetch(`${apiPrefix}/api/games`);
     const data = await res.json();
-    const games = (data.games || []).slice(0, 6); // Show last 6
+    const games = (data.games || []).slice(0, 6);
 
     if (games.length === 0) {
       el.lobbyRecentGames.innerHTML = '<div class="room-empty-state">아직 기록이 없습니다. 대국 후 자동으로 저장됩니다.</div>';
@@ -2023,21 +2115,22 @@ async function loadLobbyRecentGames() {
       const resultEmoji = g.winner === 'w' ? '🏆백' : g.winner === 'b' ? '🏆흑' : '🤝무';
       const roomId = g.roomId || '';
       let modeTag = '🌐';
-      if (roomId.startsWith('AI Lv.')) modeTag = '🤖';
+      if (roomId.startsWith('AI') || roomId.startsWith('Stockfish')) modeTag = '🤖';
       else if (roomId === '로컬 2인') modeTag = '👥';
+
+      const skillTag = g.analytics ? `🎯${g.analytics.skillScore}점` : '';
 
       return `
         <div class="lobby-recent-item" data-id="${g.id}">
           <span class="lri-mode">${modeTag}</span>
           <span class="lri-vs">${g.white} vs ${g.black}</span>
-          <span class="lri-result">${resultEmoji} · ${g.totalMoves}수</span>
+          <span class="lri-result">${resultEmoji} · ${g.totalMoves}수 ${skillTag ? '· ' + skillTag : ''}</span>
           <span class="lri-date">${dateStr}</span>
           <button class="btn-mini lri-replay-btn" data-id="${g.id}">🔍</button>
         </div>
       `;
     }).join('');
 
-    // Bind replay buttons in lobby recent list
     el.lobbyRecentGames.querySelectorAll('.lri-replay-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const gameId = btn.dataset.id;
@@ -2082,6 +2175,9 @@ let sessionSaveTimeout = null;
 async function saveActiveSessionState() {
   if (state.gameStatus !== 'playing') return;
 
+  const elapsedNow = state.gameStartTime ? Math.round((Date.now() - state.gameStartTime) / 1000) : 0;
+  const totalElapsedSeconds = (state.priorElapsedSeconds || 0) + elapsedNow;
+
   const sessionData = {
     mode: state.mode,
     fen: state.game.fen(),
@@ -2094,6 +2190,7 @@ async function saveActiveSessionState() {
       san: state.lastMove.san
     } : null,
     playerColor: state.playerColor,
+    playerName: state.playerName,
     boardFlipped: state.boardFlipped,
     aiLevel: state.aiLevel,
     aiModel: state.aiModel,
@@ -2102,17 +2199,17 @@ async function saveActiveSessionState() {
     activeTurn: state.activeTurn,
     gameStatus: state.gameStatus,
     maxHints: state.maxHints,
-    hintsUsed: state.hintsUsed,
+    hintsUsed: state.hintsUsed || 0,
+    undosUsed: state.undosUsed || 0,
+    elapsedSeconds: totalElapsedSeconds,
     roomId: state.roomId,
     playerId: state.playerId
   };
 
-  // 1. Instant LocalStorage backup (Offline insurance if LAN disconnects)
   try {
     localStorage.setItem('chess_active_session_backup', JSON.stringify(sessionData));
   } catch (e) {}
 
-  // 2. Debounced Server Save to Per-IP Database
   if (sessionSaveTimeout) clearTimeout(sessionSaveTimeout);
   sessionSaveTimeout = setTimeout(async () => {
     try {
@@ -2153,7 +2250,6 @@ async function checkActiveSession() {
   let session = null;
   let clientIp = state.clientIp || '127.0.0.1';
 
-  // 1. Try fetching from server by client IP
   try {
     const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
     const res = await fetch(`${apiPrefix}/api/session`);
@@ -2171,7 +2267,6 @@ async function checkActiveSession() {
     console.warn('Server offline/LAN disconnected, checking offline cache:', err);
   }
 
-  // 2. Fallback to offline localStorage if server session is not returned
   if (!session) {
     try {
       const raw = localStorage.getItem('chess_active_session_backup');
@@ -2235,6 +2330,9 @@ function resumeActiveSession(session) {
   state.moveHistory = session.history || [];
   state.lastMove = session.lastMove || null;
   state.playerColor = session.playerColor || 'w';
+  if (session.playerName) {
+    state.playerName = session.playerName;
+  }
   state.boardFlipped = !!session.boardFlipped;
   state.aiLevel = session.aiLevel || 1;
   state.aiModel = session.aiModel || 'minimax';
@@ -2245,13 +2343,16 @@ function resumeActiveSession(session) {
   state.aiThinking = false;
   state.maxHints = session.maxHints !== undefined ? session.maxHints : -1;
   state.hintsUsed = session.hintsUsed || 0;
+  state.undosUsed = session.undosUsed || 0;
+  state.priorElapsedSeconds = session.elapsedSeconds || 0;
+  state.gameStartTime = Date.now();
 
   if (session.mode === 'ai') {
     if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'block';
     if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
     if (el.sideAiLevelPicker) el.sideAiLevelPicker.value = String(state.aiLevel);
     updateAiOpponentBadge();
-    el.userName.innerText = '나 (Player)';
+    el.userName.innerText = state.playerName || '플레이어 1';
     el.userTag.innerText = state.playerColor === 'w' ? '백' : '흑';
     el.userAvatar.innerText = '👤';
   } else if (session.mode === 'local') {
@@ -2282,7 +2383,6 @@ function resumeActiveSession(session) {
 
   if (state.mode === 'ai' || state.mode === 'local') {
     startLocalClocks();
-    // If it's AI turn, trigger AI move
     if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
       setTimeout(triggerAIMove, 600);
     }
@@ -2303,6 +2403,13 @@ function startAiGame() {
   state.gameStatus = 'playing';
   state.aiThinking = false;
 
+  if (el.aiPlayerName) {
+    const customName = el.aiPlayerName.value.trim() || '플레이어 1';
+    state.playerName = customName;
+    localStorage.setItem('chess_player_name', customName);
+    if (el.createPlayerName) el.createPlayerName.value = customName;
+  }
+
   const activeColorBtn = el.aiColorPicker.querySelector('.btn-segment.active');
   let chosenColor = activeColorBtn ? activeColorBtn.dataset.color : 'w';
   if (chosenColor === 'random') chosenColor = Math.random() < 0.5 ? 'w' : 'b';
@@ -2317,18 +2424,20 @@ function startAiGame() {
   const timeMinutes = parseInt(el.aiTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
 
-  // Set maxHints from lobby or global setting
   if (el.aiHintPicker) {
     state.maxHints = parseInt(el.aiHintPicker.value, 10);
   }
   state.hintsUsed = 0;
+  state.undosUsed = 0;
+  state.priorElapsedSeconds = 0;
+  state.gameStartTime = Date.now();
 
   if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'block';
   if (el.sideAiModelPicker) el.sideAiModelPicker.value = state.aiModel;
   if (el.sideAiLevelPicker) el.sideAiLevelPicker.value = String(state.aiLevel);
   updateAiOpponentBadge();
 
-  el.userName.innerText = '나 (Player)';
+  el.userName.innerText = state.playerName || '플레이어 1';
   el.userTag.innerText = chosenColor === 'w' ? '백' : '흑';
   el.userAvatar.innerText = '👤';
   el.btnOfferDraw.style.display = 'none';
@@ -2358,6 +2467,9 @@ function startLocalGame() {
   state.gameStatus = 'playing';
   state.aiThinking = false;
   state.hintsUsed = 0;
+  state.undosUsed = 0;
+  state.priorElapsedSeconds = 0;
+  state.gameStartTime = Date.now();
 
   const timeMinutes = parseInt(el.localTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
@@ -2455,9 +2567,267 @@ function joinOnlineRoom(roomCode) {
   }
 }
 
+// ================= FAMILY & PER-IP AI LEARNING & WEAKNESS ANALYTICS =================
+function renderAnalyticsProfileHtml(p, isModal = false) {
+  if (!p || p.totalGames === 0) {
+    return `<div class="room-empty-state">아직 분석할 대국 데이터가 없습니다. AI 대국이나 와이파이 대국을 진행하면 자동으로 실력과 약점이 기록됩니다!</div>`;
+  }
+
+  const openingWarn = p.phaseWeaknessPct.opening >= p.phaseWeaknessPct.middlegame && p.phaseWeaknessPct.opening >= p.phaseWeaknessPct.endgame && p.phaseMistakes.opening > 0;
+  const middleWarn = !openingWarn && p.phaseWeaknessPct.middlegame >= p.phaseWeaknessPct.endgame && p.phaseMistakes.middlegame > 0;
+  const endWarn = !openingWarn && !middleWarn && p.phaseMistakes.endgame > 0;
+
+  const diagHtml = (p.diagnosisList || []).map(d => `
+    <div class="coach-diag-item">
+      <div class="cdi-icon">${d.icon}</div>
+      <div class="cdi-body">
+        <div class="cdi-title">${d.title}</div>
+        <div class="cdi-desc">${d.desc}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const maxTrendScore = Math.max(1200, ...((p.skillTrend || []).map(t => t.skillScore || 750)));
+  const trendBarsHtml = (p.skillTrend || []).map(t => {
+    const heightPct = Math.max(16, Math.min(100, Math.round(((t.skillScore || 700) / maxTrendScore) * 100)));
+    const pillarClass = t.outcome === 'win' ? 'trend-pillar-win' : t.outcome === 'draw' ? 'trend-pillar-draw' : 'trend-pillar-loss';
+    const outcomeKo = t.outcome === 'win' ? '승' : t.outcome === 'draw' ? '무' : '패';
+    return `
+      <div class="trend-bar-col" data-game-id="${t.id}" title="${t.opponent}전 (${t.moves}수 ${outcomeKo}) · 실력점수 ${t.skillScore}점 · 정확도 ${t.accuracy}% (클릭 시 복기)">
+        <span class="trend-bar-val">${t.skillScore}</span>
+        <div class="trend-bar-pillar ${pillarClass}" style="height: ${heightPct}%;"></div>
+        <span class="trend-bar-label">${t.moves}수·${outcomeKo}</span>
+      </div>
+    `;
+  }).join('');
+
+  const oppChipsHtml = (p.opponentsList || []).slice(0, 6).map(o => `
+    <span class="lost-piece-chip">🤖 <strong>${o.opponent}</strong>: ${o.games}전 (${o.wins}승 ${o.draws}무 ${o.losses}패 · 평균 ${o.avgMoves}수)</span>
+  `).join('');
+
+  return `
+    <!-- 4 KPI Cards -->
+    <div class="analytics-kpi-grid">
+      <div class="analytics-kpi-card kpi-highlight">
+        <div class="kpi-top-row">
+          <span>🎯 종합 체스 실력점수</span>
+          <span>최고 ${p.bestSkillScore}점</span>
+        </div>
+        <div class="kpi-main-value">
+          <span>${p.skillRating}점</span>
+          <span class="kpi-tier-pill" style="color:${p.tierColor}; border:1px solid ${p.tierColor}66;">${p.tierBadge}</span>
+        </div>
+        <div class="kpi-sub-meta">평균 수 정확도 <strong>${p.avgAccuracy}%</strong> · 우상단 도우미/난이도 반영</div>
+      </div>
+
+      <div class="analytics-kpi-card">
+        <div class="kpi-top-row">
+          <span>⏱️ 총 누적 학습·대국시간</span>
+          <span>평균 ${formatDurationKo(p.avgDurationSeconds)}/판</span>
+        </div>
+        <div class="kpi-main-value">
+          <span>${formatDurationKo(p.totalDurationSeconds)}</span>
+        </div>
+        <div class="kpi-sub-meta">총 <strong>${p.totalGames}판</strong> 완주 (${p.wins}승 ${p.draws}무 ${p.losses}패 · 승률 <strong>${p.winRate}%</strong>)</div>
+      </div>
+
+      <div class="analytics-kpi-card">
+        <div class="kpi-top-row">
+          <span>♟️ 대국 수(Moves) 지구력</span>
+          <span>누적 ${p.totalMoves}수</span>
+        </div>
+        <div class="kpi-main-value">
+          <span>평균 ${p.avgMoves}수</span>
+          <span class="kpi-tier-pill" style="color:#38bdf8;">최고 ${p.maxMoves}수</span>
+        </div>
+        <div class="kpi-sub-meta">최장 대국 상대: <strong>${p.maxMovesOpponent}</strong></div>
+      </div>
+
+      <div class="analytics-kpi-card">
+        <div class="kpi-top-row">
+          <span>💡 최선수 힌트 & 무르기 활용</span>
+          <span>무훈수 ${p.cleanPlayRate}%</span>
+        </div>
+        <div class="kpi-main-value">
+          <span>힌트 ${p.totalHintsUsed}회</span>
+          <span class="kpi-tier-pill" style="color:#fbbf24;">무르기 ${p.totalUndosUsed}회</span>
+        </div>
+        <div class="kpi-sub-meta">판당 평균 힌트 <strong>${p.avgHintsPerGame}회</strong> · 자력 완주 <strong>${p.cleanGamesCount}판</strong></div>
+      </div>
+    </div>
+
+    <!-- 2-Column Weakness & AI Coach Prescription -->
+    <div class="analytics-main-grid">
+      <!-- Left: Phase Weakness & Lost Pieces -->
+      <div class="analytics-panel-box">
+        <h4 class="apb-title">
+          <span>📉 국면별 실수 분포 & 취약 기물 분석</span>
+          <small>집중 보완: ${p.weakestPhase}</small>
+        </h4>
+
+        <div class="phase-weakness-list">
+          <div class="phase-bar-item">
+            <div class="phase-bar-label">
+              <span>🌱 초반 오프닝 전개 (1~10수)</span>
+              <span>실수 ${p.phaseMistakes.opening}회 (${p.phaseWeaknessPct.opening}%)</span>
+            </div>
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill phase-fill-opening ${openingWarn ? 'weakest-alert' : ''}" style="width: ${Math.max(6, p.phaseWeaknessPct.opening)}%;"></div>
+            </div>
+          </div>
+
+          <div class="phase-bar-item">
+            <div class="phase-bar-label">
+              <span>⚔️ 중반 전술·수읽기 교전 (11~25수)</span>
+              <span>실수 ${p.phaseMistakes.middlegame}회 (${p.phaseWeaknessPct.middlegame}%)</span>
+            </div>
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill phase-fill-middlegame ${middleWarn ? 'weakest-alert' : ''}" style="width: ${Math.max(6, p.phaseWeaknessPct.middlegame)}%;"></div>
+            </div>
+          </div>
+
+          <div class="phase-bar-item">
+            <div class="phase-bar-label">
+              <span>🏁 종반 엔드게임 마무리 (26수 이후)</span>
+              <span>실수 ${p.phaseMistakes.endgame}회 (${p.phaseWeaknessPct.endgame}%)</span>
+            </div>
+            <div class="phase-bar-track">
+              <div class="phase-bar-fill phase-fill-endgame ${endWarn ? 'weakest-alert' : ''}" style="width: ${Math.max(6, p.phaseWeaknessPct.endgame)}%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lost-pieces-row">
+          <span class="lost-piece-chip danger">⚠️ 치명적 실수(블런더): ${p.blunders}회</span>
+          <span class="lost-piece-chip">❗ 일반 실수: ${p.mistakes}회</span>
+          <span class="lost-piece-chip">🛡️ 공짜 헌납(Hanging): ${p.tacticalDrops.hangingPiece}회</span>
+          <span class="lost-piece-chip">🎯 포획 놓침: ${p.tacticalDrops.missedCapture}회</span>
+        </div>
+
+        <div class="lost-pieces-row">
+          <span class="lost-piece-chip ${p.lostPieces.q > 0 ? 'danger' : ''}">♕ 퀸 손실 ${p.lostPieces.q}</span>
+          <span class="lost-piece-chip">♖ 룩 손실 ${p.lostPieces.r}</span>
+          <span class="lost-piece-chip">♗ 비숍 손실 ${p.lostPieces.b}</span>
+          <span class="lost-piece-chip">♘ 나이트 손실 ${p.lostPieces.n}</span>
+          <span class="lost-piece-chip">♙ 폰 손실 ${p.lostPieces.p}</span>
+        </div>
+      </div>
+
+      <!-- Right: AI Coach Personalized Diagnosis & Trend -->
+      <div class="analytics-panel-box">
+        <h4 class="apb-title">
+          <span>🤖 AI 코치 맞춤형 약점 진단 & 훈련 처방</span>
+          <small>IP: ${p.ipTag}</small>
+        </h4>
+        <div class="coach-diagnosis-list">
+          ${diagHtml}
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Recent Skill Score Trend Chart & Opponents Faced -->
+    <div class="analytics-panel-box">
+      <h4 class="apb-title">
+        <span>📈 최근 대국별 종합 실력점수 추이 (막대 클릭 시 기보 복기)</span>
+        <small>초록=승리 · 노랑=무승부 · 파랑=패배</small>
+      </h4>
+      <div class="skill-trend-chart">
+        ${trendBarsHtml}
+      </div>
+      <div class="lost-pieces-row" style="margin-top:0.2rem;">
+        ${oppChipsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function bindTrendChartClicks(containerEl) {
+  if (!containerEl) return;
+  containerEl.querySelectorAll('.trend-bar-col').forEach(col => {
+    col.addEventListener('click', async () => {
+      const gid = col.dataset.gameId;
+      if (!gid) return;
+      try {
+        const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+        const r = await fetch(`${apiPrefix}/api/games/${gid}`);
+        const game = await r.json();
+        if (game && game.history) openReplayModal(game);
+      } catch (e) {
+        showToast('기보를 불러오지 못했습니다.');
+      }
+    });
+  });
+}
+
+async function loadAnalyticsDashboard(forceProfileKey = null) {
+  try {
+    const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
+    const res = await fetch(`${apiPrefix}/api/analytics`);
+    if (!res.ok) return;
+    const data = await res.json();
+    state.analyticsCache = data;
+
+    if (data.myIp) {
+      state.clientIp = data.myIp;
+      if (el.lobbyAnalyticsIpBadge) {
+        el.lobbyAnalyticsIpBadge.innerText = `내 접속 IP: ${data.myIp} · 우리집 공유 통합`;
+      }
+    }
+
+    const profiles = data.profiles || [];
+    if (profiles.length === 0) return;
+
+    let selectedKey = forceProfileKey || state.selectedAnalyticsProfile || 'all';
+    if (!profiles.some(p => p.key === selectedKey)) {
+      selectedKey = 'all';
+    }
+    state.selectedAnalyticsProfile = selectedKey;
+
+    const activeProfile = profiles.find(p => p.key === selectedKey) || profiles[0];
+
+    const renderTabsInto = (tabsEl) => {
+      if (!tabsEl) return;
+      tabsEl.innerHTML = profiles.map(prof => {
+        const isActive = prof.key === selectedKey ? 'active' : '';
+        const isMyIp = prof.key === `ip:${data.myIp}`;
+        const labelText = isMyIp ? `📱 내 기기 IP (${data.myIp})` : prof.label;
+        return `
+          <button type="button" class="analytics-tab-chip ${isActive}" data-profile="${prof.key}">
+            <span>${labelText}</span>
+            <span class="chip-count">${prof.totalGames}판 · ${prof.skillRating}점</span>
+          </button>
+        `;
+      }).join('');
+
+      tabsEl.querySelectorAll('.analytics-tab-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const nextKey = btn.dataset.profile;
+          state.selectedAnalyticsProfile = nextKey;
+          loadAnalyticsDashboard(nextKey);
+        });
+      });
+    };
+
+    renderTabsInto(el.lobbyAnalyticsTabs);
+    renderTabsInto(el.modalAnalyticsTabs);
+
+    const htmlContent = renderAnalyticsProfileHtml(activeProfile);
+    if (el.lobbyAnalyticsBody) {
+      el.lobbyAnalyticsBody.innerHTML = htmlContent;
+      bindTrendChartClicks(el.lobbyAnalyticsBody);
+    }
+    if (el.modalAnalyticsBody) {
+      el.modalAnalyticsBody.innerHTML = htmlContent;
+      bindTrendChartClicks(el.modalAnalyticsBody);
+    }
+  } catch (err) {
+    console.warn('Failed to load analytics dashboard:', err);
+  }
+}
+
 async function loadLeaderboard() {
   if (!el.leaderboardTbody) return;
-  el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">랭킹 불러오는 중...</td></tr>';
+  el.leaderboardTbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">랭킹 불러오는 중...</td></tr>';
   try {
     const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
     const res = await fetch(`${apiPrefix}/api/leaderboard`);
@@ -2465,7 +2835,7 @@ async function loadLeaderboard() {
     const list = data.leaderboard || [];
 
     if (list.length === 0) {
-      el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">아직 저장된 대국 기록이 없습니다.<br>와이파이 대국을 완료하면 승률이 자동 집계됩니다.</td></tr>';
+      el.leaderboardTbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">아직 저장된 대국 기록이 없습니다.<br>대국을 완료하면 승률과 실력점수가 자동 집계됩니다.</td></tr>';
       return;
     }
 
@@ -2481,14 +2851,15 @@ async function loadLeaderboard() {
         <tr>
           <td><span class="rank-badge ${rankClass}">${rank}</span></td>
           <td><strong>${p.name}</strong></td>
-          <td style="text-align:center;">${p.wins}승 ${p.draws}무 ${p.losses}패 (${p.games}전)</td>
+          <td style="text-align:center;"><span style="font-weight:800; color:#fbbf24;">🎯 ${p.avgSkillScore || 750}점</span> <small style="color:#94a3b8;">(${p.tierBadge || '🥈 실버'})</small></td>
+          <td style="text-align:center;">${p.wins}승 ${p.draws}무 ${p.losses}패 (${p.games}전 · 평균 ${p.avgMoves || 0}수)</td>
           <td style="text-align:center;"><span class="player-winrate-badge">${p.winRate}%</span></td>
           <td style="text-align:center;"><div class="recent-streak">${streakHtml || '-'}</div></td>
         </tr>
       `;
     }).join('');
   } catch (err) {
-    el.leaderboardTbody.innerHTML = '<tr><td colspan="5" class="empty-table-msg">전적 불러오기 실패</td></tr>';
+    el.leaderboardTbody.innerHTML = '<tr><td colspan="6" class="empty-table-msg">전적 불러오기 실패</td></tr>';
   }
 }
 
@@ -2517,12 +2888,16 @@ async function loadGameRecords() {
                           g.winner === 'b' ? '🏆 흑 승' : '🤝 무승부';
       const resultClass = g.winner === 'draw' ? 'result-draw' : 'result-win';
 
-      // Mode tag: Wi-Fi = 4-char room ID, AI = 'AI Lv.X', local = '로컬 2인'
       const roomId = g.roomId || '';
       let modeTag = '🌐 와이파이';
-      if (roomId.startsWith('AI Lv.')) modeTag = `🤖 ${roomId}`;
+      if (roomId.startsWith('AI') || roomId.startsWith('Stockfish')) modeTag = `🤖 ${roomId}`;
       else if (roomId === '로컬 2인') modeTag = '👥 로컬';
       else if (roomId.length <= 4 && roomId.length > 0) modeTag = `🌐 방:${roomId}`;
+
+      const a = g.analytics;
+      const analyticsMeta = a
+        ? `· 🎯 <strong>${a.skillScore}점</strong> (정확도 ${a.accuracy}% · 블런더 ${a.blunders} · ⏱️${formatDurationKo(a.durationSeconds)} · 💡${a.hintsUsed}/↩️${a.undosUsed})`
+        : '';
 
       return `
         <div class="game-record-card">
@@ -2534,8 +2909,8 @@ async function loadGameRecords() {
             <div class="game-record-meta">
               <span class="${resultClass}">${resultEmoji}</span>
               <span class="moves-count">⚡ <strong>${g.totalMoves}수</strong></span>
+              ${analyticsMeta}
               · ${g.endReason}
-              · ⏱️ ${g.timeControl}
               · 📅 ${dateStr}
             </div>
           </div>
@@ -3453,20 +3828,28 @@ function setupEventListeners() {
   // Undo Move
   el.btnUndoMove.addEventListener('click', () => {
     if (state.mode === 'ai') {
-      state.game.undo();
-      state.game.undo();
+      const m1 = state.game.undo();
+      const m2 = state.game.undo();
+      if (m1 || m2) {
+        state.undosUsed = (state.undosUsed || 0) + 1;
+      }
       state.lastMove = null;
       state.hintMove = null;
       renderBoard();
       triggerAsyncEvaluation();
-      showToast('수를 1수 물렸습니다.');
+      saveActiveSessionState();
+      showToast(`수를 1수 물렸습니다. (무르기 누적 ${state.undosUsed}회)`);
     } else if (state.mode === 'local') {
-      state.game.undo();
+      const m1 = state.game.undo();
+      if (m1) {
+        state.undosUsed = (state.undosUsed || 0) + 1;
+      }
       state.activeTurn = state.game.turn();
       if (state.autoFlip) state.boardFlipped = (state.activeTurn === 'b');
       state.lastMove = null;
       renderBoard();
       triggerAsyncEvaluation();
+      saveActiveSessionState();
       showToast('수를 물렸습니다.');
     } else {
       showToast('온라인 대국에서는 수를 물릴 수 없습니다.');
@@ -3530,8 +3913,15 @@ function setupEventListeners() {
     });
   }
 
-  el.btnLeaveGame.addEventListener('click', () => {
+  el.btnLeaveGame.addEventListener('click', async () => {
     if (confirm('현재 대국을 나가고 로비로 이동하시겠습니까?')) {
+      // If AI training game has >= 6 half-moves and is still playing, save training history before leaving
+      const movesPlayed = state.game ? state.game.history().length : 0;
+      if (state.mode === 'ai' && state.gameStatus === 'playing' && movesPlayed >= 6) {
+        const oppColor = state.playerColor === 'w' ? 'b' : 'w';
+        await saveLocalGameToServer(oppColor, '훈련 중도 종료 (기권)', movesPlayed);
+        showToast('📊 진행한 AI 훈련 이력이 학습 통계에 반영되었습니다.');
+      }
       if (state.ws) state.ws.close();
       clearActiveSessionState();
       switchView('lobby');
@@ -3602,10 +3992,33 @@ function setupEventListeners() {
     navigator.clipboard.writeText(el.modalQrUrl.value).then(() => showToast('주소가 복사되었습니다!'));
   });
 
-  // Records & Leaderboard Modal Listeners
+  // Records, Leaderboard & AI Analytics Modal Listeners
+  const activateRecordsTab = (tabName) => {
+    [el.tabBtnAnalytics, el.tabBtnLeaderboard, el.tabBtnGames].forEach(b => {
+      if (b) b.classList.remove('active');
+    });
+    [el.rtabAnalytics, el.rtabLeaderboard, el.rtabGames].forEach(c => {
+      if (c) c.classList.remove('active');
+    });
+    if (tabName === 'analytics') {
+      if (el.tabBtnAnalytics) el.tabBtnAnalytics.classList.add('active');
+      if (el.rtabAnalytics) el.rtabAnalytics.classList.add('active');
+      loadAnalyticsDashboard(state.selectedAnalyticsProfile);
+    } else if (tabName === 'leaderboard') {
+      if (el.tabBtnLeaderboard) el.tabBtnLeaderboard.classList.add('active');
+      if (el.rtabLeaderboard) el.rtabLeaderboard.classList.add('active');
+      loadLeaderboard();
+    } else if (tabName === 'games') {
+      if (el.tabBtnGames) el.tabBtnGames.classList.add('active');
+      if (el.rtabGames) el.rtabGames.classList.add('active');
+      loadGameRecords();
+    }
+  };
+
   if (el.btnOpenRecords) {
     el.btnOpenRecords.addEventListener('click', () => {
       el.modalRecords.classList.add('active');
+      loadAnalyticsDashboard(state.selectedAnalyticsProfile);
       loadLeaderboard();
       loadGameRecords();
     });
@@ -3615,22 +4028,30 @@ function setupEventListeners() {
       el.modalRecords.classList.remove('active');
     });
   }
+  if (el.tabBtnAnalytics) {
+    el.tabBtnAnalytics.addEventListener('click', () => activateRecordsTab('analytics'));
+  }
   if (el.tabBtnLeaderboard) {
-    el.tabBtnLeaderboard.addEventListener('click', () => {
-      el.tabBtnLeaderboard.classList.add('active');
-      el.tabBtnGames.classList.remove('active');
-      el.rtabLeaderboard.classList.add('active');
-      el.rtabGames.classList.remove('active');
-      loadLeaderboard();
-    });
+    el.tabBtnLeaderboard.addEventListener('click', () => activateRecordsTab('leaderboard'));
   }
   if (el.tabBtnGames) {
-    el.tabBtnGames.addEventListener('click', () => {
-      el.tabBtnGames.classList.add('active');
-      el.tabBtnLeaderboard.classList.remove('active');
-      el.rtabGames.classList.add('active');
-      el.rtabLeaderboard.classList.remove('active');
-      loadGameRecords();
+    el.tabBtnGames.addEventListener('click', () => activateRecordsTab('games'));
+  }
+
+  if (el.btnRefreshAnalytics) {
+    el.btnRefreshAnalytics.addEventListener('click', () => {
+      loadAnalyticsDashboard(state.selectedAnalyticsProfile);
+      showToast('📊 AI 학습 및 약점 분석 데이터를 갱신했습니다.');
+    });
+  }
+  if (el.btnOpenFullAnalytics) {
+    el.btnOpenFullAnalytics.addEventListener('click', () => {
+      if (el.modalRecords) {
+        el.modalRecords.classList.add('active');
+        activateRecordsTab('analytics');
+        loadLeaderboard();
+        loadGameRecords();
+      }
     });
   }
 
@@ -3732,6 +4153,21 @@ async function init() {
   const savedTheme = localStorage.getItem('chess_theme') || 'theme-emerald';
   applyTheme(savedTheme);
 
+  const savedPlayerName = localStorage.getItem('chess_player_name') || '플레이어 1';
+  state.playerName = savedPlayerName;
+  if (el.aiPlayerName) {
+    el.aiPlayerName.value = savedPlayerName;
+    el.aiPlayerName.addEventListener('change', (e) => {
+      const v = e.target.value.trim() || '플레이어 1';
+      state.playerName = v;
+      localStorage.setItem('chess_player_name', v);
+      if (el.createPlayerName) el.createPlayerName.value = v;
+    });
+  }
+  if (el.createPlayerName) {
+    el.createPlayerName.value = savedPlayerName;
+  }
+
   const savedPreset = localStorage.getItem('chess_integrated_preset') || 'emerald-classic';
   if (el.selectIntegratedTheme) {
     el.selectIntegratedTheme.value = savedPreset;
@@ -3823,7 +4259,8 @@ async function init() {
   setupHeaderDragScroll();
   renderBoard();
 
-  // Load lobby recent games on startup
+  // Load lobby AI analytics dashboard & recent games on startup
+  loadAnalyticsDashboard('all');
   loadLobbyRecentGames();
 
   // Bind lobby "전체 보기" button
@@ -3831,6 +4268,7 @@ async function init() {
     el.btnLobbyOpenRecords.addEventListener('click', () => {
       if (el.modalRecords) {
         el.modalRecords.classList.add('active');
+        if (el.tabBtnGames) el.tabBtnGames.click();
         loadLeaderboard();
         loadGameRecords();
       }

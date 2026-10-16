@@ -418,7 +418,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "원",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 23,
+      "totalMoves": 45,
+      "durationSeconds": 383,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 72,
+      "goodMoves": 15,
+      "inaccuracies": 0,
+      "mistakes": 5,
+      "blunders": 3,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 8,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 13,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 2,
+        "missedCapture": 4,
+        "kingSafety": 0,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 1,
+        "n": 0,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 2,
+        "p": 3
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "exf5",
+          "from": "e4",
+          "to": "f5",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "11수(중반(전술교전)) 폰(e4➔f5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 16,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxf5",
+          "from": "d4",
+          "to": "f5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "16수(중반(전술교전)) 나이트(d4➔f5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 17,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "O-O",
+          "from": "e1",
+          "to": "g1",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": "Nxg7",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "17수(중반(전술교전)) 킹(e1➔g1) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 18,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qh5+",
+          "from": "f3",
+          "to": "h5",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Nxg7",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "18수(중반(전술교전))에서 상대 [비숍] 포획 기회(Nxg7)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 998
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1792070824209_ai",
@@ -875,7 +986,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "원",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 25,
+      "totalMoves": 49,
+      "durationSeconds": 417,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 79,
+      "goodMoves": 19,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 4,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 5,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 4,
+        "missedCapture": 2,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 1,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 2,
+        "n": 2,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bd2",
+          "from": "c1",
+          "to": "d2",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "8수(초반(오프닝)) 비숍(c1➔d2) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "h5",
+          "from": "h4",
+          "to": "h5",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Nxe6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "11수(중반(전술교전))에서 상대 [비숍] 포획 기회(Nxe6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "h6",
+          "from": "h5",
+          "to": "h6",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Nxe6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "13수(중반(전술교전))에서 상대 [비숍] 포획 기회(Nxe6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "dxe5",
+          "from": "d4",
+          "to": "e5",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6.8,
+          "reason": "15수(중반(전술교전)) 폰(d4➔e5) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1018
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1792068856872_ai",
@@ -1269,7 +1491,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 21,
+      "totalMoves": 42,
+      "durationSeconds": 357,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 43,
+      "goodMoves": 8,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 10,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 10,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 11,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 8,
+        "missedCapture": 2,
+        "kingSafety": 1,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 3
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qe4",
+          "from": "f3",
+          "to": "e4",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Qxf6",
+          "severity": "blunder",
+          "evalDrop": 5.9,
+          "reason": "5수(초반(오프닝))에서 상대 [퀸] 포획 찬스(Qxf6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nd5",
+          "from": "c3",
+          "to": "d5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "9수(초반(오프닝)) 나이트(c3➔d5) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qf4",
+          "from": "e4",
+          "to": "f4",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "10수(초반(오프닝)) 퀸(e4➔f4) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nf6+",
+          "from": "d5",
+          "to": "f6",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "11수(중반(전술교전)) 나이트(d5➔f6) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 630
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1792068679968_ai",
@@ -1645,7 +1978,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 20,
+      "totalMoves": 40,
+      "durationSeconds": 340,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 67,
+      "goodMoves": 13,
+      "inaccuracies": 0,
+      "mistakes": 1,
+      "blunders": 6,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 6,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 10,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 5,
+        "missedCapture": 1,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 3
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 2
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nd5",
+          "from": "c3",
+          "to": "d5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": "Bxc6+",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "6수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxc6+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nc7+",
+          "from": "a6",
+          "to": "c7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "12수(중반(전술교전)) 나이트(a6➔c7) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 14,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxf7",
+          "from": "g5",
+          "to": "f7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 8,
+          "reason": "14수(중반(전술교전)) 나이트(g5➔f7) 이동 후 상대에게 귀중한 [퀸]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 16,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Ng6",
+          "from": "h8",
+          "to": "g6",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "16수(중반(전술교전)) 나이트(h8➔g6) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 680
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791982023220_local",
@@ -2588,7 +3032,118 @@
         "captured": "q",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "local",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "플레이어 2",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 52,
+      "totalMoves": 103,
+      "durationSeconds": 876,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 49,
+      "goodMoves": 25,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 25,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 6,
+        "endgame": 18
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 27
+      },
+      "tacticalDrops": {
+        "hangingPiece": 23,
+        "missedCapture": 2,
+        "kingSafety": 0,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 2,
+        "r": 1,
+        "b": 0,
+        "n": 1,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 3,
+        "r": 1,
+        "b": 2,
+        "n": 1,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Kd1",
+          "from": "e1",
+          "to": "d1",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "6수(초반(오프닝)) 킹(e1➔d1) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "a3",
+          "from": "a2",
+          "to": "a3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "7수(초반(오프닝)) 폰(a2➔a3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Kd2",
+          "from": "d1",
+          "to": "d2",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "9수(초반(오프닝)) 킹(d1➔d2) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kf3",
+          "from": "e3",
+          "to": "f3",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "11수(중반(전술교전)) 킹(e3➔f3) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1315
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791981597565_local",
@@ -2640,7 +3195,76 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "local",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "플레이어 2",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 2,
+      "totalMoves": 4,
+      "durationSeconds": 34,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 50,
+      "goodMoves": 1,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 1,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 2,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 2,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "g4",
+          "from": "g2",
+          "to": "g4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6,
+          "reason": "2수(초반(오프닝))에서 킹 수비 라인이 뚫려 상대에게 체크메이트 찬스를 허용했습니다."
+        }
+      ],
+      "skillScore": 812
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791981479816_local",
@@ -2737,7 +3361,90 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "local",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "플레이어 2",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 5,
+      "totalMoves": 9,
+      "durationSeconds": 77,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 60,
+      "goodMoves": 3,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 2,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 5,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 2,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 3,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "e4",
+          "from": "e3",
+          "to": "e4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "3수(초반(오프닝)) 폰(e3➔e4) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 4,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qg4",
+          "from": "h5",
+          "to": "g4",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "4수(초반(오프닝)) 퀸(h5➔g4) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1281
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791981427504_local",
@@ -2816,7 +3523,61 @@
         "captured": "p",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "local",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "플레이어 2",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 4,
+      "totalMoves": 7,
+      "durationSeconds": 60,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 100,
+      "goodMoves": 4,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 0,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 4,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "keyMistakes": [],
+      "skillScore": 1276
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791981358188_ai",
@@ -3318,7 +4079,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 27,
+      "totalMoves": 54,
+      "durationSeconds": 459,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 58,
+      "goodMoves": 15,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 10,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 9,
+        "endgame": 2
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 2
+      },
+      "tacticalDrops": {
+        "hangingPiece": 9,
+        "missedCapture": 1,
+        "kingSafety": 1,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 2,
+        "b": 2,
+        "n": 2,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 0,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Ba3",
+          "from": "c1",
+          "to": "a3",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "8수(초반(오프닝)) 비숍(c1➔a3) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nc3",
+          "from": "b1",
+          "to": "c3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "11수(중반(전술교전)) 나이트(b1➔c3) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Rb1",
+          "from": "a1",
+          "to": "b1",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "12수(중반(전술교전)) 룩(a1➔b1) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qe2",
+          "from": "d1",
+          "to": "e2",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "dxc3",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "13수(중반(전술교전))에서 상대 [비숍] 포획 기회(dxc3)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 1581
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791980544584_ai",
@@ -3748,7 +4620,118 @@
         "captured": "q",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 23,
+      "totalMoves": 46,
+      "durationSeconds": 391,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 75,
+      "goodMoves": 17,
+      "inaccuracies": 0,
+      "mistakes": 1,
+      "blunders": 5,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 6,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 13,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 4,
+        "missedCapture": 1,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 0,
+        "b": 0,
+        "n": 2,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "c4",
+          "from": "c2",
+          "to": "c4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "11수(중반(전술교전)) 폰(c2➔c4) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 19,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bd3",
+          "from": "b5",
+          "to": "d3",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Bxd7",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "19수(중반(전술교전))에서 상대 [나이트] 포획 기회(Bxd7)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 20,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Ke3",
+          "from": "f2",
+          "to": "e3",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "20수(중반(전술교전)) 킹(f2➔e3) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 21,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qc4",
+          "from": "a4",
+          "to": "c4",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "21수(중반(전술교전)) 퀸(a4➔c4) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 705
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1791979860093_ai",
@@ -4304,7 +5287,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 30,
+      "totalMoves": 60,
+      "durationSeconds": 510,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 34,
+      "goodMoves": 10,
+      "inaccuracies": 0,
+      "mistakes": 1,
+      "blunders": 19,
+      "phaseMistakes": {
+        "opening": 5,
+        "middlegame": 13,
+        "endgame": 2
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 5
+      },
+      "tacticalDrops": {
+        "hangingPiece": 18,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 2,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 2,
+        "b": 2,
+        "n": 1,
+        "p": 5
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 3,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "g3",
+          "from": "g2",
+          "to": "g3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "3수(초반(오프닝)) 폰(g2➔g3) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 4,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nc3",
+          "from": "b1",
+          "to": "c3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "4수(초반(오프닝)) 나이트(b1➔c3) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nf3",
+          "from": "g1",
+          "to": "f3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "8수(초반(오프닝)) 나이트(g1➔f3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxe5",
+          "from": "f3",
+          "to": "e5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6.8,
+          "reason": "9수(초반(오프닝)) 나이트(f3➔e5) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 631
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789995148503_4HUJ",
@@ -4977,7 +6071,118 @@
         "captured": "r",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "민준",
+      "opponentName": "경원",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 37,
+      "totalMoves": 73,
+      "durationSeconds": 621,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 77,
+      "goodMoves": 28,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 7,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 3,
+        "endgame": 3
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 12
+      },
+      "tacticalDrops": {
+        "hangingPiece": 7,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 1,
+        "n": 2,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 2,
+        "b": 1,
+        "n": 1,
+        "p": 6
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "c3",
+          "from": "c2",
+          "to": "c3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "7수(초반(오프닝)) 폰(c2➔c3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "b3",
+          "from": "b2",
+          "to": "b3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "8수(초반(오프닝)) 폰(b2➔b3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "c4",
+          "from": "c3",
+          "to": "c4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "9수(초반(오프닝)) 폰(c3➔c4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 14,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxg6",
+          "from": "e5",
+          "to": "g6",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "14수(중반(전술교전)) 나이트(e5➔g6) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        }
+      ],
+      "skillScore": 1441
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789994124729_ai",
@@ -5785,7 +6990,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 2",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 44,
+      "totalMoves": 88,
+      "durationSeconds": 748,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 35,
+      "goodMoves": 14,
+      "inaccuracies": 0,
+      "mistakes": 5,
+      "blunders": 25,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 12,
+        "endgame": 15
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 19
+      },
+      "tacticalDrops": {
+        "hangingPiece": 20,
+        "missedCapture": 1,
+        "kingSafety": 5,
+        "positional": 4
+      },
+      "lostPieces": {
+        "q": 2,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 2,
+        "n": 1,
+        "p": 6
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "c3",
+          "from": "c2",
+          "to": "c3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "6수(초반(오프닝)) 폰(c2➔c3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxc5",
+          "from": "b3",
+          "to": "c5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "8수(초반(오프닝)) 나이트(b3➔c5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxe4",
+          "from": "c5",
+          "to": "e4",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "9수(초반(오프닝)) 나이트(c5➔e4) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxf7",
+          "from": "g5",
+          "to": "f7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "11수(중반(전술교전)) 나이트(g5➔f7) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        }
+      ],
+      "skillScore": 665
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789994029007_HQD6",
@@ -6467,7 +7783,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "경원",
+      "opponentName": "민준",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 37,
+      "totalMoves": 74,
+      "durationSeconds": 629,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 67,
+      "goodMoves": 24,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 10,
+      "phaseMistakes": {
+        "opening": 4,
+        "middlegame": 7,
+        "endgame": 2
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 12
+      },
+      "tacticalDrops": {
+        "hangingPiece": 9,
+        "missedCapture": 3,
+        "kingSafety": 0,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 0,
+        "b": 1,
+        "n": 2,
+        "p": 7
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nd3",
+          "from": "e5",
+          "to": "d3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "5수(초반(오프닝)) 나이트(e5➔d3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "b4",
+          "from": "b2",
+          "to": "b4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Nxc5",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "6수(초반(오프닝)) 폰(b2➔b4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "e3",
+          "from": "e2",
+          "to": "e3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "9수(초반(오프닝)) 폰(e2➔e3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "d4",
+          "from": "d2",
+          "to": "d4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "10수(초반(오프닝)) 폰(d2➔d4) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 1119
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789993759170_ai",
@@ -6879,7 +8306,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 2",
+      "opponentName": "AI Lv.3",
+      "aiModel": "minimax",
+      "aiLevel": 3,
+      "outcome": "loss",
+      "playerMovesCount": 22,
+      "totalMoves": 44,
+      "durationSeconds": 374,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 74,
+      "goodMoves": 16,
+      "inaccuracies": 0,
+      "mistakes": 1,
+      "blunders": 5,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 5,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 12,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 4,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "d4",
+          "from": "d2",
+          "to": "d4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "8수(초반(오프닝)) 폰(d2➔d4) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qe3",
+          "from": "e2",
+          "to": "e3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "13수(중반(전술교전)) 퀸(e2➔e3) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxe5",
+          "from": "f3",
+          "to": "e5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "15수(중반(전술교전)) 나이트(f3➔e5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 18,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qe6+",
+          "from": "h3",
+          "to": "e6",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 9,
+          "reason": "18수(중반(전술교전)) 퀸(h3➔e6) 이동 후 상대에게 귀중한 [퀸]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 1123
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789993305960_ai",
@@ -7579,7 +9117,118 @@
         "captured": "r",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 38,
+      "totalMoves": 76,
+      "durationSeconds": 646,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 45,
+      "goodMoves": 15,
+      "inaccuracies": 0,
+      "mistakes": 6,
+      "blunders": 17,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 12,
+        "endgame": 9
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 13
+      },
+      "tacticalDrops": {
+        "hangingPiece": 15,
+        "missedCapture": 6,
+        "kingSafety": 1,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 7
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 3
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qe2",
+          "from": "e5",
+          "to": "e2",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Qxe7+",
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "9수(초반(오프닝)) 퀸(e5➔e2) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qe3",
+          "from": "e2",
+          "to": "e3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Qxe7+",
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "10수(초반(오프닝)) 퀸(e2➔e3) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bb5+",
+          "from": "f1",
+          "to": "b5",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Qxe7+",
+          "severity": "blunder",
+          "evalDrop": 5.9,
+          "reason": "11수(중반(전술교전))에서 상대 [퀸] 포획 찬스(Qxe7+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nf3",
+          "from": "g1",
+          "to": "f3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": "Qxe7+",
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "12수(중반(전술교전)) 나이트(g1➔f3) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 673
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789736501188_GAC3",
@@ -8315,7 +9964,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "민준",
+      "opponentName": "경원",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 40,
+      "totalMoves": 80,
+      "durationSeconds": 680,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 80,
+      "goodMoves": 31,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 6,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 7,
+        "endgame": 2
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 15
+      },
+      "tacticalDrops": {
+        "hangingPiece": 6,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 3
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 2,
+        "b": 1,
+        "n": 2,
+        "p": 6
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxa4",
+          "from": "c3",
+          "to": "a4",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "11수(중반(전술교전)) 나이트(c3➔a4) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Ng5",
+          "from": "f3",
+          "to": "g5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "12수(중반(전술교전)) 나이트(f3➔g5) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxf7",
+          "from": "g5",
+          "to": "f7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2,
+          "reason": "13수(중반(전술교전)) 나이트(g5➔f7) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bd5",
+          "from": "c4",
+          "to": "d5",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "15수(중반(전술교전)) 비숍(c4➔d5) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1455
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789735230570_A5A6",
@@ -8808,7 +10568,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "민준",
+      "opponentName": "플레이어 2",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 27,
+      "totalMoves": 53,
+      "durationSeconds": 451,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 78,
+      "goodMoves": 21,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 6,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 6,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 2
+      },
+      "tacticalDrops": {
+        "hangingPiece": 6,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 0,
+        "n": 1,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 1,
+        "b": 0,
+        "n": 2,
+        "p": 5
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 16,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Be4",
+          "from": "h7",
+          "to": "e4",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "16수(중반(전술교전)) 비숍(h7➔e4) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 18,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "h4",
+          "from": "h2",
+          "to": "h4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "18수(중반(전술교전)) 폰(h2➔h4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 19,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bh5",
+          "from": "f3",
+          "to": "h5",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "19수(중반(전술교전)) 비숍(f3➔h5) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 20,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nf7+",
+          "from": "g5",
+          "to": "f7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "20수(중반(전술교전)) 나이트(g5➔f7) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1421
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789734665297_74CC",
@@ -8959,7 +10830,61 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "플레이어 2",
+      "opponentName": "경원",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 8,
+      "totalMoves": 15,
+      "durationSeconds": 128,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 100,
+      "goodMoves": 8,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 0,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 8,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "keyMistakes": [],
+      "skillScore": 1475
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789734478496_ai",
@@ -9623,7 +11548,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.3",
+      "aiModel": "minimax",
+      "aiLevel": 3,
+      "outcome": "loss",
+      "playerMovesCount": 36,
+      "totalMoves": 72,
+      "durationSeconds": 612,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 61,
+      "goodMoves": 21,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 12,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 5,
+        "endgame": 9
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 11
+      },
+      "tacticalDrops": {
+        "hangingPiece": 10,
+        "missedCapture": 0,
+        "kingSafety": 2,
+        "positional": 3
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 1,
+        "b": 0,
+        "n": 1,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "d3",
+          "from": "d2",
+          "to": "d3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "8수(초반(오프닝)) 폰(d2➔d3) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qd3",
+          "from": "d4",
+          "to": "d3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "15수(중반(전술교전)) 퀸(d4➔d3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 16,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Rf3",
+          "from": "f1",
+          "to": "f3",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "16수(중반(전술교전)) 룩(f1➔f3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 17,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "gxh4",
+          "from": "g3",
+          "to": "h4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "17수(중반(전술교전)) 폰(g3➔h4) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        }
+      ],
+      "skillScore": 1140
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789734133925_AGZT",
@@ -10287,7 +12323,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "민준",
+      "opponentName": "경원",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 36,
+      "totalMoves": 72,
+      "durationSeconds": 612,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 43,
+      "goodMoves": 14,
+      "inaccuracies": 0,
+      "mistakes": 5,
+      "blunders": 17,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 11,
+        "endgame": 8
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 11
+      },
+      "tacticalDrops": {
+        "hangingPiece": 16,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 5
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 2,
+        "b": 1,
+        "n": 1,
+        "p": 6
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 7
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 4,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qh5",
+          "from": "d1",
+          "to": "h5",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "4수(초반(오프닝)) 퀸(d1➔h5) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qf3",
+          "from": "h5",
+          "to": "f3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "5수(초반(오프닝)) 퀸(h5➔f3) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "g4",
+          "from": "g2",
+          "to": "g4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "6수(초반(오프닝)) 폰(g2➔g4) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kd2",
+          "from": "e1",
+          "to": "d2",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 5,
+          "reason": "13수(중반(전술교전)) 킹(e1➔d2) 이동 후 상대에게 귀중한 [룩]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 1065
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789734093948_ai",
@@ -10717,7 +12864,118 @@
         "captured": "b",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 23,
+      "totalMoves": 46,
+      "durationSeconds": 391,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 77,
+      "goodMoves": 16,
+      "inaccuracies": 0,
+      "mistakes": 5,
+      "blunders": 2,
+      "phaseMistakes": {
+        "opening": 4,
+        "middlegame": 3,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 13,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 1,
+        "missedCapture": 3,
+        "kingSafety": 1,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 0,
+        "b": 2,
+        "n": 1,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 0,
+        "b": 1,
+        "n": 2,
+        "p": 6
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 3,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qf3",
+          "from": "d1",
+          "to": "f3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Bxc6+",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "3수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxc6+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 4,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bc4",
+          "from": "b5",
+          "to": "c4",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Bxc6+",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "4수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxc6+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qxf7+",
+          "from": "f3",
+          "to": "f7",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 8,
+          "reason": "5수(초반(오프닝)) 퀸(f3➔f7) 이동 후 상대에게 귀중한 [퀸]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bxh7",
+          "from": "g8",
+          "to": "h7",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "exf5",
+          "severity": "mistake",
+          "evalDrop": 2,
+          "reason": "8수(초반(오프닝))에서 상대 [비숍] 포획 기회(exf5)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 709
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789733851874_ai",
@@ -11561,7 +13819,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.3",
+      "aiModel": "minimax",
+      "aiLevel": 3,
+      "outcome": "loss",
+      "playerMovesCount": 46,
+      "totalMoves": 92,
+      "durationSeconds": 782,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 59,
+      "goodMoves": 26,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 17,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 8,
+        "endgame": 10
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 21
+      },
+      "tacticalDrops": {
+        "hangingPiece": 13,
+        "missedCapture": 2,
+        "kingSafety": 4,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 2,
+        "r": 2,
+        "b": 2,
+        "n": 2,
+        "p": 6
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 4
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nd5",
+          "from": "c3",
+          "to": "d5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "6수(초반(오프닝)) 나이트(c3➔d5) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bb5",
+          "from": "c4",
+          "to": "b5",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Nxe7+",
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "7수(초반(오프닝)) 비숍(c4➔b5) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "b4",
+          "from": "b2",
+          "to": "b4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Bxa6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "12수(중반(전술교전))에서 상대 [나이트] 포획 기회(Bxa6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "b5",
+          "from": "b4",
+          "to": "b5",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Bxa6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "13수(중반(전술교전))에서 상대 [나이트] 포획 기회(Bxa6)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 1169
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562898202_ai",
@@ -12324,7 +14693,118 @@
         "captured": "p",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 42,
+      "totalMoves": 83,
+      "durationSeconds": 706,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 82,
+      "goodMoves": 33,
+      "inaccuracies": 0,
+      "mistakes": 4,
+      "blunders": 5,
+      "phaseMistakes": {
+        "opening": 4,
+        "middlegame": 4,
+        "endgame": 1
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 17
+      },
+      "tacticalDrops": {
+        "hangingPiece": 5,
+        "missedCapture": 3,
+        "kingSafety": 0,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 2,
+        "b": 2,
+        "n": 2,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 6
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "g4",
+          "from": "g2",
+          "to": "g4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "5수(초반(오프닝)) 폰(g2➔g4) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "O-O",
+          "from": "e1",
+          "to": "g1",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "6수(초반(오프닝)) 킹(e1➔g1) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Qg3",
+          "from": "f3",
+          "to": "g3",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Bxh6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "9수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxh6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "d4",
+          "from": "d3",
+          "to": "d4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Bxh6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "10수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxh6)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 1064
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562692071_ai",
@@ -12502,7 +14982,90 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "귀요미채서연",
+      "opponentName": "AI Lv.2",
+      "aiModel": "minimax",
+      "aiLevel": 2,
+      "outcome": "loss",
+      "playerMovesCount": 9,
+      "totalMoves": 18,
+      "durationSeconds": 153,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 78,
+      "goodMoves": 7,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 2,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 9,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 1,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 0,
+        "p": 3
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "exf8=Q+",
+          "from": "e7",
+          "to": "f8",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "exf8=N",
+          "severity": "blunder",
+          "evalDrop": 5.7,
+          "reason": "7수(초반(오프닝)) 폰(e7➔f8) 이동 후 상대에게 귀중한 [퀸]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "g4",
+          "from": "g2",
+          "to": "g4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6,
+          "reason": "9수(초반(오프닝))에서 킹 수비 라인이 뚫려 상대에게 체크메이트 찬스를 허용했습니다."
+        }
+      ],
+      "skillScore": 864
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562652091_ai",
@@ -12572,7 +15135,76 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "귀요미채서연",
+      "opponentName": "AI Lv.2",
+      "aiModel": "minimax",
+      "aiLevel": 2,
+      "outcome": "loss",
+      "playerMovesCount": 3,
+      "totalMoves": 6,
+      "durationSeconds": 51,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 67,
+      "goodMoves": 2,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 1,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 3,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 3,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Ke2",
+          "from": "e1",
+          "to": "e2",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6,
+          "reason": "3수(초반(오프닝))에서 킹 수비 라인이 뚫려 상대에게 체크메이트 찬스를 허용했습니다."
+        }
+      ],
+      "skillScore": 732
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562631184_ai",
@@ -12768,7 +15400,76 @@
         "captured": "p",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "귀요미채서연",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 10,
+      "totalMoves": 20,
+      "durationSeconds": 170,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 90,
+      "goodMoves": 9,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 1,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Kc5",
+          "from": "c4",
+          "to": "c5",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6,
+          "reason": "10수(초반(오프닝))에서 킹 수비 라인이 뚫려 상대에게 체크메이트 찬스를 허용했습니다."
+        }
+      ],
+      "skillScore": 708
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562618882_ai",
@@ -13036,7 +15737,118 @@
         "captured": "r",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 14,
+      "totalMoves": 28,
+      "durationSeconds": 238,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 52,
+      "goodMoves": 7,
+      "inaccuracies": 0,
+      "mistakes": 1,
+      "blunders": 6,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 4,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 4,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 5,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 0,
+        "n": 1,
+        "p": 3
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 1
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxd4",
+          "from": "f3",
+          "to": "d4",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "8수(초반(오프닝)) 나이트(f3➔d4) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Re1",
+          "from": "f1",
+          "to": "e1",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "9수(초반(오프닝)) 룩(f1➔e1) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "h3",
+          "from": "h2",
+          "to": "h3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "10수(초반(오프닝)) 폰(h2➔h3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kf1",
+          "from": "g1",
+          "to": "f1",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 7.7,
+          "reason": "11수(중반(전술교전)) 킹(g1➔f1) 착수로 [퀸]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1511
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562550083_ai",
@@ -13268,7 +16080,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "귀요미채서연",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 12,
+      "totalMoves": 24,
+      "durationSeconds": 204,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 64,
+      "goodMoves": 7,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 3,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 2,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 2,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 2,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 2,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 2
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 5,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxc7+",
+          "from": "b5",
+          "to": "c7",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "5수(초반(오프닝)) 나이트(b5➔c7) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Nxe5",
+          "from": "f3",
+          "to": "e5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 2.2,
+          "reason": "6수(초반(오프닝)) 나이트(f3➔e5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Kd3",
+          "from": "e2",
+          "to": "d3",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "10수(초반(오프닝)) 킹(e2➔d3) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kc4",
+          "from": "d3",
+          "to": "c4",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.8,
+          "reason": "11수(중반(전술교전)) 킹(d3➔c4) 착수로 [비숍]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1530
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562513687_ai",
@@ -13500,7 +16423,118 @@
         "captured": "p",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.3",
+      "aiModel": "minimax",
+      "aiLevel": 3,
+      "outcome": "loss",
+      "playerMovesCount": 12,
+      "totalMoves": 24,
+      "durationSeconds": 204,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 67,
+      "goodMoves": 8,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 4,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 2,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 2,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 3,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 1,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 6,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "h3",
+          "from": "h2",
+          "to": "h3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "6수(초반(오프닝)) 폰(h2➔h3) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Rg1",
+          "from": "f1",
+          "to": "g1",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": "Nxd4",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "10수(초반(오프닝)) 룩(f1➔g1) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kg2",
+          "from": "h2",
+          "to": "g2",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 4.3,
+          "reason": "11수(중반(전술교전)) 킹(h2➔g2) 착수로 [룩]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Kh2",
+          "from": "g2",
+          "to": "h2",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 6,
+          "reason": "12수(중반(전술교전))에서 킹 수비 라인이 뚫려 상대에게 체크메이트 찬스를 허용했습니다."
+        }
+      ],
+      "skillScore": 1074
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789562404416_YAVW",
@@ -14227,7 +17261,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "귀여운 큐티 프리티곤듀",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 40,
+      "totalMoves": 79,
+      "durationSeconds": 672,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 89,
+      "goodMoves": 35,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 3,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 4,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 15
+      },
+      "tacticalDrops": {
+        "hangingPiece": 3,
+        "missedCapture": 1,
+        "kingSafety": 0,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 6
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 2,
+        "b": 2,
+        "n": 2,
+        "p": 8
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "O-O",
+          "from": "e1",
+          "to": "g1",
+          "piece": "k",
+          "pieceName": "킹",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "7수(초반(오프닝)) 킹(e1➔g1) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 14,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nxd5",
+          "from": "c3",
+          "to": "d5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "14수(중반(전술교전)) 나이트(c3➔d5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Nf4",
+          "from": "d5",
+          "to": "f4",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": "Nxf6+",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "15수(중반(전술교전))에서 상대 [나이트] 포획 기회(Nxf6+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 18,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "g4",
+          "from": "g2",
+          "to": "g4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "18수(중반(전술교전)) 폰(g2➔g4) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 1475
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789561832609_BBJP",
@@ -15458,7 +18603,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "민준",
+      "opponentName": "귀요미채서연",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "draw",
+      "playerMovesCount": 68,
+      "totalMoves": 135,
+      "durationSeconds": 1148,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 83,
+      "goodMoves": 56,
+      "inaccuracies": 0,
+      "mistakes": 2,
+      "blunders": 10,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 6,
+        "endgame": 5
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 43
+      },
+      "tacticalDrops": {
+        "hangingPiece": 8,
+        "missedCapture": 0,
+        "kingSafety": 1,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 2,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 1,
+        "r": 2,
+        "b": 2,
+        "n": 2,
+        "p": 8
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Ng5",
+          "from": "f3",
+          "to": "g5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "8수(초반(오프닝)) 나이트(f3➔g5) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "exd5",
+          "from": "e4",
+          "to": "d5",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "13수(중반(전술교전)) 폰(e4➔d5) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        },
+        {
+          "moveNumber": 14,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "a3",
+          "from": "a2",
+          "to": "a3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "14수(중반(전술교전)) 폰(a2➔a3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 15,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Na4",
+          "from": "c3",
+          "to": "a4",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": "axb4",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "15수(중반(전술교전)) 나이트(c3➔a4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1366
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789478240683_ai",
@@ -15618,7 +18874,76 @@
         "captured": "r",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "경원",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 8,
+      "totalMoves": 16,
+      "durationSeconds": 136,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 88,
+      "goodMoves": 7,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 1,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 8,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 1,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 0,
+        "n": 0,
+        "p": 2
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bd2",
+          "from": "c1",
+          "to": "d2",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 5,
+          "reason": "8수(초반(오프닝)) 비숍(c1➔d2) 이동 후 상대에게 귀중한 [룩]을(를) 내주었습니다."
+        }
+      ],
+      "skillScore": 1565
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789477548845_ai",
@@ -15670,7 +18995,61 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "경원",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 2,
+      "totalMoves": 4,
+      "durationSeconds": 34,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 100,
+      "goodMoves": 2,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 0,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 2,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [],
+      "skillScore": 1476
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789475889091_6Y8Y",
@@ -16253,7 +19632,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "경원",
+      "opponentName": "민준",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "win",
+      "playerMovesCount": 32,
+      "totalMoves": 63,
+      "durationSeconds": 536,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 51,
+      "goodMoves": 15,
+      "inaccuracies": 0,
+      "mistakes": 4,
+      "blunders": 13,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 10,
+        "endgame": 6
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 7
+      },
+      "tacticalDrops": {
+        "hangingPiece": 13,
+        "missedCapture": 4,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 1,
+        "b": 0,
+        "n": 1,
+        "p": 4
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 5
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Rg4",
+          "from": "g1",
+          "to": "g4",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": "Nxd5",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "10수(초반(오프닝)) 룩(g1➔g4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "d3",
+          "from": "d2",
+          "to": "d3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Nxd5",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "11수(중반(전술교전)) 폰(d2➔d3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Qe2",
+          "from": "d1",
+          "to": "e2",
+          "piece": "q",
+          "pieceName": "퀸",
+          "bestSan": "Nxd5",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "12수(중반(전술교전)) 퀸(d1➔e2) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "b3",
+          "from": "b2",
+          "to": "b3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Nxd5",
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "13수(중반(전술교전)) 폰(b2➔b3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1373
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789475335223_ai",
@@ -16548,7 +20038,118 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "win",
+      "playerMovesCount": 16,
+      "totalMoves": 31,
+      "durationSeconds": 264,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 75,
+      "goodMoves": 12,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 4,
+      "phaseMistakes": {
+        "opening": 3,
+        "middlegame": 1,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 6,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 4,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 1,
+        "p": 1
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 7,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Na3",
+          "from": "b5",
+          "to": "a3",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "7수(초반(오프닝)) 나이트(b5➔a3) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 8,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Ng5",
+          "from": "f3",
+          "to": "g5",
+          "piece": "n",
+          "pieceName": "나이트",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.2,
+          "reason": "8수(초반(오프닝)) 나이트(f3➔g5) 이동 후 상대에게 귀중한 [나이트]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Bc4",
+          "from": "d3",
+          "to": "c4",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Nxe6",
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "10수(초반(오프닝)) 비숍(d3➔c4) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 16,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "a6",
+          "from": "a5",
+          "to": "a6",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "16수(중반(전술교전)) 폰(a5➔a6) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        }
+      ],
+      "skillScore": 1921
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789474995293_ai",
@@ -16960,7 +20561,118 @@
         "captured": "p",
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.5",
+      "aiModel": "minimax",
+      "aiLevel": 5,
+      "outcome": "loss",
+      "playerMovesCount": 22,
+      "totalMoves": 44,
+      "durationSeconds": 374,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 54,
+      "goodMoves": 11,
+      "inaccuracies": 0,
+      "mistakes": 3,
+      "blunders": 8,
+      "phaseMistakes": {
+        "opening": 2,
+        "middlegame": 9,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 12,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 7,
+        "missedCapture": 1,
+        "kingSafety": 1,
+        "positional": 2
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 2,
+        "n": 2,
+        "p": 5
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 1,
+        "n": 0,
+        "p": 2
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 4,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "d4",
+          "from": "d2",
+          "to": "d4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 3.3,
+          "reason": "4수(초반(오프닝)) 폰(d2➔d4) 이동 후 상대에게 귀중한 [비숍]을(를) 내주었습니다."
+        },
+        {
+          "moveNumber": 10,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "Re1",
+          "from": "f1",
+          "to": "e1",
+          "piece": "r",
+          "pieceName": "룩",
+          "bestSan": "Nxe6",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "10수(초반(오프닝))에서 상대 [비숍] 포획 기회(Nxe6)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "c4",
+          "from": "c2",
+          "to": "c4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "blunder",
+          "evalDrop": 2.7,
+          "reason": "11수(중반(전술교전)) 폰(c2➔c4) 착수로 [나이트]이(가) 상대 공격 사정거리에 노출되었습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "bxc4",
+          "from": "b3",
+          "to": "c4",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": null,
+          "severity": "mistake",
+          "evalDrop": 1.9,
+          "reason": "12수(중반(전술교전)) 폰(b3➔c4) 착수로 기물 방어선이나 중앙 주도권이 약화되었습니다."
+        }
+      ],
+      "skillScore": 1551
+    },
+    "clientIp": "우리집 공유(LAN)"
   },
   {
     "id": "game_1789127934521_4KYA",
@@ -17786,6 +21498,117 @@
         "captured": null,
         "promotion": null
       }
-    ]
+    ],
+    "analytics": {
+      "mode": "wifi",
+      "humanColor": "w",
+      "humanName": "플레이어 2",
+      "opponentName": "경원",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 45,
+      "totalMoves": 90,
+      "durationSeconds": 765,
+      "hintsUsed": 0,
+      "undosUsed": 0,
+      "totalHelpersUsed": 0,
+      "cleanPlay": true,
+      "accuracy": 45,
+      "goodMoves": 18,
+      "inaccuracies": 0,
+      "mistakes": 7,
+      "blunders": 20,
+      "phaseMistakes": {
+        "opening": 1,
+        "middlegame": 10,
+        "endgame": 16
+      },
+      "phaseMoves": {
+        "opening": 10,
+        "middlegame": 15,
+        "endgame": 20
+      },
+      "tacticalDrops": {
+        "hangingPiece": 18,
+        "missedCapture": 6,
+        "kingSafety": 2,
+        "positional": 1
+      },
+      "lostPieces": {
+        "q": 1,
+        "r": 1,
+        "b": 2,
+        "n": 2,
+        "p": 6
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 1,
+        "b": 1,
+        "n": 1,
+        "p": 7
+      },
+      "keyMistakes": [
+        {
+          "moveNumber": 9,
+          "phase": "opening",
+          "phaseLabel": "초반(오프닝)",
+          "san": "c3",
+          "from": "c2",
+          "to": "c3",
+          "piece": "p",
+          "pieceName": "폰",
+          "bestSan": "Bxe4",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "9수(초반(오프닝))에서 상대 [나이트] 포획 기회(Bxe4)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 11,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bb5+",
+          "from": "d3",
+          "to": "b5",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Bxe4",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "11수(중반(전술교전))에서 상대 [나이트] 포획 기회(Bxe4)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 12,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Bd3",
+          "from": "b5",
+          "to": "d3",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Bxd7+",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "12수(중반(전술교전))에서 상대 [비숍] 포획 기회(Bxd7+)를 놓쳤습니다."
+        },
+        {
+          "moveNumber": 13,
+          "phase": "middlegame",
+          "phaseLabel": "중반(전술교전)",
+          "san": "Be2",
+          "from": "d3",
+          "to": "e2",
+          "piece": "b",
+          "pieceName": "비숍",
+          "bestSan": "Bxe4",
+          "severity": "mistake",
+          "evalDrop": 2.1,
+          "reason": "13수(중반(전술교전))에서 상대 [나이트] 포획 기회(Bxe4)를 놓쳤습니다."
+        }
+      ],
+      "skillScore": 1089
+    },
+    "clientIp": "우리집 공유(LAN)"
   }
 ]

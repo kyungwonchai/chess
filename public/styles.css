@@ -3481,3 +3481,514 @@ body.in-game.board-only-mode .chessboard-wrapper {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+/* ================= AI LEARNING & WEAKNESS ANALYTICS DASHBOARD ================= */
+.lobby-analytics-section {
+  margin-top: 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.lobby-analytics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.lah-title-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.lah-badge {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+}
+
+.lah-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.lah-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+
+.lah-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-mini-highlight {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  font-weight: 700 !important;
+}
+
+.btn-mini-highlight:hover {
+  background: rgba(59, 130, 246, 0.35) !important;
+}
+
+.analytics-profile-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.6rem;
+  margin-bottom: 1rem;
+  scrollbar-width: thin;
+}
+
+.analytics-tab-chip {
+  flex-shrink: 0;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.48rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s ease;
+}
+
+.analytics-tab-chip:hover {
+  border-color: #60a5fa;
+  color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.analytics-tab-chip.active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.analytics-tab-chip .chip-count {
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* 4-Card KPI Summary Row */
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+  margin-bottom: 1.15rem;
+}
+
+@media (max-width: 1100px) {
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .analytics-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-kpi-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.analytics-kpi-card.kpi-highlight {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(15, 23, 42, 0.8));
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.kpi-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.kpi-main-value {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #f8fafc;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+}
+
+.kpi-tier-pill {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.kpi-sub-meta {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* Main 2-Column Analytics Breakdown */
+.analytics-main-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.25fr;
+  gap: 1.1rem;
+  margin-bottom: 1.1rem;
+}
+
+@media (max-width: 980px) {
+  .analytics-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-panel-box {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.apb-title {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.apb-title small {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Phase Weakness Bars */
+.phase-weakness-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.phase-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.phase-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.phase-bar-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.phase-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.phase-fill-opening {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.phase-fill-middlegame {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.phase-fill-endgame {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.phase-bar-fill.weakest-alert {
+  background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+/* Lost Pieces & Mistake Chips */
+.lost-pieces-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.lost-piece-chip {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lost-piece-chip.danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* AI Coach Diagnosis List */
+.coach-diagnosis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.coach-diag-item {
+  background: rgba(30, 41, 59, 0.65);
+  border-left: 3.5px solid #3b82f6;
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+.coach-diag-item:nth-child(1) {
+  border-left-color: #f59e0b;
+}
+
+.coach-diag-item:nth-child(2) {
+  border-left-color: #ef4444;
+}
+
+.coach-diag-item:nth-child(3) {
+  border-left-color: #10b981;
+}
+
+.cdi-icon {
+  font-size: 1.35rem;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.cdi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cdi-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.cdi-desc {
+  font-size: 0.79rem;
+  color: #cbd5e1;
+  line-height: 1.48;
+  word-break: keep-all;
+}
+
+/* Skill Trend Mini Bar Chart */
+.skill-trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 110px;
+  padding: 0.85rem 0.6rem 0.35rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+}
+
+.trend-bar-col {
+  flex: 1;
+  min-width: 44px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.trend-bar-val {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+}
+
+.trend-bar-pillar {
+  width: 72%;
+  max-width: 34px;
+  border-radius: 5px 5px 2px 2px;
+  transition: height 0.3s ease, filter 0.15s;
+  min-height: 12px;
+}
+
+.trend-bar-col:hover .trend-bar-pillar {
+  filter: brightness(1.25);
+}
+
+.trend-pillar-win {
+  background: linear-gradient(180deg, #34d399, #059669);
+}
+
+.trend-pillar-draw {
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+}
+
+.trend-pillar-loss {
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+}
+
+.trend-bar-label {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Modal Analytics Scroll Container */
+.records-modal-card {
+  max-width: 960px !important;
+  width: 94% !important;
+}
+
+.analytics-modal-scroll {
+  max-height: 62vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Post-Game Analytics Summary Box inside Game Over Modal */
+.gameover-analytics-box {
+  width: 100%;
+  margin: 0.75rem 0 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: var(--radius-md);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.goa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.45rem;
+}
+
+.goa-score-badge {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fbbf24;
+  font-family: var(--font-mono);
+}
+
+.goa-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.goa-metric-pill {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.4rem 0.3rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+
+.goa-metric-pill strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #f8fafc;
+  margin-top: 2px;
+}
+
+.goa-mistake-tip {
+  font-size: 0.78rem;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  border-left: 3px solid #ef4444;
+  padding: 0.45rem 0.65rem;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .lobby-analytics-section {
+    padding: 1.1rem 1rem;
+    margin-top: 1.25rem;
+  }
+  .lah-title {
+    font-size: 1.05rem;
+  }
+  .kpi-main-value {
+    font-size: 1.3rem;
+  }
+}
+
+

@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
 import { Chess } from 'chess.js';
-import { saveGame, getGames, getGameById, getLeaderboard, getChessSettings, saveChessSettings, saveActiveSession, getActiveSession, deleteActiveSession } from './storage.mjs';
+import { saveGame, getGames, getGameById, getLeaderboard, getAnalyticsDashboard, getChessSettings, saveChessSettings, saveActiveSession, getActiveSession, deleteActiveSession } from './storage.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,7 +114,7 @@ app.get('/chess/api/info', handleInfo);
 app.get('/api/qr', handleQr);
 app.get('/chess/api/qr', handleQr);
 
-// Game history and leaderboard APIs
+// Game history, analytics, and leaderboard APIs
 app.get(['/api/games', '/chess/api/games'], (req, res) => {
   res.json(getGames(100));
 });
@@ -124,12 +124,14 @@ app.post(['/api/games', '/chess/api/games'], (req, res) => {
   if (!gameRecord || !gameRecord.history || gameRecord.history.length === 0) {
     return res.status(400).json({ error: 'Invalid game record' });
   }
-  // Ensure ID
   if (!gameRecord.id) {
     gameRecord.id = `game_${Date.now()}_local`;
   }
-  saveGame(gameRecord);
-  res.json({ ok: true, id: gameRecord.id });
+  if (!gameRecord.clientIp) {
+    gameRecord.clientIp = getClientIp(req);
+  }
+  const saved = saveGame(gameRecord);
+  res.json({ ok: true, id: gameRecord.id, analytics: saved?.analytics || null });
 });
 app.get(['/api/games/:id', '/chess/api/games/:id'], (req, res) => {
   const g = getGameById(req.params.id);
@@ -138,6 +140,10 @@ app.get(['/api/games/:id', '/chess/api/games/:id'], (req, res) => {
 });
 app.get(['/api/leaderboard', '/chess/api/leaderboard'], (req, res) => {
   res.json({ leaderboard: getLeaderboard() });
+});
+app.get(['/api/analytics', '/chess/api/analytics'], (req, res) => {
+  const ip = getClientIp(req);
+  res.json(getAnalyticsDashboard(ip));
 });
 app.get(['/api/settings', '/chess/api/settings'], (req, res) => {
   res.json(getChessSettings());

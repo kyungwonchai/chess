@@ -51,8 +51,8 @@
         <button id="btn-open-settings" class="btn-header-action" title="게임 설정 (최선수 힌트 횟수, 수 시각화 등)">
           <span>⚙️ 설정</span>
         </button>
-        <button id="btn-open-records" class="btn-header-action" title="전적/승률 랭킹 및 기보 보관소">
-          <span>🏆 전적/기보</span>
+        <button id="btn-open-records" class="btn-header-action" title="AI 학습 이력/약점 통계 및 전적·기보 보관소">
+          <span>📊 학습분석/기보</span>
         </button>
         <button id="btn-toggle-board-only" class="btn-header-action" title="폰/폴드 화면 맞춤 '판만 보기' 모드 (최상단 되돌리기 버튼 지원)">
           <span class="board-only-icon">📱</span> <span class="board-only-text">판만보기</span>
@@ -75,7 +75,7 @@
         <div class="lobby-container">
           <div class="hero-section">
             <h1 class="hero-title">체스 마스터 <span class="gradient-text">LIVE</span></h1>
-            <p class="hero-subtitle">같은 와이파이(LAN)에서 둘이서 온라인 대국을 하거나, 스마트 AI와 실전 훈련을 즐기세요.</p>
+            <p class="hero-subtitle">같은 와이파이(LAN)에서 둘이서 온라인 대국을 하거나, 스마트 AI와 실전 훈련 및 약점 분석을 즐기세요.</p>
           </div>
 
           <!-- Active Session Resume Banner (Per-IP Database) -->
@@ -99,9 +99,14 @@
               <div class="mode-badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">스마트 AI & Stockfish 탑재</div>
               <div class="mode-icon">🤖</div>
               <h2 class="mode-title">AI 트레이닝 <small style="font-size:0.5em; opacity:0.8; vertical-align:middle;">(Stockfish + 캐주얼 AI)</small></h2>
-              <p class="mode-desc">초보자도 승리의 쾌감을 맛볼 수 있는 <b>캐주얼 체스 AI</b>와 세계 1위 <b>Stockfish 16</b> 엔진을 자유롭게 선택하세요! 세계 최강의 <b>무제한 최선수 힌트</b>를 받으며 즐겁게 둘 수 있습니다.</p>
+              <p class="mode-desc">초보자도 승리의 쾌감을 맛볼 수 있는 <b>캐주얼 체스 AI</b>와 세계 1위 <b>Stockfish 16</b> 엔진을 자유롭게 선택하세요! 대국 후 <b>이름·IP별 실력점수와 약점</b>이 자동 분석됩니다.</p>
               
               <div class="mode-options">
+                <div class="option-row">
+                  <label>플레이어 이름 (가족별 학습 이력 기록용):</label>
+                  <input type="text" id="ai-player-name" class="custom-input" placeholder="이름 입력 (예: 경원, 원, 채서연)" maxlength="12" value="플레이어 1">
+                </div>
+
                 <div class="option-row">
                   <label>내 진영:</label>
                   <div class="btn-group-segmented" id="ai-color-picker">
@@ -262,6 +267,31 @@
               <button class="btn-action-secondary" id="btn-start-local">
                 <span>👥 로컬 2인 시작</span>
               </button>
+            </div>
+          </div>
+
+          <!-- Family & Per-IP AI Learning & Weakness Analytics Dashboard (Lobby) -->
+          <div class="lobby-analytics-section" id="lobby-analytics-section">
+            <div class="lobby-analytics-header">
+              <div class="lah-title-wrap">
+                <span class="lah-badge">AI 코치 진단</span>
+                <h3 class="lah-title">📊 우리집 AI 학습 이력 & 약점 분석 리포트</h3>
+                <span class="lah-sub" id="lobby-analytics-ip-badge">접속 기기 IP 확인 중...</span>
+              </div>
+              <div class="lah-actions">
+                <button type="button" class="btn-mini" id="btn-refresh-analytics">🔄 분석 갱신</button>
+                <button type="button" class="btn-mini btn-mini-highlight" id="btn-open-full-analytics">📈 상세 리포트 & 기보 열기</button>
+              </div>
+            </div>
+
+            <!-- Profile Switcher Tabs (All Family / My Device IP / Individual Players) -->
+            <div class="analytics-profile-tabs" id="lobby-analytics-tabs">
+              <button type="button" class="analytics-tab-chip active" data-profile="all">🏠 우리집 전체 통합</button>
+            </div>
+
+            <!-- Dashboard Body -->
+            <div class="analytics-dashboard-body" id="lobby-analytics-body">
+              <div class="room-empty-state">학습 이력 및 기보 약점 데이터를 분석하는 중...</div>
             </div>
           </div>
 
@@ -676,6 +706,7 @@
         <div class="gameover-icon" id="gameover-icon">🏆</div>
         <h2 class="gameover-title" id="gameover-title">체크메이트!</h2>
         <p class="gameover-reason" id="gameover-reason">백의 승리입니다.</p>
+        <div id="gameover-analytics-box" class="gameover-analytics-box" style="display: none;"></div>
         <div class="gameover-actions">
           <button class="btn-action-primary" id="btn-modal-rematch">🔄 재대국 요청</button>
           <button class="btn-action-secondary" id="btn-modal-lobby">🚪 로비로 이동</button>
@@ -683,34 +714,46 @@
       </div>
     </div>
 
-    <!-- MODAL 4: Leaderboard & Game Records Modal -->
+    <!-- MODAL 4: Leaderboard, AI Learning Analytics & Game Records Modal -->
     <div class="modal-overlay" id="modal-records">
       <div class="modal-card records-modal-card">
         <button class="modal-close" id="btn-close-records-modal">&times;</button>
         <div class="records-modal-header">
-          <h3 class="modal-title">🏆 전적 & 기보 보관소</h3>
-          <p class="modal-desc">PC에 영구 저장된 이름별 승률 랭킹과 와이파이 대국 기보 목록입니다.</p>
+          <h3 class="modal-title">📊 AI 학습·약점 분석 & 기보 보관소</h3>
+          <p class="modal-desc">우리집 공유 & IP/이름별 맞춤형 체스 실력점수, 국면별 약점 진단, 승률 랭킹 및 기보 보관소입니다.</p>
           <div class="records-tabs">
-            <button class="records-tab-btn active" data-rtab="rtab-leaderboard" id="tab-btn-leaderboard">🥇 플레이어별 승률 랭킹</button>
+            <button class="records-tab-btn active" data-rtab="rtab-analytics" id="tab-btn-analytics">🧠 AI 학습·약점 분석</button>
+            <button class="records-tab-btn" data-rtab="rtab-leaderboard" id="tab-btn-leaderboard">🥇 플레이어별 실력·승률 랭킹</button>
             <button class="records-tab-btn" data-rtab="rtab-games" id="tab-btn-games">📜 저장된 기보 목록</button>
           </div>
         </div>
 
+        <!-- TAB 0: AI Learning & Weakness Analytics -->
+        <div class="records-tab-content active" id="rtab-analytics">
+          <div class="analytics-profile-tabs" id="modal-analytics-tabs">
+            <button type="button" class="analytics-tab-chip active" data-profile="all">🏠 우리집 전체 통합</button>
+          </div>
+          <div class="analytics-modal-scroll" id="modal-analytics-body">
+            <div class="empty-table-msg">학습 이력 및 약점 통계를 불러오는 중...</div>
+          </div>
+        </div>
+
         <!-- TAB 1: Leaderboard -->
-        <div class="records-tab-content active" id="rtab-leaderboard">
+        <div class="records-tab-content" id="rtab-leaderboard">
           <div class="leaderboard-table-wrapper">
             <table class="leaderboard-table">
               <thead>
                 <tr>
                   <th style="width: 50px;">순위</th>
                   <th>플레이어</th>
-                  <th style="text-align:center;">전적</th>
+                  <th style="text-align:center;">종합 실력점수</th>
+                  <th style="text-align:center;">전적 (평균 수)</th>
                   <th style="text-align:center;">승률</th>
                   <th style="text-align:center;">최근 전적</th>
                 </tr>
               </thead>
               <tbody id="leaderboard-tbody">
-                <tr><td colspan="5" class="empty-table-msg">기록을 불러오는 중...</td></tr>
+                <tr><td colspan="6" class="empty-table-msg">기록을 불러오는 중...</td></tr>
               </tbody>
             </table>
           </div>
