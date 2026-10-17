@@ -833,110 +833,134 @@ function distancePointToSegment(px, py, x1, y1, x2, y2) {
   return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
 }
 
-// Dynamically find an empty 4x2 rectangular area on the 8x8 board (no pieces, no hint arrow overlap)
-// and render the semi-transparent tactical explanation box there
-function renderBoardFloatingHint() {
-  if (!el.boardHintFloatingBox) return;
-
-  if (state.gameStatus !== 'playing' || !state.hintMove || !state.boardHintMeta) {
-    el.boardHintFloatingBox.style.display = 'none';
-    return;
-  }
-
+// Find the LARGEST piece-free rectangle on the 8x8 visual grid (excluding the hint move's from/to squares)
+// and render the semi-transparent tactical explanation box filling that area.
+function findLargestEmptyBoardRect() {
   const board = state.game.board();
   const isFlipped = state.boardFlipped;
-  const fromRC = sqToVisualRC(state.hintMove.from, isFlipped);
-  const toRC = sqToVisualRC(state.hintMove.to, isFlipped);
+  const hint = state.hintMove;
+  const fromRC = sqToVisualRC(hint.from, isFlipped);
+  const toRC = sqToVisualRC(hint.to, isFlipped);
   const legalSet = new Set((state.legalMovesForSelected || []).map(m => m.to));
 
-  const rectCols = 4;
-  const rectRows = 2;
-  let bestR = 3;
-  let bestC = 2;
-  let minPenalty = Infinity;
+  // Build visual-grid blocked map & soft-penalty map
+  const blocked = [];
+  const soft = [];
+  for (let rIdx = 0; rIdx < 8; rIdx++) {
+    blocked.push([]);
+    soft.push([]);
+    for (let cIdx = 0; cIdx < 8; cIdx++) {
+      const r = isFlipped ? 7 - rIdx : rIdx;
+      const c = isFlipped ? 7 - cIdx : cIdx;
+      const sqName = `${String.fromCharCode(97 + c)}${8 - r}`;
+      const isBlocked = !!board[r][c] || sqName === hint.from || sqName === hint.to || sqName === state.selectedSquare;
+      blocked[rIdx].push(isBlocked);
 
-  for (let startR = 0; startR <= 8 - rectRows; startR++) {
-    for (let startC = 0; startC <= 8 - rectCols; startC++) {
-      let penalty = 0;
-
-      for (let dr = 0; dr < rectRows; dr++) {
-        for (let dc = 0; dc < rectCols; dc++) {
-          const rIdx = startR + dr;
-          const cIdx = startC + dc;
-          const r = isFlipped ? 7 - rIdx : rIdx;
-          const c = isFlipped ? 7 - cIdx : cIdx;
-          const sqName = `${String.fromCharCode(97 + c)}${8 - r}`;
-
-          // 1. Strongly avoid squares occupied by any chess piece
-          if (board[r][c]) {
-            penalty += 180;
-          }
-
-          // 2. Never cover the recommended move's start or destination square
-          if (sqName === state.hintMove.from || sqName === state.hintMove.to) {
-            penalty += 2500;
-          }
-
-          // 3. Avoid covering the golden arrow line between hintMove.from and hintMove.to
-          const distToArrow = distancePointToSegment(
-            cIdx + 0.5, rIdx + 0.5,
-            fromRC.cIdx + 0.5, fromRC.rIdx + 0.5,
-            toRC.cIdx + 0.5, toRC.rIdx + 0.5
-          );
-          if (distToArrow < 0.72) {
-            penalty += 450;
-          }
-
-          // 4. Avoid selected piece and its legal destination dots so user can click freely
-          if (sqName === state.selectedSquare) {
-            penalty += 1200;
-          }
-          if (legalSet.has(sqName)) {
-            penalty += 400;
-          }
-
-          // 5. Slight penalty for last move squares
-          if (state.lastMove && (sqName === state.lastMove.from || sqName === state.lastMove.to)) {
-            penalty += 30;
-          }
-        }
-      }
-
-      // Prefer middle ranks (ranks 3~6, startR 2~4) where board is naturally open
-      penalty += Math.abs(startR - 3) * 10;
-
-      // Among equally empty regions, prefer being reasonably near the hint move for eye comfort
-      const centerR = startR + rectRows / 2;
-      const centerC = startC + rectCols / 2;
-      const distToHint = Math.hypot(centerR - (toRC.rIdx + 0.5), centerC - (toRC.cIdx + 0.5));
-      penalty += distToHint * 4;
-
-      if (penalty < minPenalty) {
-        minPenalty = penalty;
-        bestR = startR;
-        bestC = startC;
-      }
+      let p = 0;
+      const distToArrow = distancePointToSegment(
+        cIdx + 0.5, rIdx + 0.5,
+        fromRC.cIdx + 0.5, fromRC.rIdx + 0.5,
+        toRC.cIdx + 0.5, toRC.rIdx + 0.5
+      );
+      if (distToArrow < 0.6) p += 1;        // covers hint arrow
+      if (legalSet.has(sqName)) p += 0.6;    // covers a legal-move dot
+      soft[rIdx].push(p);
     }
   }
 
-  const meta = state.boardHintMeta;
-  const topPct = (bestR * 12.5 + 0.8).toFixed(2);
-  const leftPct = (bestC * 12.5 + 0.8).toFixed(2);
-  const widthPct = (rectCols * 12.5 - 1.6).toFixed(2);
-
-  el.boardHintFloatingBox.style.top = `${topPct}%`;
-  el.boardHintFloatingBox.style.left = `${leftPct}%`;
-  el.boardHintFloatingBox.style.width = `${widthPct}%`;
-  el.boardHintFloatingBox.innerHTML = `
-    <div class="bhf-top-row">
-      <span class="bhf-move-pill">${meta.pieceIcon} ${meta.pieceColor} ${meta.pieceName} ${meta.moveCoordStr}</span>
-      <span class="hint-tactical-badge ${meta.tactical.badgeClass}" style="font-size:0.68rem; padding:1px 5px;">${meta.tactical.badge}</span>
-      <span class="bhf-engine-tag">${state.autoHint && state.mode === 'ai' ? '🎓 배움모드 · ' : ''}${meta.engineShort}</span>
-    </div>
-    <div class="bhf-desc-text">${meta.tactical.explanation}</div>
-  `;
-  el.boardHintFloatingBox.style.display = 'flex';
+  let best = null;
+  let bestScore = -Infinity;
+  for (let r0 = 0; r0 < 8; r0++) {
+    for (let c0 = 0; c0 < 8; c0++) {
+      if (blocked[r0][c0]) continue;
+      let maxC = 8; // exclusive bound shrinks as rows extend
+      for (let r1 = r0; r1 < 8; r1++) {
+        // extend columns on this row while empty, up to maxC
+        let c = c0;
+        while (c < maxC && !blocked[r1][c]) c++;
+        maxC = c;
+        if (maxC === c0) break;
+        for (let c1 = c0; c1 < maxC; c1++) {
+          const h = r1 - r0 + 1;
+          const w = c1 - c0 + 1;
+          if (w < 2) continue; // text needs at least 2 squares width
+          const area = w * h;
+          let softSum = 0;
+          for (let rr = r0; rr <= r1; rr++) {
+            for (let cc = c0; cc <= c1; cc++) softSum += soft[rr][cc];
+          }
+          // Primary: area. Secondary: prefer wider shapes (readability), avoid arrow/dots.
+          const aspectBonus = Math.min(w, h * 3) * 0.15;
+          const score = area * 10 + aspectBonus - softSum * 4;
+          if (score > bestScore) {
+            bestScore = score;
+            best = { r: r0, c: c0, w, h, area };
+          }
+        }
+      }
+    }
+  }
+  return best;
 }
+
+function renderBoardFloatingHint() {
+  const box = el.boardHintFloatingBox;
+  if (!box) return;
+
+  if (state.gameStatus !== 'playing' || !state.hintMove || !state.boardHintMeta) {
+    box.style.display = 'none';
+    return;
+  }
+
+  let rect = null;
+  try {
+    rect = findLargestEmptyBoardRect();
+  } catch (e) {
+    console.warn('Floating hint rect search failed:', e);
+  }
+  if (!rect) {
+    box.style.display = 'none';
+    return;
+  }
+
+  // Position in pixels relative to the actual 8x8 grid (wrapper has padding/border)
+  const boardEl = el.chessboard;
+  const sqW = boardEl.clientWidth / 8;
+  const sqH = boardEl.clientHeight / 8;
+  const offX = boardEl.offsetLeft;
+  const offY = boardEl.offsetTop;
+  const inset = 3;
+
+  const boxW = rect.w * sqW - inset * 2;
+  const boxH = rect.h * sqH - inset * 2;
+  box.style.left = `${offX + rect.c * sqW + inset}px`;
+  box.style.top = `${offY + rect.r * sqH + inset}px`;
+  box.style.width = `${boxW}px`;
+  box.style.height = `${boxH}px`;
+  box.style.maxHeight = `${boxH}px`;
+
+  // Scale font to the available area so text fits comfortably
+  const areaPx = boxW * boxH;
+  const fontPx = Math.max(10, Math.min(17, Math.sqrt(areaPx) / 13));
+  box.style.fontSize = `${fontPx}px`;
+  box.classList.toggle('bhf-compact', rect.h === 1 || rect.area <= 3);
+
+  const meta = state.boardHintMeta;
+  const modeTag = (state.autoHint && state.mode === 'ai') ? '🎓 배움모드 · ' : '';
+  box.innerHTML = `
+    <div class="bhf-top-row">
+      <span class="bhf-move-pill">${meta.pieceIcon} ${meta.pieceName} ${meta.moveCoord}</span>
+      <span class="hint-tactical-badge ${meta.badgeClass}">${meta.badge}</span>
+    </div>
+    <div class="bhf-desc-text">${meta.explanation}</div>
+    <div class="bhf-engine-tag">${modeTag}${meta.engineTag}</div>
+  `;
+  box.style.display = 'flex';
+}
+
+window.addEventListener('resize', () => {
+  if (state.hintMove && state.boardHintMeta) renderBoardFloatingHint();
+});
 
 // Convert chess square (e.g. 'e4') to percentage coordinates (0-100%) on SVG
 function getSquareCenterPercent(sq, isFlipped) {

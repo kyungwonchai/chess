@@ -1,5 +1,135 @@
 [
   {
+    "id": "game_1792208329361_ai",
+    "roomId": "AI Lv.1",
+    "playedAt": "2026-10-17T03:38:49.361Z",
+    "white": "플레이어 1",
+    "black": "AI Lv.1",
+    "winner": "b",
+    "winnerName": "AI Lv.1",
+    "endReason": "흑의 시간승입니다.",
+    "totalMoves": 6,
+    "durationSeconds": 1683,
+    "hintsUsed": 3,
+    "undosUsed": 0,
+    "aiModel": "minimax",
+    "aiLevel": 1,
+    "playerColor": "w",
+    "fen": "r1bqkbnr/1ppppppp/p7/3Pn3/6P1/8/PPP1PP1P/RNBQKBNR w KQkq - 1 4",
+    "pgn": "[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"?\"]\n[White \"?\"]\n[Black \"?\"]\n[Result \"*\"]\n\n1. g4 Nc6 2. d4 a6 3. d5 Ne5 *",
+    "timeControl": "10분",
+    "history": [
+      {
+        "from": "g2",
+        "to": "g4",
+        "piece": "p",
+        "color": "w",
+        "san": "g4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "b8",
+        "to": "c6",
+        "piece": "n",
+        "color": "b",
+        "san": "Nc6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d2",
+        "to": "d4",
+        "piece": "p",
+        "color": "w",
+        "san": "d4",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "a7",
+        "to": "a6",
+        "piece": "p",
+        "color": "b",
+        "san": "a6",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "d4",
+        "to": "d5",
+        "piece": "p",
+        "color": "w",
+        "san": "d5",
+        "captured": null,
+        "promotion": null
+      },
+      {
+        "from": "c6",
+        "to": "e5",
+        "piece": "n",
+        "color": "b",
+        "san": "Ne5",
+        "captured": null,
+        "promotion": null
+      }
+    ],
+    "clientIp": "127.0.0.1",
+    "analytics": {
+      "mode": "ai",
+      "humanColor": "w",
+      "humanName": "플레이어 1",
+      "opponentName": "AI Lv.1",
+      "aiModel": "minimax",
+      "aiLevel": 1,
+      "outcome": "loss",
+      "playerMovesCount": 3,
+      "totalMoves": 6,
+      "durationSeconds": 1683,
+      "hintsUsed": 3,
+      "undosUsed": 0,
+      "totalHelpersUsed": 3,
+      "cleanPlay": false,
+      "accuracy": 100,
+      "goodMoves": 3,
+      "inaccuracies": 0,
+      "mistakes": 0,
+      "blunders": 0,
+      "phaseMistakes": {
+        "opening": 0,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "phaseMoves": {
+        "opening": 3,
+        "middlegame": 0,
+        "endgame": 0
+      },
+      "tacticalDrops": {
+        "hangingPiece": 0,
+        "missedCapture": 0,
+        "kingSafety": 0,
+        "positional": 0
+      },
+      "lostPieces": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "capturedByHuman": {
+        "q": 0,
+        "r": 0,
+        "b": 0,
+        "n": 0,
+        "p": 0
+      },
+      "keyMistakes": [],
+      "skillScore": 558
+    }
+  },
+  {
     "id": "game_1792154686392_local",
     "roomId": "로컬 2인",
     "playedAt": "2026-10-16T12:44:46.392Z",
