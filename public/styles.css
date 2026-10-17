@@ -3456,14 +3456,73 @@ body.in-game.board-only-mode .chessboard-wrapper {
   to { transform: scale(1.06); }
 }
 
-.hint-explanation-text {
+.hint-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+  gap: 0.5rem;
+}
+
+.hint-piece-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.hint-piece-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.hint-piece-title {
   font-size: 0.78rem;
-  line-height: 1.45;
-  color: #e2e8f0;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 6px 8px;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 2px;
+}
+
+.hint-header-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.hint-eval-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hint-explanation-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hint-reason-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.hint-explanation-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #f1f5f9;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 10px;
   border-radius: 4px;
   border-left: 3px solid #f59e0b;
+  word-break: keep-all;
 }
 
 /* Board Target Square Hint Badges */

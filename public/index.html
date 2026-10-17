@@ -588,14 +588,28 @@
 
                   <!-- Tactical Hint Result Card -->
                   <div class="hint-result-card" id="hint-result-card" style="display: none;">
+                    <div class="hint-card-header">
+                      <div class="hint-piece-preview">
+                        <span id="hint-piece-icon" class="hint-piece-icon">♟️</span>
+                        <div>
+                          <div id="hint-piece-title" class="hint-piece-title">백 폰</div>
+                          <div class="hint-move-tag" id="hint-move-tag">e2 ➔ e4</div>
+                        </div>
+                      </div>
+                      <div class="hint-header-badges">
+                        <span class="hint-tactical-badge hint-badge-attack" id="hint-tactical-badge">⚔️ 공격수</span>
+                        <span class="hint-eval-tag" id="hint-eval-badge">형세: +0.0</span>
+                      </div>
+                    </div>
                     <div class="hint-card-top">
-                      <span class="hint-move-tag" id="hint-move-tag">e2 ➔ e4</span>
-                      <span class="hint-tactical-badge hint-badge-attack" id="hint-tactical-badge">⚔️ 공격수</span>
                       <span class="hint-depth-badge" id="hint-depth-badge">수읽기 15수 앞</span>
                       <button type="button" class="btn-hint-tts" id="btn-hint-tts" title="음성으로 설명 듣기 (TTS)">🔊 듣기</button>
                     </div>
-                    <div class="hint-explanation-text" id="hint-explanation-text">
-                      상대 기물을 위협하고 중앙 영역을 장악하는 최선수입니다.
+                    <div class="hint-explanation-box">
+                      <div class="hint-reason-label">🎯 전술적 추천 이유</div>
+                      <div class="hint-explanation-text" id="hint-explanation-text">
+                        상대 기물을 위협하고 중앙 영역을 장악하는 최선수입니다.
+                      </div>
                     </div>
                   </div>
 
@@ -968,7 +982,7 @@
               <p class="setting-subtext">최선수 힌트를 누를 때 상세 해설 팝업창을 띄웁니다. 끄면 팝업 없이 체스판 위 화살표와 우측 정보만 표시합니다.</p>
             </div>
             <div class="toggle-switch-wrapper">
-              <input type="checkbox" id="setting-show-hint-popup" class="toggle-checkbox" checked>
+              <input type="checkbox" id="setting-show-hint-popup" class="toggle-checkbox">
               <label for="setting-show-hint-popup" class="toggle-label"></label>
             </div>
           </div>

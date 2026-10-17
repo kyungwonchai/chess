@@ -46,7 +46,7 @@ const state = {
   hintModel: localStorage.getItem('chess_hint_model') || 'stockfish', // Default: Stockfish 16 (젤리피쉬 최상모델)
   hintLevel: parseInt(localStorage.getItem('chess_hint_level') || '5', 10), // Default: Level 5 (최상위)
   hintAutoTts: localStorage.getItem('chess_hint_auto_tts') === 'true', // Voice read aloud toggle
-  showHintPopup: localStorage.getItem('chess_show_hint_popup') !== 'false', // Default ON: Show tactical explanation modal
+  showHintPopup: localStorage.getItem('chess_show_hint_popup') === 'true', // Default OFF: Do not popup, show on right side panel
   hintTacticalData: null,
   lastHintTtsText: null,
 
@@ -202,6 +202,9 @@ const el = {
   hintModelPicker: document.getElementById('hint-model-picker'),
   hintLevelPicker: document.getElementById('hint-level-picker'),
   hintResultCard: document.getElementById('hint-result-card'),
+  hintPieceIcon: document.getElementById('hint-piece-icon'),
+  hintPieceTitle: document.getElementById('hint-piece-title'),
+  hintEvalBadge: document.getElementById('hint-eval-badge'),
   hintMoveTag: document.getElementById('hint-move-tag'),
   hintTacticalBadge: document.getElementById('hint-tactical-badge'),
   hintDepthBadge: document.getElementById('hint-depth-badge'),
@@ -3329,12 +3332,26 @@ async function requestBestMoveHint() {
       el.modalHintPopup.classList.add('active');
     }
 
+    // Automatically switch to controls tab so user sees the analysis right away on side panel
+    activateSideTab('tab-controls');
+
     // Update Side UI Card if visible
     if (el.hintResultCard) {
       el.hintResultCard.style.display = 'flex';
     }
+    if (el.hintPieceIcon) {
+      el.hintPieceIcon.innerText = pieceIcon;
+    }
+    if (el.hintPieceTitle) {
+      el.hintPieceTitle.innerText = `${pieceColor} ${pieceName}`;
+    }
     if (el.hintMoveTag) {
       el.hintMoveTag.innerText = `${moveSanStr} (${moveCoordStr})`;
+    }
+    if (el.hintEvalBadge) {
+      const evalVal = (state.evaluation !== undefined && state.evaluation !== null) ? state.evaluation : 0;
+      const evalSign = evalVal > 0 ? '+' : '';
+      el.hintEvalBadge.innerText = `형세: ${evalSign}${evalVal.toFixed(1)}`;
     }
     if (el.hintTacticalBadge) {
       el.hintTacticalBadge.className = `hint-tactical-badge ${tactical.badgeClass}`;
@@ -3348,6 +3365,11 @@ async function requestBestMoveHint() {
     }
     if (el.engineHintText) {
       el.engineHintText.innerText = `💡 ${engineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
+    }
+
+    // Smooth scroll the hint card into view if needed
+    if (el.hintResultCard && typeof el.hintResultCard.scrollIntoView === 'function') {
+      el.hintResultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     showToast(`💡 최선수(${engineName}): ${pieceColor} ${pieceName} ${moveCoordStr} · ${tactical.badge}`);
