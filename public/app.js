@@ -47,8 +47,12 @@ const state = {
   hintLevel: parseInt(localStorage.getItem('chess_hint_level') || '5', 10), // Default: Level 5 (최상위)
   hintAutoTts: localStorage.getItem('chess_hint_auto_tts') === 'true', // Voice read aloud toggle
   showHintPopup: localStorage.getItem('chess_show_hint_popup') === 'true', // Default OFF: Do not popup, show on right side panel
+  autoHint: localStorage.getItem('chess_auto_hint') !== 'false', // Default ON: Learning Mode (auto best move & on-board explanation on my turn)
   hintTacticalData: null,
+  boardHintMeta: null,
+  hintCalcToken: 0,
   lastHintTtsText: null,
+  evaluation: 0,
 
   // Visual Assist Line Guides & AI Animation
   showAttackLines: localStorage.getItem('chess_show_attack_lines') === 'true',
@@ -70,6 +74,7 @@ const state = {
   // WiFi Online state
   ws: null,
   roomId: null,
+  roomPgn: '',
   drawOfferPending: false,
   playerId: (() => {
     let pid = localStorage.getItem('chess_player_id');
@@ -81,7 +86,7 @@ const state = {
   })(),
   playerName: localStorage.getItem('chess_player_name') || '플레이어 1',
   opponentName: '상대방',
-  serverUrl: window.location.origin,
+  serverUrl: window.location.origin.replace(/\/+$/, ''),
   moveHistory: []
 };
 
@@ -132,6 +137,7 @@ const el = {
   aiLevelPicker: document.getElementById('ai-level-picker'),
   aiTimePicker: document.getElementById('ai-time-picker'),
   aiHintPicker: document.getElementById('ai-hint-picker'),
+  aiAutoHintToggle: document.getElementById('ai-auto-hint-toggle'),
   btnStartAi: document.getElementById('btn-start-ai'),
 
   // Dynamic In-Game AI Model & Level Switcher
@@ -162,6 +168,7 @@ const el = {
   chessboardWrapper: document.getElementById('chessboard-wrapper'),
   chessboard: document.getElementById('chessboard'),
   boardLinesOverlay: document.getElementById('board-lines-overlay'),
+  boardHintFloatingBox: document.getElementById('board-hint-floating-box'),
   svgLastMoveGroup: document.getElementById('svg-lastmove-group'),
   svgAttackGroup: document.getElementById('svg-attack-group'),
   svgThreatGroup: document.getElementById('svg-threat-group'),
@@ -191,6 +198,9 @@ const el = {
   // Side Tools & Visual Guide
   btnAiHint: document.getElementById('btn-ai-hint'),
   lblAiHint: document.getElementById('lbl-ai-hint'),
+  chkAutoHint: document.getElementById('chk-auto-hint'),
+  chkClockAutoHint: document.getElementById('chk-clock-auto-hint'),
+  lblClockAutoHint: document.getElementById('lbl-clock-auto-hint'),
   chkShowAttackLines: document.getElementById('chk-show-attack-lines'),
   chkShowThreatLines: document.getElementById('chk-show-threat-lines'),
   chkShowPreviewLines: document.getElementById('chk-show-preview-lines'),
@@ -308,6 +318,7 @@ const el = {
   // Settings Modal
   modalSettings: document.getElementById('modal-settings'),
   btnCloseSettingsModal: document.getElementById('btn-close-settings-modal'),
+  settingAutoHint: document.getElementById('setting-auto-hint'),
   settingHintLimit: document.getElementById('setting-hint-limit'),
   settingHintModel: document.getElementById('setting-hint-model'),
   settingHintLevel: document.getElementById('setting-hint-level'),
@@ -401,13 +412,15 @@ function formatTime(seconds) {
 
 async function initNetworkInfo() {
   const isLocalHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  const apiPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
   if (isLocalHost) {
     try {
-      const res = await fetch('/api/info');
+      const res = await fetch(`${apiPrefix}/api/info`);
       const data = await res.json();
       if (data.primaryUrl) {
-        el.headerWifiIp.innerText = data.primaryUrl.replace(/^http:\/\//, '');
-        state.serverUrl = `${data.primaryUrl}/chess`;
+        const cleanPrimary = data.primaryUrl.replace(/\/+$/, '');
+        el.headerWifiIp.innerText = cleanPrimary.replace(/^http:\/\//, '');
+        state.serverUrl = `${cleanPrimary}/chess`;
       }
     } catch (err) {
       el.headerWifiIp.innerText = window.location.host;
@@ -415,7 +428,7 @@ async function initNetworkInfo() {
   } else {
     el.headerWifiIp.innerText = window.location.host;
     const pathPrefix = window.location.pathname.startsWith('/chess') ? '/chess' : '';
-    state.serverUrl = `${window.location.origin}${pathPrefix}`;
+    state.serverUrl = `${window.location.origin}${pathPrefix}`.replace(/\/+$/, '');
   }
 }
 
@@ -792,12 +805,137 @@ function renderBoard(fullRebuild = false) {
 
   // Render Visual Guide Lines (Attack & Threat Lines)
   renderBoardLines();
+  renderBoardFloatingHint();
 
   updateCapturedAndMaterial();
   updateStatusBanner();
   updateBoardOnlyStatus();
   renderNotation();
   updateHintUi();
+}
+
+function sqToVisualRC(sq, isFlipped) {
+  const file = sq.charCodeAt(0) - 97; // 0..7
+  const rank = parseInt(sq[1], 10) - 1; // 0..7
+  return {
+    rIdx: isFlipped ? rank : 7 - rank,
+    cIdx: isFlipped ? 7 - file : file
+  };
+}
+
+function distancePointToSegment(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+  let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+// Dynamically find an empty 4x2 rectangular area on the 8x8 board (no pieces, no hint arrow overlap)
+// and render the semi-transparent tactical explanation box there
+function renderBoardFloatingHint() {
+  if (!el.boardHintFloatingBox) return;
+
+  if (state.gameStatus !== 'playing' || !state.hintMove || !state.boardHintMeta) {
+    el.boardHintFloatingBox.style.display = 'none';
+    return;
+  }
+
+  const board = state.game.board();
+  const isFlipped = state.boardFlipped;
+  const fromRC = sqToVisualRC(state.hintMove.from, isFlipped);
+  const toRC = sqToVisualRC(state.hintMove.to, isFlipped);
+  const legalSet = new Set((state.legalMovesForSelected || []).map(m => m.to));
+
+  const rectCols = 4;
+  const rectRows = 2;
+  let bestR = 3;
+  let bestC = 2;
+  let minPenalty = Infinity;
+
+  for (let startR = 0; startR <= 8 - rectRows; startR++) {
+    for (let startC = 0; startC <= 8 - rectCols; startC++) {
+      let penalty = 0;
+
+      for (let dr = 0; dr < rectRows; dr++) {
+        for (let dc = 0; dc < rectCols; dc++) {
+          const rIdx = startR + dr;
+          const cIdx = startC + dc;
+          const r = isFlipped ? 7 - rIdx : rIdx;
+          const c = isFlipped ? 7 - cIdx : cIdx;
+          const sqName = `${String.fromCharCode(97 + c)}${8 - r}`;
+
+          // 1. Strongly avoid squares occupied by any chess piece
+          if (board[r][c]) {
+            penalty += 180;
+          }
+
+          // 2. Never cover the recommended move's start or destination square
+          if (sqName === state.hintMove.from || sqName === state.hintMove.to) {
+            penalty += 2500;
+          }
+
+          // 3. Avoid covering the golden arrow line between hintMove.from and hintMove.to
+          const distToArrow = distancePointToSegment(
+            cIdx + 0.5, rIdx + 0.5,
+            fromRC.cIdx + 0.5, fromRC.rIdx + 0.5,
+            toRC.cIdx + 0.5, toRC.rIdx + 0.5
+          );
+          if (distToArrow < 0.72) {
+            penalty += 450;
+          }
+
+          // 4. Avoid selected piece and its legal destination dots so user can click freely
+          if (sqName === state.selectedSquare) {
+            penalty += 1200;
+          }
+          if (legalSet.has(sqName)) {
+            penalty += 400;
+          }
+
+          // 5. Slight penalty for last move squares
+          if (state.lastMove && (sqName === state.lastMove.from || sqName === state.lastMove.to)) {
+            penalty += 30;
+          }
+        }
+      }
+
+      // Prefer middle ranks (ranks 3~6, startR 2~4) where board is naturally open
+      penalty += Math.abs(startR - 3) * 10;
+
+      // Among equally empty regions, prefer being reasonably near the hint move for eye comfort
+      const centerR = startR + rectRows / 2;
+      const centerC = startC + rectCols / 2;
+      const distToHint = Math.hypot(centerR - (toRC.rIdx + 0.5), centerC - (toRC.cIdx + 0.5));
+      penalty += distToHint * 4;
+
+      if (penalty < minPenalty) {
+        minPenalty = penalty;
+        bestR = startR;
+        bestC = startC;
+      }
+    }
+  }
+
+  const meta = state.boardHintMeta;
+  const topPct = (bestR * 12.5 + 0.8).toFixed(2);
+  const leftPct = (bestC * 12.5 + 0.8).toFixed(2);
+  const widthPct = (rectCols * 12.5 - 1.6).toFixed(2);
+
+  el.boardHintFloatingBox.style.top = `${topPct}%`;
+  el.boardHintFloatingBox.style.left = `${leftPct}%`;
+  el.boardHintFloatingBox.style.width = `${widthPct}%`;
+  el.boardHintFloatingBox.innerHTML = `
+    <div class="bhf-top-row">
+      <span class="bhf-move-pill">${meta.pieceIcon} ${meta.pieceColor} ${meta.pieceName} ${meta.moveCoordStr}</span>
+      <span class="hint-tactical-badge ${meta.tactical.badgeClass}" style="font-size:0.68rem; padding:1px 5px;">${meta.tactical.badge}</span>
+      <span class="bhf-engine-tag">${state.autoHint && state.mode === 'ai' ? '🎓 배움모드 · ' : ''}${meta.engineShort}</span>
+    </div>
+    <div class="bhf-desc-text">${meta.tactical.explanation}</div>
+  `;
+  el.boardHintFloatingBox.style.display = 'flex';
 }
 
 // Convert chess square (e.g. 'e4') to percentage coordinates (0-100%) on SVG
@@ -1007,10 +1145,32 @@ function handleSquareLeave(squareName) {
   }
 }
 
+function syncAutoHintUi(val, save = true) {
+  state.autoHint = !!val;
+  if (save) {
+    localStorage.setItem('chess_auto_hint', String(state.autoHint));
+  }
+  if (el.aiAutoHintToggle) el.aiAutoHintToggle.checked = state.autoHint;
+  if (el.chkClockAutoHint) el.chkClockAutoHint.checked = state.autoHint;
+  if (el.chkAutoHint) el.chkAutoHint.checked = state.autoHint;
+  if (el.settingAutoHint) el.settingAutoHint.checked = state.autoHint;
+}
+
+function triggerAutoHintIfNeeded() {
+  if (state.gameStatus !== 'playing') return;
+  if (!state.autoHint) return;
+  if (state.mode === 'ai' && state.game.turn() === state.playerColor && !state.aiThinking) {
+    requestBestMoveHint({ isAuto: true });
+  }
+}
+
 function updateHintUi() {
+  if (el.lblClockAutoHint) {
+    el.lblClockAutoHint.style.display = (state.mode === 'ai') ? 'inline-flex' : 'none';
+  }
   if (!el.btnAiHint) return;
 
-  if (state.maxHints === 0) {
+  if (state.maxHints === 0 && !state.autoHint) {
     el.btnAiHint.style.display = 'none';
     if (el.btnBotHint) el.btnBotHint.style.display = 'none';
     return;
@@ -1019,10 +1179,10 @@ function updateHintUi() {
   el.btnAiHint.style.display = 'flex';
   if (el.btnBotHint) el.btnBotHint.style.display = 'inline-flex';
 
-  const isUnlimited = state.maxHints < 0;
+  const isUnlimited = state.maxHints < 0 || (state.mode === 'ai' && state.autoHint);
   if (isUnlimited) {
     if (el.lblAiHint) {
-      el.lblAiHint.innerText = '최선수 힌트 (무제한 ♾️)';
+      el.lblAiHint.innerText = state.autoHint && state.mode === 'ai' ? '최선수 (🎓 배움모드)' : '최선수 힌트 (무제한 ♾️)';
     }
     el.btnAiHint.style.opacity = '1';
     el.btnAiHint.style.pointerEvents = 'auto';
@@ -1059,7 +1219,7 @@ function updateHintUi() {
 
   // Update Clock-adjacent Best Move buttons
   if (el.btnClockHint) {
-    if (state.maxHints === 0) {
+    if (state.maxHints === 0 && !state.autoHint) {
       el.btnClockHint.style.display = 'none';
     } else {
       el.btnClockHint.style.display = 'inline-flex';
@@ -1124,11 +1284,10 @@ function handleSquareClick(e, square) {
     }
   }
 
-  // Select piece of current player
+  // Select piece of current player (Preserve hintMove & on-board explanation so player can see recommended square while moving!)
   if (piece && piece.color === currentTurn) {
     state.selectedSquare = square;
     state.legalMovesForSelected = state.game.moves({ square, verbose: true });
-    clearHintUi();
     renderBoard();
   } else {
     state.selectedSquare = null;
@@ -1322,7 +1481,7 @@ function animatePieceMove(fromSquare, toSquare, pieceKey, onComplete) {
 function handleAIMoveResult(aiMove) {
   if (!aiMove || state.gameStatus !== 'playing') return;
 
-  state.hintMove = null;
+  clearHintUi();
 
   const fromSq = aiMove.from;
   const toSq = aiMove.to;
@@ -1352,7 +1511,11 @@ function handleAIMoveResult(aiMove) {
 
     if (state.game.isGameOver()) {
       handleGameOver();
+      return;
     }
+
+    // If Learning Mode (최선수 항상 체크) is enabled, automatically show best move & on-board explanation on user's turn!
+    triggerAutoHintIfNeeded();
   };
 
   if (state.aiMoveAnim && pieceKey) {
@@ -1389,7 +1552,8 @@ function triggerAsyncEvaluation() {
 
 function applyAnalysisResult(analysis) {
   const score = analysis.rawScore;
-  const scoreInPawns = (score / 100).toFixed(1);
+  state.evaluation = score / 100;
+  const scoreInPawns = state.evaluation.toFixed(1);
 
   el.engineEvalText.innerText = `${score > 0 ? '+' : ''}${scoreInPawns} (${score > 50 ? '백 우세' : score < -50 ? '흑 우세' : '균형'})`;
 
@@ -1444,9 +1608,9 @@ function updateCapturedAndMaterial() {
     }
   });
 
-  const isUserWhite = (state.playerColor === 'w') ||
-                      (state.playerColor === 'spectator') ||
-                      (state.mode === 'local' && !state.boardFlipped);
+  const isUserWhite = state.mode === 'local'
+    ? !state.boardFlipped
+    : (state.playerColor !== 'b');
 
   // User bar (bottom) displays opponent pieces that user captured
   // Opponent bar (top) displays user pieces that opponent captured (내가 먹힌 것)
@@ -1529,7 +1693,21 @@ function updateStatusBanner() {
     el.gameStatusBanner.style.borderColor = 'var(--border-color)';
   }
 
-  const isUserWhite = state.playerColor === 'w' || (state.mode === 'local' && !state.boardFlipped);
+  const isUserWhite = state.mode === 'local'
+    ? !state.boardFlipped
+    : (state.playerColor !== 'b');
+
+  if (state.mode === 'local') {
+    el.userName.innerText = isUserWhite ? '플레이어 1 (백)' : '플레이어 2 (흑)';
+    el.userTag.innerText = isUserWhite ? '백' : '흑';
+    el.opponentName.innerText = isUserWhite ? '플레이어 2 (흑)' : '플레이어 1 (백)';
+    el.opponentTag.innerText = isUserWhite ? '흑' : '백';
+    if (state.timeControl.initial > 0) {
+      el.userTimer.innerText = formatTime(state.timers[isUserWhite ? 'w' : 'b']);
+      el.opponentTimer.innerText = formatTime(state.timers[isUserWhite ? 'b' : 'w']);
+    }
+  }
+
   if (currentTurn === (isUserWhite ? 'w' : 'b')) {
     el.userClockBox.classList.add('active-turn');
     el.opponentClockBox.classList.remove('active-turn');
@@ -1540,7 +1718,9 @@ function updateStatusBanner() {
 }
 
 function renderNotation() {
-  const history = state.game.history({ verbose: true });
+  const history = (state.mode === 'wifi' && state.moveHistory && state.moveHistory.length > 0)
+    ? state.moveHistory
+    : state.game.history({ verbose: true });
   el.notationMovesList.innerHTML = '';
 
   for (let i = 0; i < history.length; i += 2) {
@@ -1561,17 +1741,25 @@ function renderNotation() {
 }
 
 // ================= CLOCKS =================
-function startLocalClocks() {
+function startLocalClocks(reset = true) {
+  if (state.clockInterval) clearInterval(state.clockInterval);
+
   if (state.timeControl.initial <= 0) {
     el.userTimer.innerText = '∞';
     el.opponentTimer.innerText = '∞';
     return;
   }
 
-  state.timers.w = state.timeControl.initial;
-  state.timers.b = state.timeControl.initial;
+  if (reset || state.timers.w === undefined || state.timers.b === undefined) {
+    state.timers.w = state.timeControl.initial;
+    state.timers.b = state.timeControl.initial;
+  }
 
-  if (state.clockInterval) clearInterval(state.clockInterval);
+  const isUserWhiteInit = state.mode === 'local'
+    ? !state.boardFlipped
+    : (state.playerColor !== 'b');
+  el.userTimer.innerText = formatTime(state.timers[isUserWhiteInit ? 'w' : 'b']);
+  el.opponentTimer.innerText = formatTime(state.timers[isUserWhiteInit ? 'b' : 'w']);
 
   state.clockInterval = setInterval(() => {
     if (state.gameStatus !== 'playing') return;
@@ -1579,7 +1767,9 @@ function startLocalClocks() {
     const turn = state.game.turn();
     state.timers[turn] = Math.max(0, state.timers[turn] - 1);
 
-    const isUserWhite = state.playerColor === 'w' || (state.mode === 'local' && !state.boardFlipped);
+    const isUserWhite = state.mode === 'local'
+      ? !state.boardFlipped
+      : (state.playerColor !== 'b');
     el.userTimer.innerText = formatTime(state.timers[isUserWhite ? 'w' : 'b']);
     el.opponentTimer.innerText = formatTime(state.timers[isUserWhite ? 'b' : 'w']);
 
@@ -1884,12 +2074,15 @@ function handleServerMessage(msg) {
     const prevHistoryLength = (state.moveHistory && state.moveHistory.length) || 0;
     state.gameStatus = msg.status;
     state.game.load(msg.fen);
+    state.roomPgn = msg.pgn || '';
     state.timeControl = msg.timeControl;
     state.moveHistory = msg.history || [];
     state.activeTurn = state.game.turn();
     state.selectedSquare = null;
     state.legalMovesForSelected = [];
-    state.hintMove = null;
+    if (msg.history && msg.history.length !== prevHistoryLength) {
+      clearHintUi();
+    }
 
     if (el.userAvatar) el.userAvatar.innerText = '👤';
     if (el.opponentAvatar) el.opponentAvatar.innerText = '👤';
@@ -1913,6 +2106,7 @@ function handleServerMessage(msg) {
         state.selectedSquare = null;
         state.legalMovesForSelected = [];
         state.lastMove = null;
+        clearHintUi();
         state.hintsUsed = 0;
         state.undosUsed = 0;
         state.priorElapsedSeconds = 0;
@@ -1997,6 +2191,7 @@ function handleServerMessage(msg) {
 
     if (msg.status === 'ended') {
       clearActiveSessionState();
+      clearHintUi();
       if (el.modalDrawOffer) el.modalDrawOffer.classList.remove('active');
       if (prevStatus !== 'ended') {
         const isWin = (msg.winner === state.playerColor);
@@ -2043,7 +2238,7 @@ function handleServerMessage(msg) {
   }
 
   else if (type === 'clock_tick') {
-    const isUserWhite = state.playerColor === 'w';
+    const isUserWhite = (state.playerColor === 'w' || state.playerColor === 'spectator');
     el.userTimer.innerText = formatTime(isUserWhite ? msg.whiteTime : msg.blackTime);
     el.opponentTimer.innerText = formatTime(isUserWhite ? msg.blackTime : msg.whiteTime);
 
@@ -2067,6 +2262,10 @@ function handleServerMessage(msg) {
     audio.playNotify();
   }
 
+  else if (type === 'toast') {
+    if (msg.message) showToast(msg.message);
+  }
+
   else if (type === 'error') {
     showToast(msg.message || '오류가 발생했습니다.');
   }
@@ -2082,6 +2281,7 @@ function switchView(viewName) {
     if (el.onlineRoomTopbar) el.onlineRoomTopbar.style.display = 'none';
     state.gameStatus = 'idle';
     state.aiThinking = false;
+    clearHintUi();
     if (state.clockInterval) clearInterval(state.clockInterval);
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
       state.ws.send(JSON.stringify({ type: 'list_rooms' }));
@@ -2352,6 +2552,7 @@ function resumeActiveSession(session) {
   state.undosUsed = session.undosUsed || 0;
   state.priorElapsedSeconds = session.elapsedSeconds || 0;
   state.gameStartTime = Date.now();
+  clearHintUi();
 
   if (session.mode === 'ai') {
     if (el.sideAiModelBox) el.sideAiModelBox.style.display = 'block';
@@ -2388,9 +2589,13 @@ function resumeActiveSession(session) {
   triggerAsyncEvaluation();
 
   if (state.mode === 'ai' || state.mode === 'local') {
-    startLocalClocks();
-    if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
-      setTimeout(triggerAIMove, 600);
+    startLocalClocks(false);
+    if (state.mode === 'ai') {
+      if (state.activeTurn !== state.playerColor) {
+        setTimeout(triggerAIMove, 600);
+      } else {
+        setTimeout(triggerAutoHintIfNeeded, 300);
+      }
     }
   }
 
@@ -2403,11 +2608,15 @@ function startAiGame() {
   state.game = new Chess();
   state.moveHistory = [];
   state.lastMove = null;
-  state.hintMove = null;
   state.selectedSquare = null;
   state.legalMovesForSelected = [];
   state.gameStatus = 'playing';
   state.aiThinking = false;
+  clearHintUi();
+
+  if (el.aiAutoHintToggle) {
+    syncAutoHintUi(el.aiAutoHintToggle.checked);
+  }
 
   if (el.aiPlayerName) {
     const customName = el.aiPlayerName.value.trim() || '플레이어 1';
@@ -2450,12 +2659,14 @@ function startAiGame() {
 
   switchView('game');
   updateHintUi();
-  startLocalClocks();
+  startLocalClocks(true);
   triggerAsyncEvaluation();
   saveActiveSessionState();
 
   if (chosenColor === 'b') {
     setTimeout(triggerAIMove, 400);
+  } else {
+    setTimeout(triggerAutoHintIfNeeded, 250);
   }
 }
 
@@ -2464,7 +2675,6 @@ function startLocalGame() {
   state.game = new Chess();
   state.moveHistory = [];
   state.lastMove = null;
-  state.hintMove = null;
   state.selectedSquare = null;
   state.legalMovesForSelected = [];
   state.playerColor = 'w';
@@ -2476,6 +2686,7 @@ function startLocalGame() {
   state.undosUsed = 0;
   state.priorElapsedSeconds = 0;
   state.gameStartTime = Date.now();
+  clearHintUi();
 
   const timeMinutes = parseInt(el.localTimePicker.value, 10);
   state.timeControl = { initial: timeMinutes * 60, increment: 0 };
@@ -2491,7 +2702,7 @@ function startLocalGame() {
 
   switchView('game');
   updateHintUi();
-  startLocalClocks();
+  startLocalClocks(true);
   triggerAsyncEvaluation();
   saveActiveSessionState();
 }
@@ -3052,11 +3263,25 @@ function clearHintUi() {
   state.hintMove = null;
   state.hintTacticalData = null;
   state.lastHintTtsText = null;
+  state.boardHintMeta = null;
+  state.hintCalcToken = (state.hintCalcToken || 0) + 1;
   if (el.hintResultCard) {
     el.hintResultCard.style.display = 'none';
   }
   if (el.modalHintPopup) {
     el.modalHintPopup.classList.remove('active');
+  }
+  if (el.boardHintFloatingBox) {
+    el.boardHintFloatingBox.style.display = 'none';
+  }
+}
+
+function refreshCurrentHintIfNeeded() {
+  if (state.gameStatus !== 'playing') return;
+  const isMyAiTurn = state.mode === 'ai' && state.activeTurn === state.playerColor && !state.aiThinking;
+  const shouldRefresh = Boolean(state.hintMove) || (isMyAiTurn && state.autoHint);
+  if (shouldRefresh) {
+    requestBestMoveHint({ isAuto: false, isDynamicModelChange: true });
   }
 }
 
@@ -3084,8 +3309,11 @@ function speakText(text) {
   }
 }
 
+const PIECE_VALUE_POINTS = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 99 };
+
 function analyzeTacticalMove(game, moveObj) {
-  const pieceName = PIECE_NAMES_KO[moveObj.piece.toLowerCase()] || '기물';
+  const pieceType = moveObj.piece.toLowerCase();
+  const pieceName = PIECE_NAMES_KO[pieceType] || '기물';
   const oppColor = moveObj.color === 'w' ? 'b' : 'w';
 
   let type = 'strategy'; // 'attack' | 'defense' | 'strategy'
@@ -3094,18 +3322,44 @@ function analyzeTacticalMove(game, moveObj) {
   let explanation = '';
   let speechSummary = '';
 
+  // Helper: check if destination square is defended by opponent after this move
+  let isDestDefendedByOpp = false;
+  let nowThreatens = [];
+  let givesDiscoveredCheck = false;
+  try {
+    const nextGame = new Chess(game.fen());
+    nextGame.move(moveObj);
+    const oppReplies = nextGame.moves({ verbose: true });
+    isDestDefendedByOpp = oppReplies.some(r => r.to === moveObj.to);
+
+    // Check what our moved piece attacks on the next turn
+    const tokens = nextGame.fen().split(' ');
+    tokens[1] = moveObj.color;
+    tokens[3] = '-';
+    const myTurnGame = new Chess();
+    myTurnGame.load(tokens.join(' '), { skipValidation: true });
+    const myFollowUps = myTurnGame.moves({ verbose: true });
+    const destAttacks = myFollowUps.filter(m => m.from === moveObj.to && m.captured);
+    nowThreatens = destAttacks.map(m => PIECE_NAMES_KO[m.captured.toLowerCase()] || '상대 기물');
+  } catch (e) {}
+
   // 1. Checkmate or Check
   if (moveObj.san.includes('#')) {
     type = 'attack';
     badge = '🏆 체크메이트';
     badgeClass = 'hint-badge-mate';
-    explanation = `상대 킹을 외통수로 몰아넣어 승리를 결정짓는 완벽한 체크메이트입니다!`;
+    explanation = `${pieceName}을(를) ${moveObj.to} 칸으로 이동해 상대 킹의 모든 퇴로를 차단하는 즉승 체크메이트입니다!`;
     speechSummary = `승리를 결정짓는 결정적 체크메이트 공격수입니다!`;
   } else if (moveObj.san.includes('+')) {
     type = 'attack';
-    badge = '⚔️ 체크 공격';
+    badge = '⚔️ 체크 압박';
     badgeClass = 'hint-badge-attack';
-    explanation = `${pieceName}이(가) 상대 킹을 직접 겨누며 강력한 압박을 가하는 체크 공격수입니다.`;
+    if (moveObj.captured) {
+      const capName = PIECE_NAMES_KO[moveObj.captured.toLowerCase()] || '기물';
+      explanation = `상대 ${capName}을(를) 잡으면서 동시에 킹을 체크로 몰아붙여 응수를 강제하는 강력한 선제공격입니다.`;
+    } else {
+      explanation = `${pieceName}이(가) ${moveObj.to}에서 상대 킹을 직접 겨누어 상대의 템포를 빼앗고 주도권을 쥐는 체크 공격수입니다.`;
+    }
     speechSummary = `상대 킹을 직접 위협하는 체크 공격수입니다.`;
   }
   // 2. Promotion
@@ -3114,27 +3368,48 @@ function analyzeTacticalMove(game, moveObj) {
     type = 'attack';
     badge = '👑 폰 승격';
     badgeClass = 'hint-badge-attack';
-    explanation = `폰을 ${promoName}(으)로 승격시켜 전력을 극대화하는 결정적 전술수입니다.`;
+    explanation = `끝줄(${moveObj.to})까지 전진한 폰을 강력한 ${promoName}(으)로 승격시켜 단숨에 승기를 잡는 결정적 한 수입니다.`;
     speechSummary = `폰을 ${promoName}으로 승격시키는 결정적 공격수입니다.`;
   }
-  // 3. Captures
+  // 3. Captures (with material gain / trade analysis)
   else if (moveObj.captured) {
-    const capName = PIECE_NAMES_KO[moveObj.captured.toLowerCase()] || '기물';
+    const capType = moveObj.captured.toLowerCase();
+    const capName = PIECE_NAMES_KO[capType] || '기물';
+    const myVal = PIECE_VALUE_POINTS[pieceType] || 1;
+    const capVal = PIECE_VALUE_POINTS[capType] || 1;
     type = 'attack';
-    badge = `⚔️ ${capName} 포획`;
-    badgeClass = 'hint-badge-attack';
-    explanation = `상대 ${capName}을(를) 포획하여 전력상 우위를 점하는 직접적인 공격수입니다.`;
-    speechSummary = `상대 ${capName}을 잡아 전력 우위를 점하는 공격수입니다.`;
+
+    if (!isDestDefendedByOpp) {
+      badge = `🎯 공짜 ${capName} 포획`;
+      badgeClass = 'hint-badge-attack';
+      explanation = `수비가 없는 상대 ${capName}(+${capVal}점)을(를) 손실 없이 공짜로 잡아 기물 우위를 크게 벌리는 유리한 수입니다!`;
+      speechSummary = `방어가 없는 상대 ${capName}을 공짜로 잡는 유리한 공격수입니다.`;
+    } else if (capVal > myVal) {
+      badge = `⚔️ 이득 교환 (+${capVal - myVal}점)`;
+      badgeClass = 'hint-badge-attack';
+      explanation = `${pieceName}(${myVal}점)으로 더 가치가 높은 상대 ${capName}(${capVal}점)을(를) 잡아 기물 교환에서 확실한 이득을 보는 수입니다.`;
+      speechSummary = `가치가 높은 상대 ${capName}을 잡아 이득을 보는 공격수입니다.`;
+    } else if (capVal === myVal) {
+      badge = `⚔️ ${capName} 맞교환`;
+      badgeClass = 'hint-badge-attack';
+      explanation = `상대의 핵심 활동 기물인 ${capName}을(를) 동등하게 교환하여 상대의 공격 압박을 줄이고 판세를 단순화합니다.`;
+      speechSummary = `상대 ${capName}을 맞교환하여 압박을 해소하는 수입니다.`;
+    } else {
+      badge = `⚔️ ${capName} 제압`;
+      badgeClass = 'hint-badge-attack';
+      explanation = `상대 진영의 ${capName}을(를) 제거하여 수비벽을 무너뜨리고 후속 전술 기회를 여는 돌파수입니다.`;
+      speechSummary = `상대 ${capName}을 잡아 돌파구를 여는 공격수입니다.`;
+    }
   }
   // 4. Castling
   else if (moveObj.flags && (moveObj.flags.includes('k') || moveObj.flags.includes('q'))) {
     type = 'defense';
-    badge = '🛡️ 킹 보호 캐슬링';
+    badge = '🛡️ 캐슬링 (킹 보호+룩 전개)';
     badgeClass = 'hint-badge-defense';
-    explanation = `킹을 안전한 구석으로 대피시키고 룩의 활동 반경을 넓히는 핵심 방어·전개수입니다.`;
+    explanation = `킹을 안전한 측면 요새로 대피시키는 동시에 구석의 룩을 중앙 파일로 빠르게 연결하는 일석이조의 정석 수입니다.`;
     speechSummary = `킹을 안전하게 지키고 룩을 중앙으로 전개하는 캐슬링 방어수입니다.`;
   }
-  // 5. Escape / Defense / Fork / Center
+  // 5. Escape / Defense / Fork / Development / Center
   else {
     let wasThreatened = false;
     let threatPieces = [];
@@ -3152,48 +3427,55 @@ function analyzeTacticalMove(game, moveObj) {
       }
     } catch (e) {}
 
-    // Check if new destination threatens opponent pieces
-    let nowThreatens = [];
-    try {
-      const nextGame = new Chess(game.fen());
-      nextGame.move(moveObj);
-      const myNextMoves = nextGame.moves({ verbose: true });
-      const destAttacks = myNextMoves.filter(m => m.from === moveObj.to && m.captured);
-      nowThreatens = destAttacks.map(m => PIECE_NAMES_KO[m.captured.toLowerCase()] || '상대 기물');
-    } catch (e) {}
-
-    if (wasThreatened) {
+    if (wasThreatened && !isDestDefendedByOpp) {
       type = 'defense';
       const threatSource = threatPieces[0] || '상대';
-      badge = '🛡️ 기물 대피·방어';
+      badge = '🛡️ 위협 회피·안전 대피';
       badgeClass = 'hint-badge-defense';
-      explanation = `${threatSource}의 위협을 받고 있던 ${pieceName}을(를) 안전한 ${moveObj.to} 칸으로 대피시키는 방어수입니다.`;
+      explanation = `상대 ${threatSource}의 공격에 노출된 ${pieceName}을(를) 안전한 ${moveObj.to} 칸으로 피신시켜 기물 손실을 막고 전열을 가다듬습니다.`;
       speechSummary = `상대의 위협을 피해 ${pieceName}을 안전하게 대피시키는 방어수입니다.`;
     } else if (nowThreatens.length > 1) {
       type = 'attack';
-      badge = '⚡ 양수겸장(포크)';
+      badge = '⚡ 양수겸장 (포크 공격)';
       badgeClass = 'hint-badge-attack';
-      explanation = `${pieceName}이(가) ${nowThreatens.slice(0, 2).join('와(과) ')}을(를) 동시에 위협하는 포크(Fork) 공격수입니다.`;
+      explanation = `${pieceName}이(가) ${moveObj.to}로 진출해 상대 ${nowThreatens.slice(0, 2).join('와(과) ')}을(를) 동시에 노려 최소 하나를 얻어내는 날카로운 포크 전술입니다!`;
       speechSummary = `상대 기물 여러 개를 동시에 노리는 포크 공격수입니다.`;
-    } else if (nowThreatens.length === 1) {
+    } else if (nowThreatens.length === 1 && !isDestDefendedByOpp) {
       type = 'attack';
       const target = nowThreatens[0];
-      badge = `⚔️ ${target} 위협`;
+      badge = `⚔️ 상대 ${target} 정조준`;
       badgeClass = 'hint-badge-attack';
-      explanation = `${moveObj.to} 칸으로 진출하여 상대 ${target}을(를) 정조준하고 압박을 가하는 날카로운 공격수입니다.`;
+      explanation = `${pieceName}을(를) 안전한 ${moveObj.to} 거점으로 전진시켜 상대 ${target}을(를) 직접 겨냥하고 수비를 강제하는 유리한 압박수입니다.`;
       speechSummary = `상대 ${target}을 겨냥하여 압박하는 날카로운 공격수입니다.`;
     } else {
-      const centerSquares = ['d4', 'd5', 'e4', 'e5', 'c4', 'c5', 'f4', 'f5'];
-      const isCenter = centerSquares.includes(moveObj.to);
-      if (isCenter) {
-        badge = '♟️ 중앙 장악';
+      const centerCore = ['d4', 'd5', 'e4', 'e5'];
+      const centerExtended = ['c4', 'c5', 'f4', 'f5', 'c3', 'f3', 'c6', 'f6'];
+      const backRank = moveObj.color === 'w' ? '1' : '8';
+
+      if (centerCore.includes(moveObj.to)) {
+        badge = '♟️ 핵심 중앙 장악';
         badgeClass = 'hint-badge-strategy';
-        explanation = `체스판의 핵심 요충지인 ${moveObj.to} 중앙 칸을 장악하여 전술적 주도권을 잡는 전략수입니다.`;
+        explanation = `체스판의 심장부인 ${moveObj.to} 중앙 칸을 선점하여 아군 기물들의 이동 통로를 넓히고 상대의 활동 반경을 좁히는 핵심 전략수입니다.`;
         speechSummary = `중앙 요충지를 장악하여 판세를 유리하게 이끄는 전략수입니다.`;
-      } else {
-        badge = '♟️ 전개 및 포지션 강화';
+      } else if ((pieceType === 'n' || pieceType === 'b') && moveObj.from.endsWith(backRank)) {
+        badge = '🚀 기물 빠른 전개';
         badgeClass = 'hint-badge-strategy';
-        explanation = `${pieceName}의 활동 공간을 넓히고 아군 진영을 탄탄하게 구축하는 균형 잡힌 수입니다.`;
+        explanation = `뒷줄에 잠들어 있던 ${pieceName}을(를) ${moveObj.to} 요충지로 출격시켜 중앙 영향력을 높이고 캐슬링 준비를 돕는 정석 오프닝 전개수입니다.`;
+        speechSummary = `${pieceName}을 전장으로 빠르게 전개하는 정석 수입니다.`;
+      } else if (pieceType === 'r' && ['c', 'd', 'e', 'f'].includes(moveObj.to[0])) {
+        badge = '🗼 룩 중앙열 배치';
+        badgeClass = 'hint-badge-strategy';
+        explanation = `강력한 원거리 기물인 룩을 ${moveObj.to[0].toUpperCase()}열 중앙 라인에 배치하여 열린 길을 장악하고 중·종반 침투를 준비하는 수입니다.`;
+        speechSummary = `룩을 중앙 라인에 배치하여 열을 장악하는 전략수입니다.`;
+      } else if (centerExtended.includes(moveObj.to)) {
+        badge = '♟️ 전초기지·중앙 지원';
+        badgeClass = 'hint-badge-strategy';
+        explanation = `${pieceName}을(를) ${moveObj.to} 거점에 배치하여 중앙 싸움을 든든하게 지원하고 다음 공격 루트를 여는 유리한 포석입니다.`;
+        speechSummary = `중앙 싸움을 지원하는 탄탄한 전략수입니다.`;
+      } else {
+        badge = '♟️ 포지션 강화';
+        badgeClass = 'hint-badge-strategy';
+        explanation = `${pieceName}의 활동 반경을 넓히고 아군 기물 간 연결고리를 단단하게 만들어 상대가 파고들 틈을 없애는 안정적인 호수입니다.`;
         speechSummary = `${pieceName}의 활동 범위를 넓히는 포지션 강화수입니다.`;
       }
     }
@@ -3208,23 +3490,32 @@ function updateHintSettingsUi() {
   if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
   if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
   if (el.settingHintTts) el.settingHintTts.checked = state.hintAutoTts;
+  syncAutoHintUi(state.autoHint);
 }
 
-async function requestBestMoveHint() {
+async function requestBestMoveHint(options = {}) {
+  const { isAuto = false, isDynamicModelChange = false } = options;
+
   if (state.gameStatus !== 'playing') return;
   if (state.mode === 'ai' && state.activeTurn !== state.playerColor) {
-    showToast('상대 AI가 생각 중일 때는 힌트를 사용할 수 없습니다.');
+    if (!isAuto && !isDynamicModelChange) {
+      showToast('상대 AI가 생각 중일 때는 힌트를 사용할 수 없습니다.');
+    }
     return;
   }
-  if (state.maxHints === 0) {
-    showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
-    return;
+  if (!isAuto && !isDynamicModelChange) {
+    if (state.maxHints === 0) {
+      showToast('최선수 힌트 기능이 비활성화되어 있습니다.');
+      return;
+    }
+    const isUnlimited = state.maxHints < 0;
+    if (!isUnlimited && state.hintsUsed >= state.maxHints) {
+      showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
+      return;
+    }
   }
-  const isUnlimited = state.maxHints < 0;
-  if (!isUnlimited && state.hintsUsed >= state.maxHints) {
-    showToast(`최선수 힌트 횟수를 모두 소진했습니다. (최대 ${state.maxHints}회)`);
-    return;
-  }
+
+  const myToken = ++state.hintCalcToken;
 
   // Set loading state on clock hint buttons
   if (el.btnClockHint) {
@@ -3237,14 +3528,17 @@ async function requestBestMoveHint() {
   }
 
   try {
-    state.hintsUsed++;
-    updateHintUi();
+    if (!isAuto && !isDynamicModelChange) {
+      state.hintsUsed++;
+      updateHintUi();
+    }
 
     const chosenModel = state.hintModel || 'stockfish';
     const chosenLevel = state.hintLevel || 5;
 
     const isStockfish = (chosenModel === 'stockfish') && state.stockfish && state.stockfish.isReady;
     const engineName = isStockfish ? 'Stockfish 16 (젤리피쉬)' : 'Minimax AI';
+    const shortEngineName = isStockfish ? 'Stockfish 16' : 'Minimax';
 
     if (el.engineHintText) {
       el.engineHintText.innerText = `💡 ${engineName}이 최선수를 탐색 중입니다... (난이도 Lv.${chosenLevel})`;
@@ -3254,8 +3548,9 @@ async function requestBestMoveHint() {
     let calculatedDepth = chosenLevel;
 
     if (isStockfish) {
-      const maxTime = chosenLevel === 5 ? 1800 : chosenLevel === 4 ? 1200 : chosenLevel === 3 ? 800 : 500;
+      const maxTime = chosenLevel === 5 ? 1100 : chosenLevel === 4 ? 850 : chosenLevel === 3 ? 600 : 400;
       const uciMove = await state.stockfish.getAIMove(state.game.fen(), chosenLevel, maxTime);
+      if (myToken !== state.hintCalcToken) return;
       calculatedDepth = (state.stockfish.getLastDepth && state.stockfish.getLastDepth()) || (chosenLevel * 3 + 2);
 
       if (uciMove) {
@@ -3268,10 +3563,12 @@ async function requestBestMoveHint() {
       }
     }
 
+    if (myToken !== state.hintCalcToken) return;
+
     // Fallback to Minimax if Stockfish returned null or Minimax was chosen
     if (!moveObj) {
       calculatedDepth = chosenLevel;
-      const aiMove = state.engine.getAIMove(state.game, chosenLevel, 2000);
+      const aiMove = state.engine.getAIMove(state.game, chosenLevel, 1500);
       if (aiMove) {
         moveObj = state.game.moves({ verbose: true }).find(m =>
           m.from === aiMove.from && m.to === aiMove.to && (!aiMove.promotion || m.promotion === aiMove.promotion)
@@ -3283,8 +3580,10 @@ async function requestBestMoveHint() {
       }
     }
 
+    if (myToken !== state.hintCalcToken) return;
+
     if (!moveObj) {
-      showToast('추천할 최선수를 찾을 수 없습니다.');
+      if (!isAuto) showToast('추천할 최선수를 찾을 수 없습니다.');
       return;
     }
 
@@ -3292,16 +3591,29 @@ async function requestBestMoveHint() {
     const tactical = analyzeTacticalMove(state.game, moveObj);
     state.hintTacticalData = tactical;
 
-    const remainText = isUnlimited ? '무제한 ♾️' : `남은 횟수: ${state.maxHints - state.hintsUsed}회`;
+    const isUnlimited = state.maxHints < 0;
+    const remainText = state.autoHint ? '배움모드 🎓' : (isUnlimited ? '무제한 ♾️' : `남은 횟수: ${Math.max(0, state.maxHints - state.hintsUsed)}회`);
     const moveCoordStr = `${moveObj.from.toUpperCase()} ➔ ${moveObj.to.toUpperCase()}`;
     const moveSanStr = moveObj.san;
 
-    // Piece Details for Tactical Explanation Popup Modal
+    // Piece Details
     const pieceColor = moveObj.color === 'w' ? '백' : '흑';
     const pieceName = PIECE_NAMES_KO[moveObj.piece.toLowerCase()] || '기물';
     const pieceIcon = (PIECE_ICONS_KO[moveObj.color] && PIECE_ICONS_KO[moveObj.color][moveObj.piece.toLowerCase()]) || '♟';
 
-    // Update Tactical Explanation Popup Modal
+    // Populate On-Board Floating Learning Box Metadata
+    state.boardHintMeta = {
+      badge: tactical.badge,
+      badgeClass: tactical.badgeClass,
+      moveSan: moveSanStr,
+      moveCoord: moveCoordStr,
+      pieceIcon,
+      pieceName: `${pieceColor} ${pieceName}`,
+      engineTag: `${shortEngineName} Lv.${chosenLevel} (${calculatedDepth}수)`,
+      explanation: tactical.explanation
+    };
+
+    // Update Tactical Explanation Popup Modal (only shown if explicitly enabled in settings)
     if (el.hintPopupEngineTag) {
       el.hintPopupEngineTag.innerText = `${engineName} · ${calculatedDepth}수 앞 심층 탐색`;
     }
@@ -3327,15 +3639,15 @@ async function requestBestMoveHint() {
       el.hintPopupExplanation.innerText = tactical.explanation;
     }
 
-    // Open the tactical explanation popup modal (if enabled in settings)
-    if (state.showHintPopup && el.modalHintPopup) {
+    if (state.showHintPopup && !isAuto && !isDynamicModelChange && el.modalHintPopup) {
       el.modalHintPopup.classList.add('active');
     }
 
-    // Automatically switch to controls tab so user sees the analysis right away on side panel
-    activateSideTab('tab-controls');
+    if (!isAuto) {
+      activateSideTab('tab-controls');
+    }
 
-    // Update Side UI Card if visible
+    // Update Side UI Card
     if (el.hintResultCard) {
       el.hintResultCard.style.display = 'flex';
     }
@@ -3358,23 +3670,27 @@ async function requestBestMoveHint() {
       el.hintTacticalBadge.innerText = tactical.badge;
     }
     if (el.hintDepthBadge) {
-      el.hintDepthBadge.innerText = `수읽기: ${calculatedDepth}수 앞 (Depth ${calculatedDepth})`;
+      el.hintDepthBadge.innerText = `${shortEngineName} Lv.${chosenLevel} (${calculatedDepth}수 탐색)`;
     }
     if (el.hintExplanationText) {
       el.hintExplanationText.innerText = tactical.explanation;
     }
     if (el.engineHintText) {
-      el.engineHintText.innerText = `💡 ${engineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
+      el.engineHintText.innerText = `💡 ${shortEngineName} 추천 [${moveSanStr}] - ${tactical.badge} [${remainText}]`;
     }
 
-    // Smooth scroll the hint card into view if needed
-    if (el.hintResultCard && typeof el.hintResultCard.scrollIntoView === 'function') {
+    if (!isAuto && el.hintResultCard && typeof el.hintResultCard.scrollIntoView === 'function') {
       el.hintResultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    showToast(`💡 최선수(${engineName}): ${pieceColor} ${pieceName} ${moveCoordStr} · ${tactical.badge}`);
+    if (isDynamicModelChange) {
+      showToast(`🔄 모델/난이도 즉시 반영 (${shortEngineName} Lv.${chosenLevel}): ${pieceColor} ${pieceName} ${moveCoordStr} · ${tactical.badge}`);
+    } else if (!isAuto) {
+      showToast(`💡 최선수(${shortEngineName}): ${pieceColor} ${pieceName} ${moveCoordStr} · ${tactical.badge}`);
+      audio.playNotify();
+    }
+
     renderBoard();
-    audio.playNotify();
 
     // TTS Voice Output
     const fullTtsText = `${calculatedDepth}수 앞을 내다본 ${engineName} 최선수는, ${pieceColor} ${pieceName} ${moveObj.from}에서 ${moveObj.to}로 이동하는 ${moveSanStr}입니다. ${tactical.speechSummary}`;
@@ -3384,21 +3700,28 @@ async function requestBestMoveHint() {
       speakText(fullTtsText);
     }
   } finally {
-    if (el.btnClockHint) {
-      el.btnClockHint.classList.remove('loading');
-      el.btnClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span><span class="clock-hint-count" id="clock-hint-count" style="display: none;"></span>';
+    if (myToken === state.hintCalcToken) {
+      if (el.btnClockHint) {
+        el.btnClockHint.classList.remove('loading');
+        el.btnClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span><span class="clock-hint-count" id="clock-hint-count" style="display: none;"></span>';
+      }
+      if (el.btnOpponentClockHint) {
+        el.btnOpponentClockHint.classList.remove('loading');
+        el.btnOpponentClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span>';
+      }
+      updateHintUi();
     }
-    if (el.btnOpponentClockHint) {
-      el.btnOpponentClockHint.classList.remove('loading');
-      el.btnOpponentClockHint.innerHTML = '<span class="clock-hint-icon">💡</span><span class="clock-hint-text">최선수</span>';
-    }
-    updateHintUi();
   }
 }
 
 // ================= EVENT LISTENERS =================
 function setupEventListeners() {
-  el.btnHomeLogo.addEventListener('click', () => switchView('lobby'));
+  el.btnHomeLogo.addEventListener('click', () => {
+    if (state.mode === 'wifi' && state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'leave_room' }));
+    }
+    switchView('lobby');
+  });
 
   el.btnCopyIp.addEventListener('click', () => {
     navigator.clipboard.writeText(state.serverUrl).then(() => showToast('접속 주소가 복사되었습니다.'));
@@ -3593,6 +3916,38 @@ function setupEventListeners() {
     });
   }
 
+  // Learning Mode ("최선수 항상 체크") Toggles
+  const handleAutoHintToggleChange = (checked) => {
+    syncAutoHintUi(checked);
+    if (checked) {
+      showToast('🎓 배움모드 켜짐: 내 차례마다 체스판 빈 공간에 반투명 최선수 해설이 자동 표시됩니다!');
+      triggerAutoHintIfNeeded();
+    } else {
+      showToast('🎓 배움모드(최선수 항상 체크)가 해제되었습니다.');
+      clearHintUi();
+      renderBoard();
+    }
+  };
+
+  if (el.aiAutoHintToggle) {
+    el.aiAutoHintToggle.checked = state.autoHint;
+    el.aiAutoHintToggle.addEventListener('change', (e) => {
+      handleAutoHintToggleChange(e.target.checked);
+    });
+  }
+  if (el.chkClockAutoHint) {
+    el.chkClockAutoHint.checked = state.autoHint;
+    el.chkClockAutoHint.addEventListener('change', (e) => {
+      handleAutoHintToggleChange(e.target.checked);
+    });
+  }
+  if (el.chkAutoHint) {
+    el.chkAutoHint.checked = state.autoHint;
+    el.chkAutoHint.addEventListener('change', (e) => {
+      handleAutoHintToggleChange(e.target.checked);
+    });
+  }
+
   if (el.btnCloseHintModal) {
     el.btnCloseHintModal.addEventListener('click', () => {
       if (el.modalHintPopup) el.modalHintPopup.classList.remove('active');
@@ -3633,6 +3988,7 @@ function setupEventListeners() {
       localStorage.setItem('chess_hint_model', state.hintModel);
       if (el.settingHintModel) el.settingHintModel.value = state.hintModel;
       showToast(`최선수 AI 모델: ${state.hintModel === 'stockfish' ? 'Stockfish 16 (젤리피쉬)' : 'Minimax'}`);
+      refreshCurrentHintIfNeeded();
     });
   }
 
@@ -3642,6 +3998,7 @@ function setupEventListeners() {
       localStorage.setItem('chess_hint_level', String(state.hintLevel));
       if (el.settingHintLevel) el.settingHintLevel.value = String(state.hintLevel);
       showToast(`최선수 수읽기 난이도: Lv.${state.hintLevel}`);
+      refreshCurrentHintIfNeeded();
     });
   }
 
@@ -3754,6 +4111,7 @@ function setupEventListeners() {
     el.btnOpenSettings.addEventListener('click', () => {
       if (el.modalSettings) {
         if (el.settingHintLimit) el.settingHintLimit.value = String(state.maxHints);
+        if (el.settingAutoHint) el.settingAutoHint.checked = state.autoHint;
         if (el.settingAiModel) el.settingAiModel.value = state.aiModel;
         if (el.settingShowAttack) el.settingShowAttack.checked = state.showAttackLines;
         if (el.settingShowThreat) el.settingShowThreat.checked = state.showThreatLines;
@@ -3786,12 +4144,19 @@ function setupEventListeners() {
 
   if (el.btnSaveSettings) {
     el.btnSaveSettings.addEventListener('click', () => {
+      const prevHintModel = state.hintModel;
+      const prevHintLevel = state.hintLevel;
+      const prevAutoHint = state.autoHint;
+
       if (el.settingHintLimit) {
         const val = parseInt(el.settingHintLimit.value, 10);
         state.maxHints = val;
         localStorage.setItem('chess_max_hints', String(val));
         localStorage.setItem('chess_max_hints_v2', String(val));
         if (el.aiHintPicker) el.aiHintPicker.value = String(val);
+      }
+      if (el.settingAutoHint) {
+        syncAutoHintUi(el.settingAutoHint.checked);
       }
       if (el.settingHintModel) {
         state.hintModel = el.settingHintModel.value;
@@ -3857,23 +4222,39 @@ function setupEventListeners() {
       if (el.modalSettings) el.modalSettings.classList.remove('active');
       updateHintUi();
       renderBoardLines();
+      if (!state.autoHint && prevAutoHint) {
+        clearHintUi();
+        renderBoard();
+      } else if (state.hintModel !== prevHintModel || state.hintLevel !== prevHintLevel || (state.autoHint && !prevAutoHint)) {
+        refreshCurrentHintIfNeeded();
+      }
       showToast('게임 환경 설정이 저장되었습니다.');
     });
   }
 
   // Undo Move
   el.btnUndoMove.addEventListener('click', () => {
+    if (state.gameStatus !== 'playing') return;
+    if (state.aiThinking || state.isAnimating) {
+      showToast('AI가 착수 중일 때는 잠시 후 무르기를 눌러주세요.');
+      return;
+    }
     if (state.mode === 'ai') {
       const m1 = state.game.undo();
       const m2 = state.game.undo();
       if (m1 || m2) {
         state.undosUsed = (state.undosUsed || 0) + 1;
       }
-      state.lastMove = null;
-      state.hintMove = null;
+      state.activeTurn = state.game.turn();
+      const hist = state.game.history({ verbose: true });
+      state.lastMove = hist.length > 0 ? hist[hist.length - 1] : null;
+      state.selectedSquare = null;
+      state.legalMovesForSelected = [];
+      clearHintUi();
       renderBoard();
       triggerAsyncEvaluation();
       saveActiveSessionState();
+      triggerAutoHintIfNeeded();
       showToast(`수를 1수 물렸습니다. (무르기 누적 ${state.undosUsed}회)`);
     } else if (state.mode === 'local') {
       const m1 = state.game.undo();
@@ -3882,7 +4263,11 @@ function setupEventListeners() {
       }
       state.activeTurn = state.game.turn();
       if (state.autoFlip) state.boardFlipped = (state.activeTurn === 'b');
-      state.lastMove = null;
+      const hist = state.game.history({ verbose: true });
+      state.lastMove = hist.length > 0 ? hist[hist.length - 1] : null;
+      state.selectedSquare = null;
+      state.legalMovesForSelected = [];
+      clearHintUi();
       renderBoard();
       triggerAsyncEvaluation();
       saveActiveSessionState();
@@ -3905,11 +4290,13 @@ function setupEventListeners() {
   });
 
   el.btnResign.addEventListener('click', () => {
+    if (state.gameStatus !== 'playing') return;
     if (confirm('정말로 기권하시겠습니까?')) {
       if (state.mode === 'wifi' && state.ws) {
         state.ws.send(JSON.stringify({ type: 'resign' }));
       } else {
-        handleGameOver('resign', state.playerColor === 'w' ? 'b' : 'w');
+        const resignColor = state.mode === 'local' ? state.game.turn() : state.playerColor;
+        handleGameOver('resign', resignColor === 'w' ? 'b' : 'w');
       }
     }
   });
@@ -3958,7 +4345,9 @@ function setupEventListeners() {
         await saveLocalGameToServer(oppColor, '훈련 중도 종료 (기권)', movesPlayed);
         showToast('📊 진행한 AI 훈련 이력이 학습 통계에 반영되었습니다.');
       }
-      if (state.ws) state.ws.close();
+      if (state.mode === 'wifi' && state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'leave_room' }));
+      }
       clearActiveSessionState();
       switchView('lobby');
     }
@@ -3977,7 +4366,8 @@ function setupEventListeners() {
     navigator.clipboard.writeText(state.game.fen()).then(() => showToast('FEN 복사 완료!'));
   });
   el.btnCopyPgn.addEventListener('click', () => {
-    navigator.clipboard.writeText(state.game.pgn()).then(() => showToast('PGN 복사 완료!'));
+    const pgnText = (state.mode === 'wifi' && state.roomPgn) ? state.roomPgn : state.game.pgn();
+    navigator.clipboard.writeText(pgnText).then(() => showToast('PGN 복사 완료!'));
   });
 
   el.btnSendChat.addEventListener('click', () => {
@@ -4126,6 +4516,9 @@ function setupEventListeners() {
 
   el.btnModalLobby.addEventListener('click', () => {
     el.modalGameOver.classList.remove('active');
+    if (state.mode === 'wifi' && state.ws && state.ws.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'leave_room' }));
+    }
     switchView('lobby');
   });
 

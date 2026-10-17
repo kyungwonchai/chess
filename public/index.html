@@ -158,6 +158,17 @@
                     <option value="0">0회 (비활성화 / 숨김)</option>
                   </select>
                 </div>
+
+                <div class="option-row learning-mode-option-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.75rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm);">
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <label for="ai-auto-hint-toggle" style="margin: 0; color: #fbbf24; font-weight: 800; cursor: pointer;">🎓 최선수 항상 체크 (배움모드)</label>
+                    <span style="font-size: 0.73rem; color: var(--text-muted);">내 차례마다 자동 최선수 &amp; 체스판 빈 공간에 반투명 전술 해설 표시</span>
+                  </div>
+                  <div class="toggle-switch-wrapper">
+                    <input type="checkbox" id="ai-auto-hint-toggle" class="toggle-checkbox" checked>
+                    <label for="ai-auto-hint-toggle" class="toggle-label"></label>
+                  </div>
+                </div>
               </div>
 
               <button class="btn-action-primary" id="btn-start-ai">
@@ -417,6 +428,8 @@
                   <g id="svg-preview-group"></g>
                   <g id="svg-hint-group"></g>
                 </svg>
+                <!-- Dynamic Semi-Transparent On-Board Tactical Explanation Overlay (Placed in Empty Region) -->
+                <div id="board-hint-floating-box" class="board-hint-floating-box" style="display: none;"></div>
               </div>
             </div>
 
@@ -434,6 +447,10 @@
               </div>
 
               <div class="player-clock-actions">
+                <label class="clock-auto-hint-chip" id="lbl-clock-auto-hint" title="배움모드: 혼자 AI 대국 시 내 차례마다 최선수와 전술 이유를 체스판 빈 공간에 자동 표시합니다.">
+                  <input type="checkbox" id="chk-clock-auto-hint" checked>
+                  <span>🎓 최선수 항상</span>
+                </label>
                 <button type="button" class="btn-clock-hint" id="btn-clock-hint" title="현재 국면 최선수 힌트 및 전술 이유 보기">
                   <span class="clock-hint-icon">💡</span>
                   <span class="clock-hint-text">최선수</span>
@@ -538,9 +555,14 @@
                 <!-- Live Visual Guide Toggles (Capture & Threat Lines) -->
                 <div class="visual-assist-panel">
                   <div class="assist-header">
-                    <span class="assist-title">🎯 수 읽기 시각화 가이드</span>
+                    <span class="assist-title">🎯 수 읽기 시각화 &amp; 배움모드 가이드</span>
                   </div>
                   <div class="assist-options-grid">
+                    <label class="assist-checkbox-label assist-learning-highlight" title="혼자 AI 대국 시 내 차례마다 최선수를 자동 탐색하고 체스판 빈 공간에 반투명 전술 설명을 띄워줍니다.">
+                      <input type="checkbox" id="chk-auto-hint" class="assist-chk" checked>
+                      <span class="assist-chk-custom color-learning"></span>
+                      <span class="assist-text">🎓 최선수 항상 체크 (배움모드 · 내 차례마다 보드 빈칸에 자동 해설)</span>
+                    </label>
                     <label class="assist-checkbox-label" title="내 차례일 때 상대 기물을 잡을 수 있는 경로를 연한 청록선으로 표시합니다.">
                       <input type="checkbox" id="chk-show-attack-lines" class="assist-chk">
                       <span class="assist-chk-custom color-attack"></span>
@@ -814,6 +836,17 @@
           <p class="modal-desc">최선수 힌트 횟수, 수 시각화 가이드 등 전역 설정을 조정합니다.</p>
         </div>
         <div class="settings-content">
+          <div class="setting-item-box">
+            <div class="setting-item-info">
+              <label class="setting-label">🎓 혼자 AI 대국 시 최선수 항상 체크 (배움모드)</label>
+              <p class="setting-subtext">내가 둘 차례마다 자동으로 최선수를 계산하고, 체스판의 말이 없는 빈 사각형 공간에 반투명 전술 해설을 동적으로 띄워줍니다.</p>
+            </div>
+            <div class="toggle-switch-wrapper">
+              <input type="checkbox" id="setting-auto-hint" class="toggle-checkbox" checked>
+              <label for="setting-auto-hint" class="toggle-label"></label>
+            </div>
+          </div>
+
           <div class="setting-item-box">
             <div class="setting-item-info">
               <label class="setting-label">💡 대국당 최선수 힌트 횟수</label>

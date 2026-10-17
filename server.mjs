@@ -224,6 +224,7 @@ function broadcastRoomState(room) {
     roomId: room.id,
     name: room.name,
     fen: room.chess.fen(),
+    pgn: room.chess.pgn(),
     history: room.chess.history({ verbose: true }),
     turn: room.chess.turn(),
     isCheck: room.chess.inCheck(),
@@ -698,6 +699,28 @@ wss.on('connection', (ws) => {
     // 8. Public Room List
     else if (type === 'list_rooms') {
       ws.send(JSON.stringify({ type: 'room_list', rooms: getRoomListData() }));
+    }
+
+    // 9. Leave Room
+    else if (type === 'leave_room') {
+      const client = clientRooms.get(ws);
+      if (client) {
+        const room = rooms[client.roomId];
+        if (room) {
+          if (room.white?.ws === ws) room.white.ws = null;
+          if (room.black?.ws === ws) room.black.ws = null;
+          room.spectators = room.spectators.filter(s => s.ws !== ws);
+
+          if (room.status === 'waiting' && !room.white?.ws && !room.black?.ws) {
+            stopRoomTimer(room);
+            delete rooms[room.id];
+          } else {
+            broadcastRoomState(room);
+          }
+          broadcastRoomList();
+        }
+        clientRooms.delete(ws);
+      }
     }
   });
 

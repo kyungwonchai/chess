@@ -10,6 +10,8 @@ export class StockfishEngine {
     this.pendingMoveResolve = null;
     this.analysisCallback = null;
     this.lastCandidateMove = null;
+    this.currentSearchTurn = 'w';
+    this.analysisStopTimer = null;
     this.init();
   }
 
@@ -102,6 +104,10 @@ export class StockfishEngine {
     }
 
     if (rawScore !== null) {
+      // UCI score is relative to side to move; normalize to White's perspective (+ = White advantage, - = Black advantage)
+      if (this.currentSearchTurn === 'b') {
+        rawScore = -rawScore;
+      }
       const scoreInPawns = (rawScore / 100).toFixed(1);
       this.analysisCallback({
         rawScore,
@@ -118,15 +124,22 @@ export class StockfishEngine {
         return;
       }
 
+      // Stop any ongoing search or evaluation cleanly before starting a new move search
+      if (this.analysisStopTimer) {
+        clearTimeout(this.analysisStopTimer);
+        this.analysisStopTimer = null;
+      }
+      if (this.pendingMoveResolve) {
+        const prevResolve = this.pendingMoveResolve;
+        this.pendingMoveResolve = null;
+        prevResolve(this.lastCandidateMove || null);
+      }
+      this.send('stop');
+
+      this.currentSearchTurn = (fen.split(' ')[1] === 'b') ? 'b' : 'w';
       this.lastCandidateMove = null;
-      this.pendingMoveResolve = resolve;
 
       // Stockfish UCI Skill Level mapping (0 ~ 20)
-      // Level 1: Beginner (~800 Elo)
-      // Level 2: Casual (~1200 Elo)
-      // Level 3: Intermediate (~1600 Elo)
-      // Level 4: Advanced (~2200 Elo)
-      // Level 5: World-Class Grandmaster (3200+ Elo)
       const skillMap = { 1: 0, 2: 4, 3: 10, 4: 15, 5: 20 };
       const skill = skillMap[level] !== undefined ? skillMap[level] : 20;
 
@@ -137,36 +150,35 @@ export class StockfishEngine {
       const targetMovetime = Math.max(10, Math.floor(maxTimeMs * 0.8));
 
       if (level === 1 && maxTimeMs > 400) {
-        // Fast shallow depth for level 1
         this.send('go depth 2');
       } else {
-        // Strict time control
         this.send(`go movetime ${targetMovetime}`);
       }
+
+      let wrappedResolve = null;
 
       // Hard Deadline 1: Send 'stop' command slightly before maxTimeMs
       const stopMarginMs = Math.max(15, Math.floor(maxTimeMs * 0.15));
       const stopTimer = setTimeout(() => {
-        if (this.pendingMoveResolve === resolve) {
+        if (this.pendingMoveResolve === wrappedResolve) {
           this.send('stop');
         }
       }, Math.max(10, maxTimeMs - stopMarginMs));
 
       // Hard Deadline 2: Absolute guaranteed resolve cap at maxTimeMs (strict zero-overrun)
       const hardCapTimer = setTimeout(() => {
-        if (this.pendingMoveResolve === resolve) {
+        if (this.pendingMoveResolve === wrappedResolve) {
           this.pendingMoveResolve = null;
           resolve(this.lastCandidateMove || null);
         }
       }, maxTimeMs);
 
-      // Wrapper around resolve to clear safety timers
-      const originalResolve = resolve;
-      this.pendingMoveResolve = (result) => {
+      wrappedResolve = (result) => {
         clearTimeout(stopTimer);
         clearTimeout(hardCapTimer);
-        originalResolve(result);
+        resolve(result);
       };
+      this.pendingMoveResolve = wrappedResolve;
     });
   }
 
@@ -174,13 +186,29 @@ export class StockfishEngine {
   analyzePosition(fen, callback) {
     if (!this.worker || !this.isReady) return;
     this.analysisCallback = callback;
+
+    // Do not interrupt an active move / hint search; its own info lines will trigger parseEvaluation!
+    if (this.pendingMoveResolve) {
+      return;
+    }
+
+    if (this.analysisStopTimer) {
+      clearTimeout(this.analysisStopTimer);
+      this.analysisStopTimer = null;
+    }
+
+    this.currentSearchTurn = (fen.split(' ')[1] === 'b') ? 'b' : 'w';
+    this.send('stop');
     this.send(`position fen ${fen}`);
     this.send(`go depth 12`);
 
-    // Auto-stop evaluation search after 500ms
-    setTimeout(() => {
-      this.send('stop');
-    }, 500);
+    // Auto-stop evaluation search after 450ms
+    this.analysisStopTimer = setTimeout(() => {
+      this.analysisStopTimer = null;
+      if (!this.pendingMoveResolve) {
+        this.send('stop');
+      }
+    }, 450);
   }
 
   // Get the most recent search depth (number of moves ahead calculated)
